@@ -160,8 +160,8 @@ func main() {
 		ctx.JSON(http.StatusOK, c)
 	}))
 	// /go/gen
-	router.GET("/api/gen", cache.CachePage(store, time.Hour*6, func(ctx *gin.Context) {
-		const maxcontribs = 3
+	router.GET("/api/gen", cache.CachePage(store, time.Second*1, func(ctx *gin.Context) {
+		const maxcontribs = 1
 
 		contribs := make([]bson.M, 0)
 		// Go

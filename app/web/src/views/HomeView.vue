@@ -45,14 +45,14 @@ const codeViewerlanguage = computed(() => {
 
   return ''
 })
-const codeViewerLines = computed(() => {
-  return reduce(contribution.apis, (apis, api) => {
-    apis.push(api.line)
-    return apis
-  }, []).sort()
-})
 const contributionApis = computed(() => {
   return sortBy(contribution.apis, 'line')
+})
+const codeViewerLines = computed(() => {
+  return reduce(sortBy(contribution.apis, 'line'), (apis, api) => {
+    apis.push(api.line)
+    return apis
+  }, [])
 })
 
 onBeforeMount(() => {

@@ -150,7 +150,7 @@ onMounted(async () => {
       }
 
       next()
-    }, 2600)
+    }, 2800)
   }
 })
 </script>
