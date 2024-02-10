@@ -384,13 +384,13 @@ func main() {
 
 	// Favicon
 	router.StaticFile("/favicon.png", "./website/favicon.png")
+	router.StaticFile("/sitemap.xml", "./website/sitemap.xml")
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 	addr := fmt.Sprintf(":%s", port)
-
 	router.Run(addr)
 }
 
