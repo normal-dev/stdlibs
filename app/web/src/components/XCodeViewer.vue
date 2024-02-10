@@ -74,6 +74,7 @@ onMounted(async () => {
   const editor = monaco.editor.create(codeViewerHtmlElement.value, {
     automaticLayout: true,
     contextmenu: false,
+    domReadOnly: true,
     fixedOverflowWidgets: true,
     language: props.language,
     minimap: { enabled: false },
