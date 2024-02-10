@@ -160,16 +160,17 @@ func main() {
 		ctx.JSON(http.StatusOK, c)
 	}))
 	// /go/gen
-	router.GET("/api/gen", cache.CachePage(store, time.Second*1, func(ctx *gin.Context) {
+	router.GET("/api/gen", cache.CachePage(store, time.Hour*6, func(ctx *gin.Context) {
 		const maxcontribs = 3
 
 		contribs := make([]bson.M, 0)
 		// Go
 		{
 			mongoColl := mongoClient.Database(db_contribs).Collection("go")
+			size := rand.Intn(6-3) + 3 // 3-6
 			filter := bson.D{
 				{Key: "apis", Value: bson.D{
-					{Key: "$size", Value: 5},
+					{Key: "$size", Value: size},
 				}},
 			}
 			ncontribs, err := mongoColl.CountDocuments(context.TODO(), filter)

@@ -1,7 +1,7 @@
 <script setup>
 import { useTheme } from 'vuetify/lib/framework.mjs'
 import { getCatalogue, getLicenses, getRandomContributions } from '../api'
-import { inject, provide, computed, onBeforeMount, ref } from 'vue'
+import { inject, provide, computed, onBeforeMount, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import XCodeViewer from '../components/XCodeViewer.vue'
 import { isArray, mergeWith, reduce, sortBy } from 'lodash'
@@ -57,6 +57,9 @@ const contributionApis = computed(() => {
 
 onBeforeMount(() => {
   setCanonicalUrl(route.fullPath)
+})
+onMounted(() => {
+
 })
 </script>
 
