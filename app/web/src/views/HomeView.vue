@@ -25,8 +25,8 @@ provide('licenses', mergeWith(goLicenses, nodeLicenses, (source, target) => {
   return source
 }))
 
-let goCatalogue = {}
-let nodeCatalogue = {}
+const goCatalogue = ref({})
+const nodeCatalogue = ref({})
 
 const codeViewerlanguage = computed(() => {
   const fileExtension = contribution.filename.split('.').pop()
@@ -59,8 +59,8 @@ onBeforeMount(() => {
   setCanonicalUrl(route.fullPath)
 })
 onMounted(async () => {
-  goCatalogue = await getCatalogue('go')
-  nodeCatalogue = await getCatalogue('node')
+  goCatalogue.value = await getCatalogue('go')
+  nodeCatalogue.value = await getCatalogue('node')
 })
 </script>
 
