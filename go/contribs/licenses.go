@@ -152,6 +152,11 @@ func saveLicenses(ctx context.Context) error {
 				Repo:   [2]string{"canonical", "lxd"},
 				Type:   "Apache-2.0 license",
 			},
+			{
+				Author: "Shenzhen Silver Cloud Information Technology Co., Ltd.",
+				Repo:   [2]string{"eolinker", "apinto"},
+				Type:   "Apache-2.0 license",
+			},
 		},
 	}
 	_, err = mongoColl.InsertOne(context.TODO(), licenses)

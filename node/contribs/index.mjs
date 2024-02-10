@@ -183,6 +183,11 @@ const saveLicenses = async () => {
         author: 'Andrey Okonetchnikov',
         repo: ['lint-staged', 'lint-staged'],
         type: 'MIT'
+      },
+      {
+        author: 'Metarhia contributors',
+        repo: ['metarhia', 'impress'],
+        type: 'MIT'
       }
     ]
   })
@@ -232,7 +237,8 @@ const getHandpickedRepositories = async githubClient => {
     ['11ty', 'eleventy'],
     ['dagger', 'dagger'],
     ['cheeriojs', 'cheerio'],
-    ['lint-staged', 'lint-staged']
+    ['lint-staged', 'lint-staged'],
+    ['metarhia', 'impress'],
   ]) {
     console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({
