@@ -103,7 +103,7 @@ func main() {
 		})
 	}
 
-	// Cache pages for one hour
+	// Cache pages
 	store := persistence.NewInMemoryStore(time.Hour * 6)
 
 	// /node
