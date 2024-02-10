@@ -19,6 +19,7 @@ import (
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -68,6 +69,9 @@ func main() {
 	flag.Parse()
 
 	router := gin.Default()
+
+	// Compression
+	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	// Trust all proxies
 	router.SetTrustedProxies(nil)
@@ -160,7 +164,7 @@ func main() {
 		ctx.JSON(http.StatusOK, c)
 	}))
 	// /go/gen
-	router.GET("/api/gen", cache.CachePage(store, time.Hour*24, func(ctx *gin.Context) {
+	router.GET("/api/gen", cache.CachePage(store, time.Hour*6, func(ctx *gin.Context) {
 		const maxcontribs = 1
 
 		contribs := make([]bson.M, 0)

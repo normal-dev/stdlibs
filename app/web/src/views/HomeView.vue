@@ -1,9 +1,8 @@
 <script setup>
 import { useTheme } from 'vuetify/lib/framework.mjs'
 import { getCatalogue, getLicenses, getRandomContributions } from '../api'
-import { inject, provide, computed, onBeforeMount, ref, onMounted } from 'vue'
+import { defineAsyncComponent, inject, provide, computed, onBeforeMount, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import XCodeViewer from '../components/XCodeViewer.vue'
 import { isArray, mergeWith, reduce, sortBy } from 'lodash'
 
 document.title = 'stdlibs.com'
@@ -56,6 +55,8 @@ const codeViewerLines = computed(() => {
     return apis
   }, [])
 })
+
+const XCodeViewer = defineAsyncComponent(() => import('../components/XCodeViewer.vue'))
 
 onBeforeMount(() => {
   setCanonicalUrl(route.fullPath)

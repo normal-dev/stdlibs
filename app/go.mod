@@ -8,6 +8,8 @@ require (
 	go.mongodb.org/mongo-driver v1.12.1
 )
 
+require github.com/gin-contrib/gzip v0.0.6 // indirect
+
 require (
 	github.com/bradfitz/gomemcache v0.0.0-20220106215444-fb4bf637b56d // indirect
 	github.com/bytedance/sonic v1.10.1 // indirect
