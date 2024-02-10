@@ -6,6 +6,8 @@ import { useRoute } from 'vue-router'
 import XCodeViewer from '../components/XCodeViewer.vue'
 import { isArray, mergeWith, reduce, sortBy } from 'lodash'
 
+document.title = 'stdlibs.com'
+
 const route = useRoute()
 const theme = useTheme()
 
