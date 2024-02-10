@@ -39,6 +39,19 @@ provide('setCanonicalUrl', url => {
 
         <v-btn
           size="small"
+          variant="text">
+          Search
+          <v-overlay
+            activator="parent"
+            location-strategy="connected"
+            scroll-strategy="none">
+            <v-card class="pa-2">
+              Hello!
+            </v-card>
+          </v-overlay>
+        </v-btn>
+        <v-btn
+          size="small"
           variant="text"
           icon="mdi-theme-light-dark"
           @click="toggleTheme()" />
