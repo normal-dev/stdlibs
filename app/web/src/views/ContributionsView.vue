@@ -63,6 +63,12 @@
               Namespaces ({{ namespaces.length }})
             </v-card-title>
             <v-card-text>
+              <v-text-field
+                v-model="namespaceQuery"
+                density="compact"
+                label="Search namespace"
+                variant="solo-filled"
+                flat />
               <v-list
                 ref="namespacesHtmlElement"
                 v-model:selected="selectedNamespace"
@@ -71,7 +77,7 @@
                 density="compact"
                 max-height="300">
                 <v-list-item
-                  v-for="namespace in namespaces"
+                  v-for="namespace in filteredNamespaces"
                   :key="namespace"
                   :disabled="namespace === selectedNamespace.at(0)"
                   :value="namespace">
@@ -90,6 +96,12 @@
               APIs ({{ apis.length }})
             </v-card-title>
             <v-card-text>
+              <v-text-field
+                v-model="apisQuery"
+                density="compact"
+                label="Search API"
+                variant="solo-filled"
+                flat />
               <v-list
                 ref="apisHtmlElement"
                 v-model:selected="selectedApi"
@@ -98,7 +110,7 @@
                 nav
                 max-height="300">
                 <v-list-item
-                  v-for="api in apis"
+                  v-for="api in filteredApis"
                   :key="api._id"
                   :disabled="api.name === selectedApi.at(0)"
                   :value="api.name">
@@ -189,14 +201,18 @@ technologyToLanguageMapper.set('go', 'go')
 technologyToLanguageMapper.set('node', 'javascript')
 
 const apis = ref([])
+const apisQuery = ref('')
 const apisHtmlElement = ref(null)
 const catalogue = ref({})
 const contributions = ref([])
+const filteredApis = ref([])
+const filteredNamespaces = ref([])
 const isLoadingContributions = ref(false)
-const namespacesHtmlElement = ref(null)
 const isLoadingApis = ref(false)
 const isLoadingNamespaces = ref(false)
 const namespaces = ref([])
+const namespacesHtmlElement = ref(null)
+const namespaceQuery = ref('')
 const pagination = ref({
   page: 1,
   perPage: 6,
@@ -263,6 +279,7 @@ onMounted(async () => {
 
   catalogue.value = await getCatalogue(technology)
   namespaces.value = catalogue.value.ns.sort()
+  filteredNamespaces.value = namespaces.value
 
   // Resolve existing namespace query request
   if (route.query.ns) {
@@ -284,6 +301,7 @@ onMounted(async () => {
 
   // Apis
   apis.value = await getApis(technology, selectedNamespace.value)
+  filteredApis.value = apis.value
 
   watch(selectedNamespace, async () => {
     toggleIsLoadingApis()
@@ -307,6 +325,7 @@ onMounted(async () => {
 
     resetPagination()
     apis.value = await getApis(technology, selectedNamespace.value)
+    filteredApis.value = apis.value
     if (apis.value.length === 0) {
       throw new Error('can\'t find apis')
     }
@@ -374,5 +393,26 @@ onMounted(async () => {
     })
     setDocumentTitle(`${technology}/${selectedNamespace.value}/${selectedApi.value}`)
   }, { deep: true })
+
+  watch(apisQuery, () => {
+    if (apisQuery.value === '') {
+      filteredApis.value = apis.value
+      return
+    }
+
+    filteredApis.value = filteredApis.value.filter(api => {
+      return api.name.startsWith(apisQuery.value) || api.name === selectedApi.value.at(0)
+    })
+  })
+  watch(namespaceQuery, () => {
+    if (namespaceQuery.value === '') {
+      filteredNamespaces.value = namespaces.value
+      return
+    }
+
+    filteredNamespaces.value = filteredNamespaces.value.filter(namespace => {
+      return namespace.startsWith(namespaceQuery.value) || namespace === selectedNamespace.value.at(0)
+    })
+  })
 })
 </script>
