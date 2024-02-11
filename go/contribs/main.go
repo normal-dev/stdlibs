@@ -144,7 +144,38 @@ func main() {
 }
 
 func getHandpickedRepos(ctx context.Context, ghClient *github.Client) (repos []*github.Repository, err error) {
-	for _, repo := range handpickedRepos {
+	for _, repo := range [][2]string{
+		{"cli", "cli"},
+		{"traefik", "traefik"},
+		{"moby", "moby"},
+		{"docker", "compose"},
+		{"containers", "podman"},
+		{"helm", "helm"},
+		{"kubernetes", "kubernetes"},
+		{"minio", "minio"},
+		{"cloudflare", "cloudflared"},
+		{"cosmos", "cosmos-sdk"},
+		{"aws", "karpenter"},
+		{"cilium", "cilium"},
+		{"containerd", "containerd"},
+		{"containers", "buildah"},
+		{"hyperledger", "fabric"},
+		{"istio", "istio"},
+		{"pingcap", "tidb"},
+		{"vitessio", "vitess"},
+		{"go-delve", "delve"},
+		{"nektos", "act"},
+		{"slackhq", "nebula"},
+		{"go-gitea", "gitea"},
+		{"vmware-tanzu", "velero"},
+		{"vmware-tanzu", "sonobuoy"},
+		{"gravitational", "teleport"},
+		{"canonical", "lxd"},
+		{"eolinker", "apinto"},
+		{"portainer", "portainer"},
+		{"hyperledger", "firefly"},
+		{"pingcap", "ossinsight"},
+	} {
 		owner, name := repo[0], repo[1]
 		log.Printf("fetching repo %s/%s...", owner, name)
 		repo, _, err := ghClient.Repositories.Get(ctx, owner, name)
