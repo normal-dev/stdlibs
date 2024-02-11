@@ -44,11 +44,11 @@
             <v-card-text v-if="technology === 'go'">
               Go is a statically typed, compiled high-level programming
               language designed at Google by Robert Griesemer, Rob Pike, and Ken
-              Thompson.
+              Thompson. ({{ catalogue.version }})
             </v-card-text>
             <v-card-text v-if="technology === 'node'">
               Node.js is a cross-platform, open-source JavaScript runtime
-              environment that can run on Windows, Linux, Unix, macOS, and more.
+              environment that can run on Windows, Linux, Unix, macOS, and more. ({{ catalogue.version }})
             </v-card-text>
           </v-card>
 
@@ -66,15 +66,15 @@
               <v-text-field
                 v-model="namespaceQuery"
                 density="compact"
-                label="Search namespace"
+                label="Search namespaces"
                 variant="solo-filled"
                 flat />
               <v-list
                 ref="namespacesHtmlElement"
                 v-model:selected="selectedNamespace"
+                density="compact"
                 return-object
                 nav
-                density="compact"
                 max-height="300">
                 <v-list-item
                   v-for="namespace in filteredNamespaces"
@@ -99,7 +99,7 @@
               <v-text-field
                 v-model="apisQuery"
                 density="compact"
-                label="Search API"
+                label="Search APIs"
                 variant="solo-filled"
                 flat />
               <v-list
