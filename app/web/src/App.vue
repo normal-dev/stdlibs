@@ -1,14 +1,30 @@
 <script setup>
-import { provide } from 'vue'
+import { watch, provide, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from 'vuetify/lib/framework.mjs'
+import { throttle } from 'lodash'
+import { search } from './api'
 
 const theme = useTheme()
 const route = useRoute()
 
+const themeToggleIcon = ref('mdi-white-balance-sunny')
 const toggleTheme = () => {
   theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
+watch(() => theme.global.current.value.dark, (dark) => {
+  if (dark) {
+    themeToggleIcon.value = 'mdi-white-balance-sunny'
+  } else {
+    themeToggleIcon.value = 'mdi-moon-waning-crescent'
+  }
+})
+
+const query = ref('')
+watch(query, throttle(async () => {
+  const searchResults = await search(query)
+  console.log(searchResults)
+}, 1000, { leading: false }))
 
 provide('setDocumentTitle', title => {
   document.title = `stdlibs.com - ${title}`
@@ -17,6 +33,7 @@ provide('setCanonicalUrl', url => {
   const canonical = document.querySelector('link[rel="canonical"]')
   canonical.href = `https://www.stdlibs.com${url}`
 })
+
 </script>
 
 <template>
@@ -32,15 +49,34 @@ provide('setCanonicalUrl', url => {
           v-if="route.path !== '/'"
           size="small"
           variant="text"
-          icon="mdi-home"
-          to="/" />
+          to="/">
+          Home
+        </v-btn>
 
         <v-spacer />
 
         <v-btn
+          v-if="false"
+          size="small"
+          variant="text">
+          Search
+          <v-overlay
+            activator="parent"
+            location-strategy="connected"
+            scroll-strategy="none">
+            <v-card
+              class="pa-2"
+              min-width="200">
+              <v-text-field
+                v-model="query"
+                label="Query" />
+            </v-card>
+          </v-overlay>
+        </v-btn>
+        <v-btn
           size="small"
           variant="text"
-          icon="mdi-theme-light-dark"
+          :icon="themeToggleIcon"
           @click="toggleTheme()" />
       </v-container>
     </v-app-bar>
