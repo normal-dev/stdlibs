@@ -51,12 +51,12 @@ func main() {
 	}
 
 	ghclient := newGithubClient(githubAccessTok)
-	handpickedRepos, err := getHandpickedRepos(context.TODO(), ghclient)
+	repos, err := getHandpickedRepos(context.TODO(), ghclient)
 	checkErr(err)
-	log.Printf("found %d handpicked repos", len(handpickedRepos))
+	log.Printf("found %d handpicked repos", len(repos))
 
 	var contribsn, filesn int
-	for _, repo := range handpickedRepos {
+	for _, repo := range repos {
 		repoOwner := repo.Owner.GetLogin()
 		repoName := repo.GetName()
 
@@ -137,42 +137,14 @@ func main() {
 	log.Printf("found approx. %d files", filesn)
 
 	log.Printf("saving catalogue...")
-	checkErr(saveCatalogue(context.TODO(), contribsn, len(handpickedRepos)))
+	checkErr(saveCatalogue(context.TODO(), contribsn, len(repos)))
 
 	log.Printf("saving licenses...")
 	checkErr(saveLicenses(context.TODO()))
 }
 
 func getHandpickedRepos(ctx context.Context, ghClient *github.Client) (repos []*github.Repository, err error) {
-	for _, r := range [][2]string{
-		{"cli", "cli"},
-		{"traefik", "traefik"},
-		{"moby", "moby"},
-		{"docker", "compose"},
-		{"containers", "podman"},
-		{"helm", "helm"},
-		{"kubernetes", "kubernetes"},
-		{"minio", "minio"},
-		{"cloudflare", "cloudflared"},
-		{"cosmos", "cosmos-sdk"},
-		{"aws", "karpenter"},
-		{"cilium", "cilium"},
-		{"containerd", "containerd"},
-		{"containers", "buildah"},
-		{"hyperledger", "fabric"},
-		{"istio", "istio"},
-		{"pingcap", "tidb"},
-		{"vitessio", "vitess"},
-		{"go-delve", "delve"},
-		{"nektos", "act"},
-		{"slackhq", "nebula"},
-		{"go-gitea", "gitea"},
-		{"vmware-tanzu", "velero"},
-		{"vmware-tanzu", "sonobuoy"},
-		{"gravitational", "teleport"},
-		{"canonical", "lxd"},
-		{"eolinker", "apinto"},
-	} {
+	for _, r := range handpickedRepos {
 		owner, name := r[0], r[1]
 		log.Printf("fetching repo %s/%s...", owner, name)
 		repo, _, err := ghClient.Repositories.Get(ctx, owner, name)

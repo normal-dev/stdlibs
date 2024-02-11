@@ -188,7 +188,17 @@ const saveLicenses = async () => {
         author: 'Metarhia contributors',
         repo: ['metarhia', 'impress'],
         type: 'MIT'
-      }
+      },
+      {
+        author: 'Bun',
+        repo: ['oven-sh', 'bun'],
+        type: 'MIT'
+      },
+      {
+        author: 'LongYinan',
+        repo: ['napi-rs', 'napi-rs'],
+        type: 'MIT'
+      },
     ]
   })
   return insertOneResult.acknowledged
@@ -239,6 +249,8 @@ const getHandpickedRepositories = async githubClient => {
     ['cheeriojs', 'cheerio'],
     ['lint-staged', 'lint-staged'],
     ['metarhia', 'impress'],
+    ['oven-sh', 'bun'],
+    ['napi-rs', 'napi-rs']
   ]) {
     console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({

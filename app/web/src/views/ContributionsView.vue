@@ -124,12 +124,16 @@
             </v-card-text>
           </v-card>
           <div class="mt-4">
-            <small>Disclaimer: stdlibs.com is not the owner of the shown code and has no affiliation to the license holders</small>
+            <small>
+              Disclaimer: stdlibs.com is not the owner of the shown code and has
+              no affiliation to the license holders
+            </small>
           </div>
         </v-col>
 
         <!-- Contributions -->
         <v-col
+          v-if="contributions.length > 0"
           id="contributions"
           cols="12"
           xs="12"
@@ -139,7 +143,6 @@
           xl="10">
           <!-- Results information -->
           <v-card
-            v-if="contributions.length > 0"
             v-show="technology !== 'node'"
             class="mb-4 pa-1"
             variant="flat">
