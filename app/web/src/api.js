@@ -32,3 +32,9 @@ export const getContributions = async (technology, namespace, api, page) => {
   const response = await fetch(url)
   return await response.json()
 }
+
+export const search = async (query) => {
+  const url = `${baseUrl}/api/search?q=${query}`
+  const response = await fetch(url)
+  return await response.json()
+}
