@@ -144,8 +144,8 @@ func main() {
 }
 
 func getHandpickedRepos(ctx context.Context, ghClient *github.Client) (repos []*github.Repository, err error) {
-	for _, r := range handpickedRepos {
-		owner, name := r[0], r[1]
+	for _, repo := range handpickedRepos {
+		owner, name := repo[0], repo[1]
 		log.Printf("fetching repo %s/%s...", owner, name)
 		repo, _, err := ghClient.Repositories.Get(ctx, owner, name)
 		if err != nil {
