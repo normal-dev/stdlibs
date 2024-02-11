@@ -14,8 +14,6 @@ const contributions = await getRandomContributions()
 const contribution = contributions.at(0)
 const cursor = ref(0)
 
-const setCanonicalUrl = inject('setCanonicalUrl')
-
 const goLicenses = await getLicenses('go')
 const nodeLicenses = await getLicenses('node')
 provide('licenses', mergeWith(goLicenses, nodeLicenses, (source, target) => {
@@ -58,9 +56,6 @@ const codeViewerLines = computed(() => {
 
 const XCodeViewer = defineAsyncComponent(() => import('../components/XCodeViewer.vue'))
 
-onBeforeMount(() => {
-  setCanonicalUrl(route.fullPath)
-})
 onMounted(async () => {
   goCatalogue.value = await getCatalogue('go')
   nodeCatalogue.value = await getCatalogue('node')

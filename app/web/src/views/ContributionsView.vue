@@ -267,14 +267,12 @@ const toggleIsLoadingNamespaces = () => {
 }
 
 const setDocumentTitle = inject('setDocumentTitle')
-const setCanonicalUrl = inject('setCanonicalUrl')
 
 const licenses = await getLicenses(technology)
 provide('licenses', licenses)
 
 onBeforeMount(async () => {
   setDocumentTitle(technology)
-  setCanonicalUrl(route.fullPath)
 })
 
 onMounted(async () => {

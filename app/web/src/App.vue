@@ -35,10 +35,6 @@ watch(query, throttle(async () => {
 provide('setDocumentTitle', title => {
   document.title = `stdlibs.com - ${title}`
 })
-provide('setCanonicalUrl', url => {
-  const canonical = document.querySelector('link[rel="canonical"]')
-  canonical.href = `https://www.stdlibs.com${url}`
-})
 
 </script>
 
