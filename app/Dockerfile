@@ -1,4 +1,4 @@
-FROM golang:1.21
+FROM golang:1.22
 
 WORKDIR /
 ENV NODE_VERSION=20.8.0
