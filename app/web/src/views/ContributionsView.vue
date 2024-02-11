@@ -60,7 +60,7 @@
             class="pa-1 mt-4"
             variant="flat">
             <v-card-title class="text-caption">
-              Namespaces ({{ namespaces.length }})
+              Namespaces ({{ filteredNamespaces.length }})
             </v-card-title>
             <v-card-text>
               <v-text-field
@@ -93,7 +93,7 @@
             class="pa-1 mt-4"
             variant="flat">
             <v-card-title class="text-caption">
-              APIs ({{ apis.length }})
+              APIs ({{ filteredApis.length }})
             </v-card-title>
             <v-card-text>
               <v-text-field
@@ -139,11 +139,12 @@
           xl="10">
           <!-- Results information -->
           <v-card
-            v-if="contributions.length > 0 && technology !== 'node'"
+            v-if="contributions.length > 0"
+            v-show="technology !== 'node'"
             class="mb-4 pa-1"
             variant="flat">
             <v-card-title class="pl-4 pr-4 pt-4">
-              {{ selectedApi.at(0) }}
+              {{ `${selectedNamespace.at(0)}.${selectedApi.at(0)}` }}
             </v-card-title>
             <v-card-text class="pl-4 pr-4">
               <p v-html="selectedApiDocumentation" />

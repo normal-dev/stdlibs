@@ -8,10 +8,13 @@ import { search } from './api'
 const theme = useTheme()
 const route = useRoute()
 
+// TEST START
 const themeToggleIcon = ref('mdi-white-balance-sunny')
+// TEST END
 const toggleTheme = () => {
   theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
+// TEST START
 watch(() => theme.global.current.value.dark, (dark) => {
   if (dark) {
     themeToggleIcon.value = 'mdi-white-balance-sunny'
@@ -19,12 +22,15 @@ watch(() => theme.global.current.value.dark, (dark) => {
     themeToggleIcon.value = 'mdi-moon-waning-crescent'
   }
 })
+// TEST END
 
+// TEST START
 const query = ref('')
 watch(query, throttle(async () => {
   const searchResults = await search(query)
   console.log(searchResults)
 }, 1000, { leading: false }))
+// TEST END
 
 provide('setDocumentTitle', title => {
   document.title = `stdlibs.com - ${title}`
