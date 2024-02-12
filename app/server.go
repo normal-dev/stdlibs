@@ -65,6 +65,7 @@ const (
 )
 
 func main() {
+	// Flags
 	noClient := flag.Bool("no-client", false, "")
 	flag.Parse()
 
@@ -106,6 +107,7 @@ func main() {
 	// Cache pages
 	store := persistence.NewInMemoryStore(time.Hour * 6)
 
+	// Routes
 	// /node
 	router.GET("/api/:tech", cache.CachePage(store, time.Hour*12, func(ctx *gin.Context) {
 		// Union type of API and contributions catalogue
@@ -248,7 +250,7 @@ func main() {
 		ctx.JSON(http.StatusOK, contribs)
 	}))
 	// /node/licenses
-	router.GET("/api/:tech/licenses", cache.CachePage(store, time.Hour*12, func(ctx *gin.Context) {
+	router.GET("/api/:tech/licenses", func(ctx *gin.Context) {
 		var (
 			err       error
 			mongoColl *mongo.Collection
@@ -268,7 +270,7 @@ func main() {
 			return
 		}
 		ctx.JSON(http.StatusOK, licenses)
-	}))
+	})
 	// /go/context
 	router.GET("/api/:tech/:ns", cache.CachePage(store, time.Hour*12, func(ctx *gin.Context) {
 		var (
@@ -389,13 +391,16 @@ func main() {
 
 	// Favicon
 	router.StaticFile("/favicon.png", "./website/favicon.png")
+	// Sitemap
 	router.StaticFile("/sitemap.xml", "./website/sitemap.xml")
 
+	// Address
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 	addr := fmt.Sprintf(":%s", port)
+
 	router.Run(addr)
 }
 
