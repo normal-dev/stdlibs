@@ -130,7 +130,7 @@ func main() {
 		log.Printf("found approx. %d cloned files (%d Go files)", repofilesn, gofilesn)
 		docsn, err := saveContribs(context.TODO(), contribs)
 		logErr(err)
-		log.Printf("%d contributions saved, %d left", docsn, len(repos)-(idx+1))
+		log.Printf("%d contributions saved, %d repos left", docsn, len(repos)-(idx+1))
 	}
 
 	log.Printf("found %d Go contributions", contribsn)
