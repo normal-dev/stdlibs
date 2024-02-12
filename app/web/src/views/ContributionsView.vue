@@ -155,11 +155,6 @@
             </v-card-text>
           </v-card>
 
-          <v-skeleton-loader
-            v-show="isLoadingContributions"
-            class="pa-4 mb-4"
-            type="card" />
-
           <!-- Results -->
           <div
             v-for="(contribution, index) in contributions"
@@ -175,7 +170,6 @@
           </div>
 
           <v-pagination
-            v-show="contributions.length > 0 || isLoadingContributions"
             v-model="pagination.page"
             density="comfortable"
             size="small"

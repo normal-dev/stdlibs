@@ -26,9 +26,11 @@
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
     <script type="text/javascript">
-        aclib.runAutoTag({
-            zoneId: 'b8lsksmoc4',
-        })
+        if (hostname === "www.stdlibs.com") {
+            aclib.runAutoTag({
+                zoneId: 'b8lsksmoc4',
+            })
+        }
     </script>
 </body>
 
