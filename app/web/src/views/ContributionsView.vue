@@ -148,7 +148,7 @@
             class="mb-4 pa-1"
             variant="flat">
             <v-card-title class="pl-4 pr-4 pt-4">
-              {{ `${selectedNamespace.at(0)}.${selectedApi.at(0)}` }}
+              {{ `${selectedNamespace.at(0)}.${selectedApi.at(0)}` }} ({{ pagination.total }})
             </v-card-title>
             <v-card-text class="pl-4 pr-4">
               <p v-html="selectedApiDocumentation" />
