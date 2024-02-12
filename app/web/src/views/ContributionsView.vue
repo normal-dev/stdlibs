@@ -89,6 +89,7 @@
 
           <!-- APIs -->
           <v-card
+            id="apis"
             :loading="isLoadingApis"
             class="pa-1 mt-4"
             variant="flat">
@@ -240,7 +241,12 @@ const getContributionsHandler = async () => {
   contributions.value = contribs
 
   toggleIsLoadingContributions()
+
+  // Scroll to contributions
   await nextTick()
+  if (total === 0) {
+    return
+  }
   document.getElementById('contributions').scrollIntoView()
 }
 const findLines = apis => {
@@ -253,7 +259,7 @@ const findLines = apis => {
 }
 const resetPagination = () => {
   pagination.value.page = 1
-  pagination.value.perPage = 1
+  pagination.value.perPage = 6
   pagination.value.total = 0
 }
 const toggleIsLoadingApis = () => {
@@ -333,6 +339,8 @@ onMounted(async () => {
     }
 
     toggleIsLoadingApis()
+
+    document.getElementById('apis').scrollIntoView()
   }, { deep: true })
 
   watch(computed(() => pagination.value.page), async () => {
