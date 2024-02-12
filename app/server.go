@@ -75,7 +75,7 @@ func main() {
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	// Trust all proxies
-	router.SetTrustedProxies(nil)
+	_ = router.SetTrustedProxies(nil)
 
 	// CORS
 	router.Use(cors.New(cors.Config{
@@ -401,7 +401,7 @@ func main() {
 	}
 	addr := fmt.Sprintf(":%s", port)
 
-	router.Run(addr)
+	_ = router.Run(addr)
 }
 
 func mongoCollFromCtx(ctx *gin.Context, db string) (*mongo.Collection, error) {

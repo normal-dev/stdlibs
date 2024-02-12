@@ -1,13 +1,11 @@
 <script setup>
 import { useTheme } from 'vuetify/lib/framework.mjs'
 import { getCatalogue, getLicenses, getRandomContributions } from '../api'
-import { defineAsyncComponent, inject, provide, computed, onBeforeMount, ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { defineAsyncComponent, provide, computed, ref, onMounted } from 'vue'
 import { isArray, mergeWith, reduce, sortBy } from 'lodash'
 
 document.title = 'stdlibs.com'
 
-const route = useRoute()
 const theme = useTheme()
 
 const contributions = await getRandomContributions()
