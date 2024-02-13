@@ -167,11 +167,6 @@ func saveLicenses(ctx context.Context) error {
 				Repo:   [2]string{"hyperledger", "firefly"},
 				Type:   "Apache-2.0 license",
 			},
-			{
-				Author: "PingCAP",
-				Repo:   [2]string{"pingcap", "ossinsight"},
-				Type:   "Apache-2.0 license",
-			},
 		},
 	}
 	_, err = mongoColl.InsertOne(context.TODO(), licenses)

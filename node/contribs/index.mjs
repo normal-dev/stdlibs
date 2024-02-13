@@ -198,7 +198,12 @@ const saveLicenses = async () => {
         author: 'LongYinan',
         repo: ['napi-rs', 'napi-rs'],
         type: 'MIT'
-      },
+      }, ,
+      {
+        author: 'PingCAP',
+        repo: ['pingcap', 'ossinsight'],
+        type: 'Apache License 2.0'
+      }
     ]
   })
   return insertOneResult.acknowledged
@@ -250,7 +255,8 @@ const getHandpickedRepositories = async githubClient => {
     ['lint-staged', 'lint-staged'],
     ['metarhia', 'impress'],
     ['oven-sh', 'bun'],
-    ['napi-rs', 'napi-rs']
+    ['napi-rs', 'napi-rs'],
+    ['pingcap', 'ossinsight']
   ]) {
     console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({
