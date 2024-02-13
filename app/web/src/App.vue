@@ -41,19 +41,19 @@ provide('setDocumentTitle', title => {
 <template>
   <v-app id="inspire">
     <v-app-bar
-      :color="route.path === '/' ? 'transparent' : ''"
+      color="transparent"
       absolute
       flat>
       <v-container
         fluid
         class="mx-auto d-flex align-center justify-center">
-        <v-btn
+        <!-- <v-btn
           v-if="route.path !== '/'"
           size="small"
           variant="text"
           to="/">
           Home
-        </v-btn>
+        </v-btn> -->
         <!-- <v-btn
           v-if="route.path !== '/'"
           size="small"
@@ -95,13 +95,12 @@ provide('setDocumentTitle', title => {
     </Suspense>
 
     <v-footer
-      :color="route.path === '/' ? 'transparent' : ''"
+      color="transparent"
       app
       absolute>
       <v-container
         id="app"
-        fluid
-        class="mx-auto d-flex align-center justify-center">
+        fluid>
         <v-btn
           to="/impressum"
           size="small"

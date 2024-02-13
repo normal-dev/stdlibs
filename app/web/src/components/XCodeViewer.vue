@@ -142,6 +142,7 @@ onMounted(async () => {
 <template>
   <v-card
     class="pa-1"
+    color="transparent"
     :variant="props.variant ? props.variant : 'flat'">
     <v-card-title class="pl-4 pr-4 pt-4">
       {{ contribution.filepath }}{{ contribution.filepath !== '/' ? '/' : '' }}{{ contribution.filename }}
@@ -165,21 +166,19 @@ onMounted(async () => {
       <small>&copy; {{ license.author }}, {{ license.type }}</small>
     </v-card-text>
 
-    <v-divider v-if="!props.noNavigation" />
-
     <v-card-actions v-if="!props.noNavigation">
       <v-btn
         :disabled="cursor === 0"
-        rounded="lg"
+        rounded="sm"
         icon="mdi-chevron-left"
-        size="small"
+        size="large"
         class="flex-grow-1"
         @click="previous()" />
       <v-btn
         :disabled="cursor === lines.length-1"
-        rounded="lg"
+        rounded="sm"
         icon="mdi-chevron-right"
-        size="small"
+        size="large"
         class="flex-grow-1"
         @click="next()" />
     </v-card-actions>
@@ -188,7 +187,7 @@ onMounted(async () => {
 
 <style>
 .code-viewer {
-  height: 500px;
+  height: 525px;
 }
 
 .code-viewer--line-decoration {

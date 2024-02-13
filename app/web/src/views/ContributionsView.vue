@@ -12,6 +12,7 @@
           xl="2">
           <!-- Technology -->
           <v-card
+            color="transparent"
             class="pa-1"
             variant="flat">
             <v-card-item>
@@ -58,6 +59,7 @@
           <v-card
             :loading="isLoadingNamespaces"
             class="pa-1 mt-4"
+            color="transparent"
             variant="flat">
             <v-card-title class="text-caption">
               Namespaces ({{ filteredNamespaces.length }})
@@ -65,13 +67,15 @@
             <v-card-text>
               <v-text-field
                 v-model="namespaceQuery"
+                bg-color="transparent"
                 density="compact"
                 label="Search namespaces"
-                variant="solo-filled"
+                variant="solo"
                 flat />
               <v-list
                 ref="namespacesHtmlElement"
                 v-model:selected="selectedNamespace"
+                bg-color="transparent"
                 density="compact"
                 return-object
                 nav
@@ -90,6 +94,7 @@
           <!-- APIs -->
           <v-card
             id="apis"
+            color="transparent"
             :loading="isLoadingApis"
             class="pa-1 mt-4"
             variant="flat">
@@ -99,13 +104,15 @@
             <v-card-text>
               <v-text-field
                 v-model="apisQuery"
+                bg-color="transparent"
                 density="compact"
                 label="Search APIs"
-                variant="solo-filled"
+                variant="solo"
                 flat />
               <v-list
                 ref="apisHtmlElement"
                 v-model:selected="selectedApi"
+                bg-color="transparent"
                 density="compact"
                 return-object
                 nav
@@ -146,6 +153,7 @@
           <!-- Results information -->
           <v-card
             v-show="technology !== 'node'"
+            color="transparent"
             class="mb-4 pa-1"
             variant="flat">
             <v-card-title class="pl-4 pr-4 pt-4">
