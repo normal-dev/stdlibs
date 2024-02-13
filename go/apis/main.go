@@ -22,7 +22,7 @@ func init() {
 var mongoColl = goapis.MongoClient.Database("apis").Collection("go")
 
 func main() {
-	log.Printf("using Go version %s", runtime.Version())
+	log.Printf("using Go version %s", runtime.Version()[2:])
 
 	log.Println("cleaning...")
 	checkErr(clean(context.TODO()))
