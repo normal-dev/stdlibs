@@ -133,6 +133,7 @@
         </v-col>
 
         <!-- Contributions -->
+
         <v-col
           v-if="contributions.length > 0"
           id="contributions"

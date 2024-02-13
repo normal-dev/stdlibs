@@ -4,9 +4,6 @@ import * as monaco from 'monaco-editor'
 import { watch, ref, onMounted, inject } from 'vue'
 import { useTheme } from 'vuetify/lib/framework.mjs'
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
-import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
-import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 import { find } from 'lodash'
 
@@ -47,19 +44,6 @@ let previous = () => undefined
 self.MonacoEnvironment = {
   getWorker (_, label) {
     switch (label) {
-      case 'json':
-        return jsonWorker()
-
-      case 'css':
-      case 'scss':
-      case 'less':
-        return new cssWorker()
-
-      case 'html':
-      case 'handlebars':
-      case 'razor':
-        return new htmlWorker()
-
       case 'typescript':
       case 'javascript':
         return new tsWorker()
@@ -150,7 +134,7 @@ onMounted(async () => {
       }
 
       next()
-    }, 2800)
+    }, 2875)
   }
 })
 </script>
@@ -208,7 +192,7 @@ onMounted(async () => {
 }
 
 .code-viewer--line-decoration {
-  background: rgba(var(--v-theme-on-background), var(--v-medium-emphasis-opacity)) !important;;
+  background: rgba(var(--v-theme-on-background), var(--v-medium-emphasis-opacity)) !important;
   width: 5px !important;
   margin-left: 4px;
 }

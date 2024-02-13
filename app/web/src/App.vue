@@ -54,6 +54,13 @@ provide('setDocumentTitle', title => {
           to="/">
           Home
         </v-btn>
+        <!-- <v-btn
+          v-if="route.path !== '/'"
+          size="small"
+          variant="text"
+          to="/about">
+          About
+        </v-btn> -->
 
         <v-spacer />
 
