@@ -1,8 +1,6 @@
 package main
 
 import (
-	"contribs-go/model"
-
 	"errors"
 	"fmt"
 	"go/ast"
@@ -11,6 +9,8 @@ import (
 	"go/token"
 	"go/types"
 	"strings"
+
+	"contribs-go/model"
 )
 
 type extractor struct {
@@ -23,7 +23,7 @@ type extractor struct {
 }
 
 func NewExtractor(src []byte) *extractor {
-	var ex = &extractor{}
+	ex := &extractor{}
 
 	srcFile, fset, err := parse(src)
 	if err != nil {
@@ -60,7 +60,7 @@ func NewExtractor(src []byte) *extractor {
 }
 
 func (ex *extractor) Extract() map[model.API]struct{} {
-	var apis = make(map[model.API]struct{})
+	apis := make(map[model.API]struct{})
 
 	if ex.Error != nil || ex.info == nil {
 		return apis

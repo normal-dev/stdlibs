@@ -217,7 +217,7 @@ func findGoAPIs(src []byte) ([]model.API, bool, error) {
 		return []model.API{}, false, ex.Error
 	}
 
-	var ret = make([]model.API, 0)
+	ret := make([]model.API, 0)
 	for api := range apis {
 		ret = append(ret, api)
 	}
