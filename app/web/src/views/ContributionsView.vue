@@ -12,9 +12,8 @@
           xl="2">
           <!-- Technology -->
           <v-card
-            color="transparent"
             class="pa-1"
-            variant="flat">
+            variant="text">
             <v-card-item>
               <template #prepend>
                 <v-icon
@@ -59,8 +58,7 @@
           <v-card
             :loading="isLoadingNamespaces"
             class="pa-1 mt-4"
-            color="transparent"
-            variant="flat">
+            variant="text">
             <v-card-title class="text-caption">
               Namespaces ({{ filteredNamespaces.length }})
             </v-card-title>
@@ -70,8 +68,7 @@
                 bg-color="transparent"
                 density="compact"
                 label="Search namespaces"
-                variant="solo"
-                flat />
+                variant="" />
               <v-list
                 ref="namespacesHtmlElement"
                 v-model:selected="selectedNamespace"
@@ -94,10 +91,10 @@
           <!-- APIs -->
           <v-card
             id="apis"
-            color="transparent"
+            color=""
             :loading="isLoadingApis"
             class="pa-1 mt-4"
-            variant="flat">
+            variant="text">
             <v-card-title class="text-caption">
               APIs ({{ filteredApis.length }})
             </v-card-title>
@@ -107,8 +104,7 @@
                 bg-color="transparent"
                 density="compact"
                 label="Search APIs"
-                variant="solo"
-                flat />
+                variant="" />
               <v-list
                 ref="apisHtmlElement"
                 v-model:selected="selectedApi"
@@ -131,12 +127,6 @@
               </v-list>
             </v-card-text>
           </v-card>
-          <div class="mt-4">
-            <small>
-              Disclaimer: stdlibs.com is not the owner of the shown code and has
-              no affiliation to the license holders
-            </small>
-          </div>
         </v-col>
 
         <!-- Contributions -->
@@ -149,13 +139,12 @@
           sm="12"
           md="8"
           lg="8"
-          xl="10">
+          xl="8">
           <!-- Results information -->
           <v-card
             v-show="technology !== 'node'"
-            color="transparent"
             class="mb-4 pa-1"
-            variant="flat">
+            variant="text">
             <v-card-title class="pl-4 pr-4 pt-4">
               {{ `${selectedNamespace.at(0)}.${selectedApi.at(0)}` }} ({{ pagination.total }})
             </v-card-title>

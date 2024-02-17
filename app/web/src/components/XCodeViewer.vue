@@ -142,10 +142,10 @@ onMounted(async () => {
 <template>
   <v-card
     class="pa-1"
-    color="transparent"
-    :variant="props.variant ? props.variant : 'flat'">
+    color=""
+    :variant="props.variant ? props.variant : 'text'">
     <v-card-title class="pl-4 pr-4 pt-4">
-      {{ contribution.filepath }}{{ contribution.filepath !== '/' ? '/' : '' }}{{ contribution.filename }}
+      {{ contribution.filepath }}{{ contribution.filepath !== '/' ? '/' : '' }}{{ contribution.filename }} ({{ lines.length }})
     </v-card-title>
     <v-card-subtitle class="pl-4 pr-4">
       <a
@@ -169,16 +169,12 @@ onMounted(async () => {
     <v-card-actions v-if="!props.noNavigation">
       <v-btn
         :disabled="cursor === 0"
-        rounded="sm"
         icon="mdi-chevron-left"
-        size="large"
         class="flex-grow-1"
         @click="previous()" />
       <v-btn
         :disabled="cursor === lines.length-1"
-        rounded="sm"
         icon="mdi-chevron-right"
-        size="large"
         class="flex-grow-1"
         @click="next()" />
     </v-card-actions>
