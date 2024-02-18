@@ -12,8 +12,8 @@
           xl="2">
           <!-- Technology -->
           <v-card
-            class="pa-1"
-            variant="text">
+            flat
+            class="pa-1">
             <v-card-item>
               <template #prepend>
                 <v-icon
@@ -56,9 +56,9 @@
 
           <!-- Namespaces -->
           <v-card
+            flat
             :loading="isLoadingNamespaces"
-            class="pa-1 mt-4"
-            variant="text">
+            class="pa-1 mt-4">
             <v-card-title class="text-caption">
               Namespaces ({{ filteredNamespaces.length }})
             </v-card-title>
@@ -91,10 +91,9 @@
           <!-- APIs -->
           <v-card
             id="apis"
-            color=""
+            flat
             :loading="isLoadingApis"
-            class="pa-1 mt-4"
-            variant="text">
+            class="pa-1 mt-4">
             <v-card-title class="text-caption">
               APIs ({{ filteredApis.length }})
             </v-card-title>
@@ -143,8 +142,8 @@
           <!-- Results information -->
           <v-card
             v-show="technology !== 'node'"
-            class="mb-4 pa-1"
-            variant="text">
+            flat
+            class="mb-4 pa-1">
             <v-card-title class="pl-4 pr-4 pt-4">
               {{ `${selectedNamespace.at(0)}.${selectedApi.at(0)}` }} ({{ pagination.total }})
             </v-card-title>

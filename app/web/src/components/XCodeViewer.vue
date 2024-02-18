@@ -141,9 +141,8 @@ onMounted(async () => {
 
 <template>
   <v-card
-    class="pa-1"
-    color=""
-    :variant="props.variant ? props.variant : 'text'">
+    flat
+    class="pa-1">
     <v-card-title class="pl-4 pr-4 pt-4">
       {{ contribution.filepath }}{{ contribution.filepath !== '/' ? '/' : '' }}{{ contribution.filename }} ({{ lines.length }})
     </v-card-title>

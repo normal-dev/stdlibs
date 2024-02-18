@@ -48,7 +48,7 @@ provide('setDocumentTitle', title => {
         fluid
         class="mx-auto d-flex align-center justify-center">
         <v-btn
-          v-if="route.path !== '/' || route.path === '/impressum' || route.path === '/privacy'"
+          v-if="route.path === '/impressum' || route.path === '/privacy'"
           size="small"
           variant="text"
           icon="mdi-arrow-left"
