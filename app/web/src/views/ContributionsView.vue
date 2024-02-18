@@ -12,8 +12,8 @@
           xl="2">
           <!-- Technology -->
           <v-card
-            class="pa-1"
-            variant="flat">
+            flat
+            class="pa-1">
             <v-card-item>
               <template #prepend>
                 <v-icon
@@ -56,22 +56,23 @@
 
           <!-- Namespaces -->
           <v-card
+            flat
             :loading="isLoadingNamespaces"
-            class="pa-1 mt-4"
-            variant="flat">
+            class="pa-1 mt-4">
             <v-card-title class="text-caption">
               Namespaces ({{ filteredNamespaces.length }})
             </v-card-title>
             <v-card-text>
               <v-text-field
                 v-model="namespaceQuery"
+                bg-color="transparent"
                 density="compact"
                 label="Search namespaces"
-                variant="solo-filled"
-                flat />
+                variant="" />
               <v-list
                 ref="namespacesHtmlElement"
                 v-model:selected="selectedNamespace"
+                bg-color="transparent"
                 density="compact"
                 return-object
                 nav
@@ -90,22 +91,23 @@
           <!-- APIs -->
           <v-card
             id="apis"
+            flat
             :loading="isLoadingApis"
-            class="pa-1 mt-4"
-            variant="flat">
+            class="pa-1 mt-4">
             <v-card-title class="text-caption">
               APIs ({{ filteredApis.length }})
             </v-card-title>
             <v-card-text>
               <v-text-field
                 v-model="apisQuery"
+                bg-color="transparent"
                 density="compact"
                 label="Search APIs"
-                variant="solo-filled"
-                flat />
+                variant="" />
               <v-list
                 ref="apisHtmlElement"
                 v-model:selected="selectedApi"
+                bg-color="transparent"
                 density="compact"
                 return-object
                 nav
@@ -124,12 +126,6 @@
               </v-list>
             </v-card-text>
           </v-card>
-          <div class="mt-4">
-            <small>
-              Disclaimer: stdlibs.com is not the owner of the shown code and has
-              no affiliation to the license holders
-            </small>
-          </div>
         </v-col>
 
         <!-- Contributions -->
@@ -142,12 +138,12 @@
           sm="12"
           md="8"
           lg="8"
-          xl="10">
+          xl="8">
           <!-- Results information -->
           <v-card
             v-show="technology !== 'node'"
-            class="mb-4 pa-1"
-            variant="flat">
+            flat
+            class="mb-4 pa-1">
             <v-card-title class="pl-4 pr-4 pt-4">
               {{ `${selectedNamespace.at(0)}.${selectedApi.at(0)}` }} ({{ pagination.total }})
             </v-card-title>

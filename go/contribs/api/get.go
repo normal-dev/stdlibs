@@ -95,7 +95,7 @@ func getAPIs(pkgs map[string][]types.Object) []API {
 }
 
 func getAllPkgs() map[string][]types.Object {
-	var stdPackages = func() []*packages.Package {
+	stdPackages := func() []*packages.Package {
 		pkgs, err := packages.Load(&packages.Config{Mode: packages.NeedTypes}, "std")
 		checkErr(err)
 		return pkgs

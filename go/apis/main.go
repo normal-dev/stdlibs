@@ -34,7 +34,7 @@ func main() {
 		checkErr(saveAPI(context.TODO(), api))
 	}
 
-	var ns = make(map[string]struct{})
+	ns := make(map[string]struct{})
 	for _, api := range apis {
 		ns[api.Ns] = struct{}{}
 	}

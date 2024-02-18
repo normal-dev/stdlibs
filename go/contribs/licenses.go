@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+
 	"contribs-go/model"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,7 +16,7 @@ func saveLicenses(ctx context.Context) error {
 		return err
 	}
 
-	var licenses = model.Licenses{
+	licenses := model.Licenses{
 		ID: model.LICENSES_ID,
 		Repos: []struct {
 			Author string    "json:\"author\" bson:\"author\""
