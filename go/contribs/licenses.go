@@ -26,12 +26,12 @@ func saveLicenses(ctx context.Context) error {
 			{
 				Author: "GitHub Inc.",
 				Repo:   [2]string{"cli", "cli"},
-				Type:   "MIT",
+				Type:   "MIT license",
 			},
 			{
 				Author: "Traefik Labs",
 				Repo:   [2]string{"traefik", "traefik"},
-				Type:   "MIT",
+				Type:   "MIT license",
 			},
 			{
 				Author: "Docker, Inc.",
@@ -116,22 +116,22 @@ func saveLicenses(ctx context.Context) error {
 			{
 				Author: "Derek Parker",
 				Repo:   [2]string{"go-delve", "delve"},
-				Type:   "MIT",
+				Type:   "MIT license",
 			},
 			{
 				Author: "nektos",
 				Repo:   [2]string{"nektos", "act"},
-				Type:   "MIT",
+				Type:   "MIT license",
 			},
 			{
 				Author: "Slack Technologies, Inc.",
 				Repo:   [2]string{"slackhq", "nebula"},
-				Type:   "MIT",
+				Type:   "MIT license",
 			},
 			{
 				Author: "The Gitea Authors, The Gogs Authors",
 				Repo:   [2]string{"go-gitea", "gitea"},
-				Type:   "MIT",
+				Type:   "MIT license",
 			},
 			{
 				Author: "Broadcom",
@@ -166,6 +166,21 @@ func saveLicenses(ctx context.Context) error {
 			{
 				Author: "Hyperledger Foundation",
 				Repo:   [2]string{"hyperledger", "firefly"},
+				Type:   "Apache-2.0 license",
+			},
+			{
+				Author: "Manuel Martínez-Almeida",
+				Repo:   [2]string{"gin-gonic", "gin"},
+				Type:   "MIT license",
+			},
+			{
+				Author: "Mattermost, Inc.",
+				Repo:   [2]string{"mattermost", "mattermost"},
+				Type:   "Apache-2.0 license",
+			},
+			{
+				Author: "Beego",
+				Repo:   [2]string{"beego", "beego"},
 				Type:   "Apache-2.0 license",
 			},
 		},

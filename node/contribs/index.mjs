@@ -52,17 +52,17 @@ const saveLicenses = async () => {
       {
         author: 'OpenJS Foundation',
         repo: ['jquery', 'jquery'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Transloadit',
         repo: ['transloadit', 'uppy'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Sequelize Authors',
         repo: ['sequelize', 'sequelize'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'OpenJS Foundation',
@@ -77,12 +77,12 @@ const saveLicenses = async () => {
       {
         author: 'Sindre Sorhus',
         repo: ['avajs', 'ava'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'PlayCanvas Ltd.',
         repo: ['playcanvas', 'engine'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Tutao GmbH',
@@ -107,27 +107,27 @@ const saveLicenses = async () => {
       {
         author: 'Google LLC.',
         repo: ['angular', 'angular'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: '650 Industries, Inc.',
         repo: ['expo', 'expo'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Deno authors',
         repo: ['denoland', 'deno'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Yuxi (Evan) You and Vite contributors',
         repo: ['vitejs', 'vite'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Noel Buechler, Amish Shah',
         repo: ['discordjs', 'discord.js'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Printio (Juriy Zaytsev, Maxim Chernyak)',
@@ -137,12 +137,12 @@ const saveLicenses = async () => {
       {
         author: 'Yuxi (Evan) You',
         repo: ['vuejs', 'core'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'MarkedJS, Christopher Jeffrey',
         repo: ['markedjs', 'marked'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Apify Technologies s.r.o.',
@@ -152,12 +152,12 @@ const saveLicenses = async () => {
       {
         author: 'Electron contributors, GitHub Inc.',
         repo: ['electron', 'electron'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Zach Leatherman',
         repo: ['11ty', 'eleventy'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Dagger, Inc.',
@@ -167,7 +167,7 @@ const saveLicenses = async () => {
       {
         author: 'The Cheerio contributors',
         repo: ['cheeriojs', 'cheerio'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Automattic Inc.',
@@ -177,27 +177,27 @@ const saveLicenses = async () => {
       {
         author: 'Temporal Technologies Inc.',
         repo: ['temporalio', 'sdk-typescript'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Andrey Okonetchnikov',
         repo: ['lint-staged', 'lint-staged'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Metarhia contributors',
         repo: ['metarhia', 'impress'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'Bun',
         repo: ['oven-sh', 'bun'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'LongYinan',
         repo: ['napi-rs', 'napi-rs'],
-        type: 'MIT'
+        type: 'MIT license'
       },
       {
         author: 'PingCAP',
@@ -207,7 +207,22 @@ const saveLicenses = async () => {
       {
         author: 'Sindre Sorhus',
         repo: ['sindresorhus', 'got'],
-        type: 'MIT'
+        type: 'MIT license'
+      },
+      {
+        author: 'The Bootstrap Authors',
+        repo: ['twbs', 'bootstrap'],
+        type: 'MIT license'
+      },
+      {
+        author: 'Svelte contributors',
+        repo: ['sveltejs', 'svelte'],
+        type: 'MIT license'
+      },
+      {
+        authro: 'midwayjs',
+        repo: ['midwayjs', 'midway'],
+        type: 'MIT license'
       }
     ]
   })
@@ -262,7 +277,9 @@ const getHandpickedRepositories = async githubClient => {
     ['oven-sh', 'bun'],
     ['napi-rs', 'napi-rs'],
     ['pingcap', 'ossinsight'],
-    ['sindresorhus', 'got']
+    ['sindresorhus', 'got'],
+    ['twbs', 'bootstrap'],
+    ['sveltejs', 'svelte']
   ]) {
     console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({
