@@ -167,11 +167,13 @@ onMounted(async () => {
 
     <v-card-actions v-if="!props.noNavigation">
       <v-btn
+        rounded="lg"
         :disabled="cursor === 0"
         icon="mdi-chevron-left"
         class="flex-grow-1"
         @click="previous()" />
       <v-btn
+        rounded="lg"
         :disabled="cursor === lines.length-1"
         icon="mdi-chevron-right"
         class="flex-grow-1"
