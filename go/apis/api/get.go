@@ -56,15 +56,47 @@ func getAPIs(pkgs map[string][]types.Object) []API {
 					api.Type = "error"
 
 				default:
-					api.Type = o.Type().Underlying().String()
+					switch typ := o.Type().Underlying().(type) {
+					case *types.Struct:
+						api.Type = "struct"
+
+					case *types.Map:
+						api.Type = "map"
+
+					case *types.Interface:
+						api.Type = "interface"
+
+					case *types.Basic:
+						api.Type = typ.Name()
+
+					case *types.Slice:
+						api.Type = "slice"
+
+					// Function or method type
+					case *types.Signature:
+						api.Type = "type"
+
+					case *types.Array:
+						api.Type = "array"
+
+					case *types.Pointer:
+						api.Type = "pointer"
+
+					default:
+						api.Type = o.Type().String()
+					}
 				}
 
 			case *types.Const:
 				api.Value = toPtr(o.Val().ExactString())
 
-				// Default untyped*
-				typ := types.Default(o.Type())
-				api.Type = typ.String()
+				switch typ := o.Type().Underlying().(type) {
+				case *types.Basic:
+					api.Type = typ.Name()
+
+				default:
+					api.Type = o.Type().String()
+				}
 
 			case *types.Func:
 				api.Type = "func"
@@ -82,6 +114,18 @@ func getAPIs(pkgs map[string][]types.Object) []API {
 
 				case *types.Basic:
 					api.Type = typ.Name()
+
+				case *types.Slice:
+					api.Type = "slice"
+
+				case *types.Signature:
+					api.Type = "type"
+
+				case *types.Array:
+					api.Type = "array"
+
+				case *types.Pointer:
+					api.Type = "pointer"
 
 				default:
 					api.Type = o.Type().String()

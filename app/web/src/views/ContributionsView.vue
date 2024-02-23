@@ -13,7 +13,7 @@
           <!-- Technology -->
           <v-card
             flat
-            class="pa-1">
+            class="mb-4 pa-1">
             <v-card-item>
               <template #prepend>
                 <v-icon
@@ -52,13 +52,11 @@
             </v-card-text>
           </v-card>
 
-          <!-- TODO: Make filter cards to component -->
-
           <!-- Namespaces -->
           <v-card
             flat
             :loading="isLoadingNamespaces"
-            class="pa-1 mt-4">
+            class="pa-1 mt-4 mb-4">
             <v-card-title class="text-caption">
               Namespaces ({{ filteredNamespaces.length }})
             </v-card-title>
@@ -67,12 +65,12 @@
                 v-model="namespaceQuery"
                 bg-color="transparent"
                 density="compact"
-                label="Search namespaces"
-                variant="" />
+                variant="plain"
+                label="Search namespaces" />
               <v-list
                 ref="namespacesHtmlElement"
                 v-model:selected="selectedNamespace"
-                bg-color="transparent"
+                :disabled="isLoadingApis || isLoadingNamespaces || isLoadingContributions"
                 density="compact"
                 return-object
                 nav
@@ -93,20 +91,20 @@
             id="apis"
             flat
             :loading="isLoadingApis"
-            class="pa-1 mt-4">
+            class="pa-1 mt-4 mb-4">
             <v-card-title class="text-caption">
               APIs ({{ filteredApis.length }})
             </v-card-title>
             <v-card-text>
               <v-text-field
                 v-model="apisQuery"
-                bg-color="transparent"
                 density="compact"
                 label="Search APIs"
-                variant="" />
+                variant="plain" />
               <v-list
                 ref="apisHtmlElement"
                 v-model:selected="selectedApi"
+                :disabled="isLoadingApis || isLoadingNamespaces || isLoadingContributions"
                 bg-color="transparent"
                 density="compact"
                 return-object
@@ -131,7 +129,6 @@
         <!-- Contributions -->
 
         <v-col
-          v-if="contributions.length > 0"
           id="contributions"
           cols="12"
           xs="12"
@@ -141,16 +138,34 @@
           xl="8">
           <!-- Results information -->
           <v-card
+            v-if="selectedApi.length > 0"
             v-show="technology !== 'node'"
             flat
-            class="mb-4 pa-1">
+            class="mb-4 pa-1 pb-4">
             <v-card-title class="pl-4 pr-4 pt-4">
               {{ `${selectedNamespace.at(0)}.${selectedApi.at(0)}` }} ({{ pagination.total }})
             </v-card-title>
-            <v-card-text class="pl-4 pr-4">
+            <v-card-subtitle
+              v-show="technology === 'go'"
+              class="pl-4 pr-4">
+              <a
+                class="text-medium-emphasis"
+                target="_blank"
+                :href="`https://pkg.go.dev//${selectedNamespace.at(0)}#${selectedApi.at(0)}`">
+                Go doc</a> <v-icon
+                size="x-small"
+                icon="mdi-link" />
+            </v-card-subtitle>
+            <v-card-text
+              v-if="technology !== 'go'"
+              class="pl-4 pr-4">
               <p v-html="selectedApiDocumentation" />
             </v-card-text>
           </v-card>
+
+          <v-skeleton-loader
+            v-if="isLoadingContributions"
+            type="article" />
 
           <!-- Results -->
           <div
@@ -167,6 +182,7 @@
           </div>
 
           <v-pagination
+            v-if="contributions.length > 0"
             v-model="pagination.page"
             density="comfortable"
             size="small"
@@ -233,11 +249,11 @@ const getContributionsHandler = async () => {
 
   toggleIsLoadingContributions()
 
-  // Scroll to contributions
   await nextTick()
   if (total === 0) {
     return
   }
+  // Scroll to contributions
   document.getElementById('contributions').scrollIntoView()
 }
 const findLines = apis => {
