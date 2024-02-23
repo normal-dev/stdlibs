@@ -139,7 +139,6 @@
           <!-- Results information -->
           <v-card
             v-if="selectedApi.length > 0"
-            v-show="technology !== 'node'"
             flat
             class="mb-4 pa-1 pb-4">
             <v-card-title class="pl-4 pr-4 pt-4">
@@ -157,7 +156,7 @@
                 icon="mdi-link" />
             </v-card-subtitle>
             <v-card-text
-              v-if="technology !== 'go'"
+              v-if="technology !== 'go' && technology !== 'node'"
               class="pl-4 pr-4">
               <p v-html="selectedApiDocumentation" />
             </v-card-text>
