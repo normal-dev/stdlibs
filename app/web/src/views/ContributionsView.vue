@@ -28,10 +28,10 @@
                   color="dark" />
               </template>
               <v-card-title v-if="technology === 'go'">
-                Go
+                Go ({{ catalogue.version }})
               </v-card-title>
               <v-card-title v-if="technology === 'node'">
-                Node.js
+                Node.js ({{ catalogue.version }})
               </v-card-title>
               <v-card-subtitle v-if="technology === 'go'">
                 by The Go Authors
@@ -44,11 +44,11 @@
             <v-card-text v-if="technology === 'go'">
               Go is a statically typed, compiled high-level programming
               language designed at Google by Robert Griesemer, Rob Pike, and Ken
-              Thompson. ({{ catalogue.version }})
+              Thompson.
             </v-card-text>
             <v-card-text v-if="technology === 'node'">
               Node.js is a cross-platform, open-source JavaScript runtime
-              environment that can run on Windows, Linux, Unix, macOS, and more. ({{ catalogue.version }})
+              environment that can run on Windows, Linux, Unix, macOS, and more.
             </v-card-text>
           </v-card>
 
