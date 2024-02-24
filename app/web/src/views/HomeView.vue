@@ -339,33 +339,38 @@ onMounted(async () => {
       </v-row>
 
       <!-- Contributions -->
-      <v-row class="mt-2 pa-4">
-        <v-col class="d-flex justify-center align-center">
-          <v-list
-            bg-color="transparent"
-            lines="two">
-            <v-list-subheader>APIs</v-list-subheader>
-            <v-list-item
-              v-for="(api, index) in contributionApis"
-              :key="index"
-              rounded
-              :active="index === cursor"
-              :title="api.ident"
-              :subtitle="api.line" />
-          </v-list>
-        </v-col>
-        <v-col class="d-flex justify-center align-center">
-          <XCodeViewer
-            width="800px"
-            no-navigation
-            slideshow
-            variant="text"
-            :language="codeViewerlanguage"
-            :lines="codeViewerLines"
-            :contribution="contribution"
-            @next-slide="$event => cursor = $event" />
-        </v-col>
-      </v-row>
+      <v-lazy
+        :min-height="200"
+        :options="{ threshold: 0.25}"
+        transition="fade-transition">
+        <v-row class="mt-2 pa-4">
+          <v-col class="d-flex justify-center align-center">
+            <v-list
+              bg-color="transparent"
+              lines="two">
+              <v-list-subheader>APIs</v-list-subheader>
+              <v-list-item
+                v-for="(api, index) in contributionApis"
+                :key="index"
+                rounded
+                :active="index === cursor"
+                :title="api.ident"
+                :subtitle="api.line" />
+            </v-list>
+          </v-col>
+          <v-col class="d-flex justify-center align-center">
+            <XCodeViewer
+              width="800px"
+              no-navigation
+              slideshow
+              variant="text"
+              :language="codeViewerlanguage"
+              :lines="codeViewerLines"
+              :contribution="contribution"
+              @next-slide="$event => cursor = $event" />
+          </v-col>
+        </v-row>
+      </v-lazy>
     </v-container>
   </v-main>
 </template>
