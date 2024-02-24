@@ -162,7 +162,8 @@
 
           <v-skeleton-loader
             v-if="isLoadingContributions"
-            type="article" />
+            class="mt-4"
+            type="paragraph" />
 
           <!-- Results -->
           <div
@@ -408,24 +409,26 @@ onMounted(async () => {
     setDocumentTitle(`${technology}/${selectedNamespace.value}/${selectedApi.value}`)
   }, { deep: true })
 
-  watch(apisQuery, () => {
-    if (apisQuery.value === '') {
-      filteredApis.value = apis.value
-      return
-    }
-
-    filteredApis.value = filteredApis.value.filter(api => {
-      return api.name.startsWith(apisQuery.value) || api.name === selectedApi.value.at(0)
-    })
-  })
   watch(namespaceQuery, () => {
     if (namespaceQuery.value === '') {
       filteredNamespaces.value = namespaces.value
       return
     }
 
-    filteredNamespaces.value = filteredNamespaces.value.filter(namespace => {
+    console.debug(namespaceQuery.value)
+
+    filteredNamespaces.value = namespaces.value.filter(namespace => {
       return namespace.startsWith(namespaceQuery.value) || namespace === selectedNamespace.value.at(0)
+    })
+  })
+  watch(apisQuery, () => {
+    if (apisQuery.value === '') {
+      filteredApis.value = apis.value
+      return
+    }
+
+    filteredApis.value = apis.value.filter(api => {
+      return api.name.startsWith(apisQuery.value) || api.name === selectedApi.value.at(0)
     })
   })
 })
