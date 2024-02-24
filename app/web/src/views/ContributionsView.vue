@@ -413,8 +413,6 @@ onMounted(async () => {
       return
     }
 
-    console.debug(namespaceQuery.value)
-
     filteredNamespaces.value = namespaces.value.filter(namespace => {
       return namespace.startsWith(namespaceQuery.value) || namespace === selectedNamespace.value.at(0)
     })
