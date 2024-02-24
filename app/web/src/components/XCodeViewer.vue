@@ -151,8 +151,7 @@ onMounted(async () => {
         class="text-medium-emphasis"
         target="_blank"
         :href="`https://www.github.com/${contribution.repo_owner}/${contribution.repo_name}`">
-        {{ contribution.repo_owner }}/{{ contribution.repo_name }}
-      </a> <v-icon
+        {{ contribution.repo_owner }}/{{ contribution.repo_name }}</a> <v-icon
         size="x-small"
         icon="mdi-link" />
     </v-card-subtitle>

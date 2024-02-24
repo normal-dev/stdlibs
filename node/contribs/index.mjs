@@ -220,8 +220,18 @@ const saveLicenses = async () => {
         type: 'MIT license'
       },
       {
-        authro: 'midwayjs',
+        author: 'midwayjs',
         repo: ['midwayjs', 'midway'],
+        type: 'MIT license'
+      },
+      {
+        author: 'The Fastify Team',
+        repo: ['fastify', 'fastify'],
+        type: 'MIT license'
+      },
+      {
+        author: 'GitHub Inc',
+        repo: ['hubotio', 'hubot'],
         type: 'MIT license'
       }
     ]
