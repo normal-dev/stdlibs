@@ -82,7 +82,6 @@ onMounted(async () => {
       <v-row class="mx-auto text-center">
         <v-col>
           <v-card
-            class="pa-1"
             variant="text">
             <v-card-title class="text-h3">
               stdlibs.com
@@ -102,7 +101,6 @@ onMounted(async () => {
           cols="12"
           lg="4">
           <v-card
-            class="pa-1"
             to="/go"
             variant="text">
             <v-card-item>
@@ -165,7 +163,6 @@ onMounted(async () => {
           cols="12"
           lg="4">
           <v-card
-            class="pa-1"
             to="/node"
             variant="text">
             <v-card-item>
@@ -227,7 +224,6 @@ onMounted(async () => {
           cols="12"
           lg="4">
           <v-card
-            class="pa-1"
             disabled
             variant="text">
             <v-card-item>

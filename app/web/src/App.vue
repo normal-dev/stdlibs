@@ -107,12 +107,14 @@ provide('setDocumentTitle', title => {
         id="app"
         fluid>
         <v-btn
+          color="dark"
           to="/impressum"
           size="small"
           variant="text">
           Impressum
         </v-btn>
         <v-btn
+          color="dark"
           to="/privacy"
           size="small"
           variant="text">

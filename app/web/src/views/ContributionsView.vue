@@ -12,8 +12,7 @@
           xl="2">
           <!-- Technology -->
           <v-card
-            flat
-            class="mb-4 pa-1">
+            flat>
             <v-card-item>
               <template #prepend>
                 <v-icon
@@ -56,15 +55,16 @@
           <v-card
             flat
             :loading="isLoadingNamespaces"
-            class="pa-1 mt-4 mb-4">
+            class="mt-4">
             <v-card-title class="text-caption">
               Namespaces ({{ filteredNamespaces.length }})
             </v-card-title>
             <v-card-text>
               <v-text-field
                 v-model="namespaceQuery"
-                bg-color="transparent"
+                class="ml-2"
                 density="compact"
+                bg-color="transparent"
                 variant="plain"
                 label="Search namespaces" />
               <v-list
@@ -91,13 +91,14 @@
             id="apis"
             flat
             :loading="isLoadingApis"
-            class="pa-1 mt-4 mb-4">
+            class="mt-4">
             <v-card-title class="text-caption">
               APIs ({{ filteredApis.length }})
             </v-card-title>
             <v-card-text>
               <v-text-field
                 v-model="apisQuery"
+                class="ml-2"
                 density="compact"
                 label="Search APIs"
                 variant="plain" />
@@ -139,14 +140,12 @@
           <!-- Results information -->
           <v-card
             v-if="selectedApi.length > 0"
-            flat
-            class="mb-4 pa-1 pb-4">
-            <v-card-title class="pl-4 pr-4 pt-4">
+            flat>
+            <v-card-title>
               {{ `${selectedNamespace.at(0)}.${selectedApi.at(0)}` }} ({{ pagination.total }})
             </v-card-title>
             <v-card-subtitle
-              v-show="technology === 'go'"
-              class="pl-4 pr-4">
+              v-show="technology === 'go'">
               <a
                 class="text-medium-emphasis"
                 target="_blank"
@@ -156,10 +155,9 @@
                 icon="mdi-link" />
             </v-card-subtitle>
             <v-card-text
-              v-if="technology !== 'go' && technology !== 'node'"
-              class="pl-4 pr-4">
+              v-if="technology !== 'go' && technology !== 'node'">
               <p v-html="selectedApiDocumentation" />
-            </v-card-text>
+            </v-card-text><br v-if="technology === 'go'">
           </v-card>
 
           <v-skeleton-loader
@@ -170,11 +168,10 @@
           <div
             v-for="(contribution, index) in contributions"
             :key="contribution._id">
-            <div class="text-right text-caption mb-2">
+            <div class="text-right text-caption mb-2 mt-4">
               #{{ (index+1)+pagination.perPage*(pagination.page-1) }}
             </div>
             <XCodeViewer
-              class="mb-4"
               :lines="findLines(contribution.apis)"
               :language="technologyToLanguageMapper.get(technology)"
               :contribution="contribution" />
@@ -183,6 +180,7 @@
           <v-pagination
             v-if="contributions.length > 0"
             v-model="pagination.page"
+            class="mt-4"
             density="comfortable"
             size="small"
             rounded="circle"

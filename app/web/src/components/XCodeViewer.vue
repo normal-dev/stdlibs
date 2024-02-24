@@ -141,12 +141,11 @@ onMounted(async () => {
 
 <template>
   <v-card
-    flat
-    class="pa-1">
-    <v-card-title class="pl-4 pr-4 pt-4">
+    flat>
+    <v-card-title>
       {{ contribution.filepath }}{{ contribution.filepath !== '/' ? '/' : '' }}{{ contribution.filename }} ({{ lines.length }})
     </v-card-title>
-    <v-card-subtitle class="pl-4 pr-4">
+    <v-card-subtitle>
       <a
         class="text-medium-emphasis"
         target="_blank"
@@ -155,24 +154,24 @@ onMounted(async () => {
         size="x-small"
         icon="mdi-link" />
     </v-card-subtitle>
-    <v-card-text
-      class="pl-4 pr-4">
+    <v-card-text>
       <div
         ref="codeViewerHtmlElement"
-        class="code-viewer mb-2" />
-
-      <small>&copy; {{ license.author }}, {{ license.type }}</small>
+        class="code-viewer" />
+      <div class="mt-4">
+        <small>&copy; {{ license.author }}, {{ license.type }}</small>
+      </div>
     </v-card-text>
 
     <v-card-actions v-if="!props.noNavigation">
       <v-btn
-        rounded="lg"
+        color="dark"
         :disabled="cursor === 0"
         icon="mdi-chevron-left"
         class="flex-grow-1"
         @click="previous()" />
       <v-btn
-        rounded="lg"
+        color="dark"
         :disabled="cursor === lines.length-1"
         icon="mdi-chevron-right"
         class="flex-grow-1"
