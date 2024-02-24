@@ -62,7 +62,6 @@
             <v-card-text>
               <v-text-field
                 v-model="namespaceQuery"
-                class="ml-2"
                 density="compact"
                 bg-color="transparent"
                 variant="plain"
@@ -98,7 +97,6 @@
             <v-card-text>
               <v-text-field
                 v-model="apisQuery"
-                class="ml-2"
                 density="compact"
                 label="Search APIs"
                 variant="plain" />
