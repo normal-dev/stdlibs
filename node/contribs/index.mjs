@@ -305,7 +305,6 @@ const getHandpickedRepositories = async githubClient => {
     ['sindresorhus', 'got'],
     ['twbs', 'bootstrap'],
     ['sveltejs', 'svelte'],
-    ['axios', 'axios'],
     ['prettier', 'prettier'],
     ['vercel', 'next.js'],
     ['biomejs', 'biome']
