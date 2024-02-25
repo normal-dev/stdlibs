@@ -1,8 +1,16 @@
 <script setup>
-import { provide } from 'vue'
+import { ref, provide } from 'vue'
 import { useRoute } from 'vue-router'
+import { useTheme } from 'vuetify/lib/framework.mjs'
 
 const route = useRoute()
+const theme = useTheme()
+
+const toggleTheme = () => {
+  theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
+}
+
+const themeToggleIcon = ref('mdi-white-balance-sunny')
 
 provide('setDocumentTitle', title => {
   document.title = `stdlibs.com - ${title}`
