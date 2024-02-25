@@ -15,7 +15,6 @@ const themeToggleIcon = ref('mdi-white-balance-sunny')
 provide('setDocumentTitle', title => {
   document.title = `stdlibs.com - ${title}`
 })
-
 </script>
 
 <template>
