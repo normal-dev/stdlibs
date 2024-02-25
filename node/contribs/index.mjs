@@ -233,6 +233,21 @@ const saveLicenses = async () => {
         author: 'GitHub Inc',
         repo: ['hubotio', 'hubot'],
         type: 'MIT license'
+      },
+      {
+        author: 'James Long and contributors',
+        repo: ['prettier', 'prettier'],
+        type: 'MIT license'
+      },
+      {
+        author: 'Vercel, Inc.',
+        repo: ['vercel', 'next.js'],
+        type: 'MIT license'
+      },
+      {
+        author: 'Biome Developers and Contributors',
+        repo: ['biomejs', 'biome'],
+        type: 'MIT license'
       }
     ]
   })
@@ -289,7 +304,11 @@ const getHandpickedRepositories = async githubClient => {
     ['pingcap', 'ossinsight'],
     ['sindresorhus', 'got'],
     ['twbs', 'bootstrap'],
-    ['sveltejs', 'svelte']
+    ['sveltejs', 'svelte'],
+    ['axios', 'axios'],
+    ['prettier', 'prettier'],
+    ['vercel', 'next.js'],
+    ['biomejs', 'biome']
   ]) {
     console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({

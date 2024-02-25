@@ -198,6 +198,26 @@ func saveLicenses(ctx context.Context) error {
 				Repo:   [2]string{"caddyserver", "caddy"},
 				Type:   "Apache-2.0 license",
 			},
+			{
+				Author: "Richard Musiol",
+				Repo:   [2]string{"gopherjs", "gopherjs"},
+				Type:   "BSD-2-Clause license",
+			},
+			{
+				Author: "V2Fly Community",
+				Repo:   [2]string{"v2ray", "v2ray-core"},
+				Type:   "MIT license",
+			},
+			{
+				Author: "Ollama",
+				Repo:   [2]string{"ollama", "ollama"},
+				Type:   "MIT license",
+			},
+			{
+				Author: "spf13",
+				Repo:   [2]string{"spf13", "cobra"},
+				Type:   "Apache-2.0 license",
+			},
 		},
 	}
 	_, err = mongoColl.InsertOne(context.TODO(), licenses)
