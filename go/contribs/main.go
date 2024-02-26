@@ -70,7 +70,7 @@ func main() {
 			"-q",
 			"--depth", "1",
 			"--no-tags",
-			"--filter=blob:limit=30k",
+			"--filter=blob:limit=35k",
 			*repo.CloneURL,
 			tmpDir,
 		).Run(); err != nil {
@@ -130,7 +130,7 @@ func main() {
 		log.Printf("found approx. %d cloned files (%d Go files)", repofilesn, gofilesn)
 		docsn, err := saveContribs(context.TODO(), contribs)
 		logErr(err)
-		log.Printf("%d contributions saved, %d repos left", docsn, len(repos)-(idx+1))
+		log.Printf("%d contributions saved, repos left: %d", docsn, len(repos)-(idx+1))
 	}
 
 	log.Printf("found %d Go contributions", contribsn)
