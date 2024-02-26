@@ -36,32 +36,32 @@ func saveLicenses(ctx context.Context) error {
 			{
 				Author: "Docker, Inc.",
 				Repo:   [2]string{"moby", "moby"},
-				Type:   "Apache License 2.0",
+				Type:   "Apache license 2.0",
 			},
 			{
 				Author: "Docker, Inc.",
 				Repo:   [2]string{"docker", "compose"},
-				Type:   "Apache License 2.0",
+				Type:   "Apache license 2.0",
 			},
 			{
 				Author: "Podman",
 				Repo:   [2]string{"containers", "podman"},
-				Type:   "Apache License 2.0",
+				Type:   "Apache license 2.0",
 			},
 			{
 				Author: "The Kubernetes Authors",
 				Repo:   [2]string{"helm", "helm"},
-				Type:   "Apache License 2.0",
+				Type:   "Apache license 2.0",
 			},
 			{
 				Author: "The Kubernetes Authors",
 				Repo:   [2]string{"kubernetes", "kubernetes"},
-				Type:   "Apache License 2.0",
+				Type:   "Apache license 2.0",
 			},
 			{
 				Author: "MinIO, Inc.",
 				Repo:   [2]string{"minio", "minio"},
-				Type:   "GNU Affero General Public License v3.0",
+				Type:   "GNU Affero general public license v3.0",
 			},
 			{
 				Author: "Cloudflare, Inc.",
@@ -146,7 +146,7 @@ func saveLicenses(ctx context.Context) error {
 			{
 				Author: "Gravitational, Inc.",
 				Repo:   [2]string{"gravitational", "teleport"},
-				Type:   "GNU Affero General Public License v3.0",
+				Type:   "GNU Affero general public license v3.0",
 			},
 			{
 				Author: "Canonical Ltd.",
@@ -216,6 +216,23 @@ func saveLicenses(ctx context.Context) error {
 			{
 				Author: "spf13",
 				Repo:   [2]string{"spf13", "cobra"},
+				Type:   "Apache-2.0 license",
+			},
+			{
+				Author: "Tailscale Inc & AUTHORS",
+				Repo:   [2]string{"tailscale", "tailscale"},
+				Type:   "BSD 3-Clause license",
+			},
+
+			{
+				Author: "Rancher Labs, Inc.",
+				Repo:   [2]string{"rancher", "rancher"},
+				Type:   "Apache-2.0 license",
+			},
+
+			{
+				Author: "syzkaller project authors",
+				Repo:   [2]string{"google", "syzkaller"},
 				Type:   "Apache-2.0 license",
 			},
 		},
