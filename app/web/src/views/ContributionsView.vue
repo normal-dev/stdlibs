@@ -8,7 +8,7 @@
           xs="12"
           sm="12"
           md="4"
-          lg="4"
+          lg="2"
           xl="2">
           <!-- Technology -->
           <v-card
@@ -129,12 +129,11 @@
 
         <v-col
           id="contributions"
-          cols="12"
           xs="12"
           sm="12"
           md="8"
-          lg="8"
-          xl="8">
+          lg="6"
+          xl="6">
           <!-- Results information -->
           <v-card
             v-if="selectedApi.length > 0"
