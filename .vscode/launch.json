@@ -43,13 +43,8 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/go/contribs/main.go",
-            "args": [
-                "main.go",
-                "extractor.go",
-                "license.go",
-                "docs.go",
-            ],
+            "program": "${workspaceFolder}/go/contribs",
+            "args": [],
             "env": {
                 "GITHUB_ACCESS_TOKEN_CONTRIBS": "${input:github_access_token}"
             }
@@ -70,7 +65,7 @@
     "inputs": [
         {
             "id": "github_access_token",
-            "description": "",
+            "description": "Github access token",
             "type": "promptString"
         }
     ]

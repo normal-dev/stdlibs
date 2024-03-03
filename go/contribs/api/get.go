@@ -110,10 +110,9 @@ func getAllPkgs() map[string][]types.Object {
 }
 
 func filterPkgs(pkgs map[string][]types.Object) {
-	regexp := regexp.MustCompile("(^vendor|/internal|internal/|/internal/)")
+	regexp := regexp.MustCompile("^vendor")
 	for pkg, objs := range pkgs {
 		if regexp.MatchString(pkg) {
-			// Internal, vendor
 			delete(pkgs, pkg)
 			continue
 		}
