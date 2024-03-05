@@ -257,9 +257,18 @@ const saveLicenses = async () => {
       {
         author: 'THE ETHERPAD FOUNDATION',
         repo: ['ether', 'etherpad-lite'],
-        type: ' Apache-2.0 license'
+        type: 'Apache-2.0 license'
+      },
+      {
+        author: 'Monospace, Inc.',
+        repo: ['directus', 'directus'],
+        type: 'GNU General Public License v3.0'
+      },
+      {
+        author: 'Spacedrive Technology Inc.',
+        repo: ['spacedriveapp', 'spacedrive'],
+        type: 'AGPL-3.0 license'
       }
-
     ]
   })
   return insertOneResult.acknowledged
@@ -320,7 +329,9 @@ const getHandpickedRepositories = async githubClient => {
     ['vercel', 'next.js'],
     ['biomejs', 'biome'],
     ['microsoft', 'vscode'],
-    ['ether', 'etherpad-lite']
+    ['ether', 'etherpad-lite'],
+    ['directus', 'directus'],
+    ['spacedriveapp', 'spacedrive']
   ]) {
     console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({
