@@ -248,7 +248,18 @@ const saveLicenses = async () => {
         author: 'Biome Developers and Contributors',
         repo: ['biomejs', 'biome'],
         type: 'MIT license'
+      },
+      {
+        author: 'Microsoft Corporation',
+        repo: ['microsoft', 'vscode'],
+        type: 'MIT license'
+      },
+      {
+        author: 'THE ETHERPAD FOUNDATION',
+        repo: ['ether', 'etherpad-lite'],
+        type: ' Apache-2.0 license'
       }
+
     ]
   })
   return insertOneResult.acknowledged
@@ -307,7 +318,9 @@ const getHandpickedRepositories = async githubClient => {
     ['sveltejs', 'svelte'],
     ['prettier', 'prettier'],
     ['vercel', 'next.js'],
-    ['biomejs', 'biome']
+    ['biomejs', 'biome'],
+    ['microsoft', 'vscode'],
+    ['ether', 'etherpad-lite']
   ]) {
     console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({
