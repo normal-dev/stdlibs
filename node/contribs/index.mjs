@@ -321,7 +321,7 @@ const getHandpickedRepositories = async githubClient => {
     ['playcanvas', 'engine'],
     ['tutao', 'tutanota'],
     ['highlight', 'highlight'],
-    ['supabase', 'supabase'],
+    // ['supabase', 'supabase'], // "Killed"
     ['herbie-fp', 'herbie'],
     ['midwayjs', 'midway'],
     ['angular', 'angular'],
