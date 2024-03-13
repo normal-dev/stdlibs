@@ -1,5 +1,5 @@
 <script setup>
-import { ref, provide } from 'vue'
+import { ref, provide, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from 'vuetify/lib/framework.mjs'
 
@@ -14,6 +14,14 @@ const themeToggleIcon = ref('mdi-white-balance-sunny')
 
 provide('setDocumentTitle', title => {
   document.title = `stdlibs.com - ${title}`
+})
+
+watch(() => theme.global.current.value.dark, (dark) => {
+  if (dark) {
+    themeToggleIcon.value = 'mdi-weather-sunny'
+  } else {
+    themeToggleIcon.value = 'mdi-moon-waning-crescent'
+  }
 })
 </script>
 
@@ -36,7 +44,7 @@ provide('setDocumentTitle', title => {
           v-else
           size="small"
           variant="text"
-          icon="mdi-home"
+          icon="mdi-home-outline"
           to="/" />
 
         <v-spacer />
