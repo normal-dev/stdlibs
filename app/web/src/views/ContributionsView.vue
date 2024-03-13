@@ -160,23 +160,23 @@
             </v-card-title>
             <v-card-subtitle
               v-show="technology === 'go'">
-              <a
-                class="text-medium-emphasis"
-                target="_blank"
-                :href="`https://pkg.go.dev//${selectedNamespace.at(0)}#${selectedApi.at(0)}`">
-                Go doc</a> <v-icon
+              <v-icon
                 size="x-small"
-                icon="mdi-link" />
+                icon="mdi-api" /> <a
+                  class="text-medium-emphasis"
+                  target="_blank"
+                  :href="`https://pkg.go.dev//${selectedNamespace.at(0)}#${selectedApi.at(0)}`">
+                  Go doc</a>
             </v-card-subtitle>
             <v-card-subtitle
               v-show="technology === 'node' && technology !== 'node'">
-              <a
-                class="text-medium-emphasis"
-                target="_blank"
-                :href="`https://nodejs.org/api/${selectedNamespace.at(0).replace('node:', '')}.html`">
-                Node.js documentation</a> <v-icon
+              <v-icon
                 size="x-small"
-                icon="mdi-link" />
+                icon="mdi-api" /> <a
+                  class="text-medium-emphasis"
+                  target="_blank"
+                  :href="`https://nodejs.org/api/${selectedNamespace.at(0).replace('node:', '')}.html`">
+                  Node.js documentation</a>
             </v-card-subtitle>
             <v-card-text
               v-if="technology !== 'go' && technology !== 'node'">

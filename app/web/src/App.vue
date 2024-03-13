@@ -10,7 +10,7 @@ const toggleTheme = () => {
   theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
 
-const themeToggleIcon = ref('mdi-weather-sunny')
+const themeToggleIcon = ref('mdi-invert-colors')
 
 provide('setDocumentTitle', title => {
   document.title = `stdlibs.com - ${title}`
@@ -18,9 +18,9 @@ provide('setDocumentTitle', title => {
 
 watch(() => theme.global.current.value.dark, (dark) => {
   if (dark) {
-    themeToggleIcon.value = 'mdi-weather-sunny'
+    themeToggleIcon.value = 'mdi-invert-colors'
   } else {
-    themeToggleIcon.value = 'mdi-moon-waning-crescent'
+    themeToggleIcon.value = 'mdi-invert-colors-off'
   }
 })
 </script>
