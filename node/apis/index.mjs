@@ -102,6 +102,9 @@ try {
     n_ns: publicBuiltinModules.length,
     ns: publicBuiltinModules,
     version: version.substring(1),
+    vids: {
+      'node:assert': '4Vnn8JUyotw'
+    }
   })
 
   process.exit(0)

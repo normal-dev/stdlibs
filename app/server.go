@@ -112,12 +112,13 @@ func main() {
 	router.GET("/api/:tech", cache.CachePage(store, time.Hour*12, func(ctx *gin.Context) {
 		// Union type of API and contributions catalogue
 		type cat struct {
-			NAPIs     int      `json:"n_apis" bson:"n_apis"`
-			NContribs int      `json:"n_contribs" bson:"n_contribs"`
-			NNs       int      `json:"n_ns" bson:"n_ns"`
-			NRepos    int      `json:"n_repos" bson:"n_repos"`
-			Ns        []string `json:"ns" bson:"ns"`
-			Version   string   `json:"version" bson:"version"`
+			NAPIs     int               `json:"n_apis" bson:"n_apis"`
+			NContribs int               `json:"n_contribs" bson:"n_contribs"`
+			NNs       int               `json:"n_ns" bson:"n_ns"`
+			NRepos    int               `json:"n_repos" bson:"n_repos"`
+			Ns        []string          `json:"ns" bson:"ns"`
+			Version   string            `json:"version" bson:"version"`
+			Vids      map[string]string `json:"vids" bson:"vids"`
 		}
 
 		var c cat

@@ -136,7 +136,22 @@
           xl="6">
           <!-- Results information -->
           <v-card
+            v-if="selectedNamespace.length > 0 && catalogue.vids[selectedNamespace.at(0)] != undefined"
+            flat>
+            <v-card-text>
+              <iframe
+                width="100%"
+                height="400"
+                :src="`https:/www.youtube.com/embed/${catalogue.vids[selectedNamespace.at(0)]}?si=7vi7BQxp65CRJav9&amp;controls=0`"
+                frameborder="0"
+                allow="autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen />
+            </v-card-text>
+          </v-card>
+
+          <v-card
             v-if="selectedApi.length > 0"
+            :class="{ 'mt-4': catalogue.vids[selectedNamespace.at(0)] != undefined }"
             flat>
             <v-card-title>
               {{ `${selectedNamespace.at(0)}.${selectedApi.at(0)}` }} ({{ pagination.total }})
@@ -151,18 +166,21 @@
                 size="x-small"
                 icon="mdi-link" />
             </v-card-subtitle>
+            <v-card-subtitle
+              v-show="technology === 'node' && technology !== 'node'">
+              <a
+                class="text-medium-emphasis"
+                target="_blank"
+                :href="`https://nodejs.org/api/${selectedNamespace.at(0).replace('node:', '')}.html`">
+                Node.js documentation</a> <v-icon
+                size="x-small"
+                icon="mdi-link" />
+            </v-card-subtitle>
             <v-card-text
               v-if="technology !== 'go' && technology !== 'node'">
               <p v-html="selectedApiDocumentation" />
-            </v-card-text><br v-if="technology === 'go'">
-            <iframe
-              width="560"
-              height="315"
-              src="https://www.youtube.com/embed/QWCZbZE--8I?si=7vi7BQxp65CRJav9&amp;controls=0"
-              title="YouTube video player"
-              frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowfullscreen />
+            </v-card-text>
+            <br>
           </v-card>
 
           <v-skeleton-loader

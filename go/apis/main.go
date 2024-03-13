@@ -68,6 +68,9 @@ func saveCat(ctx context.Context, nss map[string]struct{}, napis int) error {
 		NNs:     len(nss),
 		Ns:      ns,
 		Version: strings.TrimPrefix(runtime.Version(), "go"),
+		Vids: map[string]string{
+			"archive/tar": "k2GDjArZbKk",
+		},
 	})
 	return err
 }
