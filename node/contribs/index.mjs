@@ -268,6 +268,26 @@ const saveLicenses = async () => {
         author: 'Spacedrive Technology Inc.',
         repo: ['spacedriveapp', 'spacedrive'],
         type: 'AGPL-3.0 license'
+      },
+      {
+        author: 'The Backstage Authors',
+        repo: ['backstage', 'backstage'],
+        type: 'Apache-2.0 license'
+      },
+      {
+        author: 'Peter Hedenskog',
+        repo: ['sitespeedio', 'sitespeed.io'],
+        type: 'MIT license'
+      },
+      {
+        author: 'OpenJS Foundation and other contributors',
+        repo: ['webdriverio', 'webdriverio'],
+        type: 'MIT license'
+      },
+      {
+        author: 'Streetwriters (Private) Ltd.',
+        repo: ['streetwriters', 'notesnook'],
+        type: 'GPL-3.0 license'
       }
     ]
   })
@@ -331,7 +351,11 @@ const getHandpickedRepositories = async githubClient => {
     ['microsoft', 'vscode'],
     ['ether', 'etherpad-lite'],
     ['directus', 'directus'],
-    ['spacedriveapp', 'spacedrive']
+    ['spacedriveapp', 'spacedrive'],
+    ['backstage', 'backstage'],
+    ['sitespeedio', 'sitespeed.io'],
+    ['webdriverio', 'webdriverio'],
+    ['streetwriters', 'notesnook']
   ]) {
     console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({
