@@ -400,7 +400,7 @@ try {
     await cleanRepository(repositoryOwner, repositoryName)
 
     console.debug('cloning repo %s to %s...', repository.clone_url, TEMPORARY_DIRECTORY)
-    console.debug(execSync(`git clone -q --depth 1 --no-tags --filter=blob:limit=100k ${repository.clone_url} ${TEMPORARY_DIRECTORY}`))
+    execSync(`git clone -q --depth 1 --no-tags --filter=blob:limit=100k ${repository.clone_url} ${TEMPORARY_DIRECTORY}`)
 
     console.debug('cleaning repo files...')
     rmSync(`${TEMPORARY_DIRECTORY}/.git`, { force: true, maxRetries: 1, recursive: true })
