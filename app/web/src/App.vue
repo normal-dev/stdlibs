@@ -10,7 +10,7 @@ const toggleTheme = () => {
   theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
 
-const themeToggleIcon = ref('mdi-white-balance-sunny')
+const themeToggleIcon = ref('mdi-weather-sunny')
 
 provide('setDocumentTitle', title => {
   document.title = `stdlibs.com - ${title}`
