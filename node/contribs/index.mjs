@@ -447,6 +447,5 @@ try {
   process.exit(0)
 } catch (error) {
   console.error(error)
-  console.error(error.stderr.toString())
   process.exit(1)
 }
