@@ -103,7 +103,7 @@ try {
     ns: publicBuiltinModules,
     version: version.substring(1),
     vids: {
-      'node:assert': '4Vnn8JUyotw'
+      'node:assert': '-dp25Kt7LoA'
     }
   })
 
