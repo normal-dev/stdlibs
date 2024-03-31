@@ -197,6 +197,11 @@ func getHandpickedRepos(ctx context.Context, ghClient *github.Client) (repos []*
 		{"thanos-io", "thanos"},
 		{"envoyproxy", "envoy"},
 		{"ebitengine", "purego"},
+		{"goplus", "igop"},
+		{"alecthomas", "kong"},
+		{"alecthomas", "participle"},
+		{"go-critic", "go-critic"},
+		{"gohugoio", "hugo"},
 	} {
 		owner, name := repo[0], repo[1]
 		log.Printf("fetching repo %s/%s...", owner, name)

@@ -285,6 +285,31 @@ func saveLicenses(ctx context.Context) error {
 				Repo:   [2]string{"ebitengine", "purego"},
 				Type:   "Apache-2.0 license",
 			},
+			{
+				Author: "The GoPlus Authors",
+				Repo:   [2]string{"goplus", "igop"},
+				Type:   "Apache-2.0 license",
+			},
+			{
+				Author: "Alec Thomas",
+				Repo:   [2]string{"alecthomas", "kong"},
+				Type:   "MIT license",
+			},
+			{
+				Author: "Alec Thomas",
+				Repo:   [2]string{"alecthomas", "participle"},
+				Type:   "MIT license",
+			},
+			{
+				Author: "go-critic team",
+				Repo:   [2]string{"go-critic", "go-critic"},
+				Type:   "MIT license",
+			},
+			{
+				Author: "The Hugo Authors",
+				Repo:   [2]string{"gohugoio", "hugo"},
+				Type:   "Apache-2.0 license",
+			},
 		},
 	}
 	_, err = mongoColl.InsertOne(context.TODO(), licenses)
