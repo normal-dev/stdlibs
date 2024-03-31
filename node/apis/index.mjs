@@ -103,7 +103,8 @@ try {
     ns: publicBuiltinModules,
     version: version.substring(1),
     vids: {
-      'node:assert': '-dp25Kt7LoA'
+      'node:assert': '-dp25Kt7LoA',
+      'node:http': 'JtYp2TemXc4'
     }
   })
 
