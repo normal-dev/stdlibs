@@ -70,7 +70,7 @@ func worker(workerID int, repos <-chan *github.Repository, contribsn, filesn *in
 		)
 
 		logger.Printf("creating temp repo dir...")
-		repoDir, err := os.MkdirTemp("", fmt.Sprintf("%s/%s", repoOwner, repoName))
+		repoDir, err := os.MkdirTemp("", fmt.Sprintf("%s_%s", repoOwner, repoName))
 		checkErr(err)
 
 		defer checkErr(os.RemoveAll(repoDir))
