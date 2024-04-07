@@ -6,7 +6,6 @@ import (
 	"io/fs"
 	"log"
 	"os"
-	"os/exec"
 	filepat "path/filepath"
 
 	goapis "contribs-go/api"
@@ -35,6 +34,7 @@ var (
 	tmpDir string
 
 	mongoColl = goapis.MongoClient.Database("contribs").Collection("go")
+	ctx       = context.TODO()
 )
 
 func main() {
@@ -51,96 +51,28 @@ func main() {
 	}
 
 	ghclient := newGithubClient(githubAccessTok)
-	repos, err := getHandpickedRepos(context.TODO(), ghclient)
+	repos, err := getHandpickedRepos(ctx, ghclient)
 	checkErr(err)
 	log.Printf("found %d handpicked repos", len(repos))
 
 	var contribsn, filesn int
-	for idx, repo := range repos {
-		repoOwner := repo.Owner.GetLogin()
-		repoName := repo.GetName()
+	reposchan := make(chan *github.Repository)
+	for range 2 { // n workers
+		go worker(reposchan, &contribsn, &filesn)
+	}
 
-		log.Println("cleaning...")
-		checkErr(clean(context.TODO(), repoOwner, repoName))
-
-		log.Printf("cloning repo %s to %s...", repo.GetCloneURL(), tmpDir)
-
-		if err := exec.Command("git",
-			"clone",
-			"-q",
-			"--depth", "1",
-			"--no-tags",
-			"--filter=blob:limit=35k",
-			*repo.CloneURL,
-			tmpDir,
-		).Run(); err != nil {
-			log.Println(err.Error())
-			continue
-		}
-
-		log.Println("cleaning repo files...")
-		reductRepo()
-
-		var repofilesn int
-		go func() {
-			err := filepat.Walk(tmpDir, func(path string, info os.FileInfo, err error) error {
-				if err != nil {
-					return err
-				}
-				repofilesn++
-				return nil
-			})
-			filesn += repofilesn
-			logErr(err)
-		}()
-
-		var (
-			gofilesn, apisn int
-
-			contribs = make([]any, 0)
-		)
-		log.Println("looking for Go files...")
-		for file := range findGoFiles(tmpDir) {
-			gofilesn++
-
-			fileBytes, err := os.ReadFile(file)
-			logErr(err)
-			apis, ok, _ := findGoAPIs(fileBytes)
-			if !ok {
-				continue
-			}
-			apisn += len(apis)
-
-			pat := file[len(tmpDir):]
-			code := string(fileBytes)
-			filepath := filepat.Dir(pat)
-			filename := filepat.Base(pat)
-			contribs = append(contribs, model.Contrib{
-				APIs:      apis,
-				Code:      code,
-				Filepath:  filepath,
-				Filename:  filename,
-				RepoOwner: repoOwner,
-				RepoName:  repoName,
-			})
-			contribsn++
-		}
-
-		log.Printf("found %d contributions (%d Go apis)", len(contribs), apisn)
-		log.Printf("found approx. %d cloned files (%d Go files)", repofilesn, gofilesn)
-		docsn, err := saveContribs(context.TODO(), contribs)
-		logErr(err)
-		log.Printf("%d contributions saved, repos left: %d", docsn, len(repos)-(idx+1))
+	for _, repo := range repos {
+		reposchan <- repo
 	}
 
 	log.Printf("found %d Go contributions", contribsn)
 	log.Printf("found approx. %d files", filesn)
 
 	log.Printf("saving catalogue...")
-	checkErr(saveCatalogue(context.TODO(), contribsn, len(repos)))
+	checkErr(saveCatalogue(ctx, contribsn, len(repos)))
 
 	log.Printf("saving licenses...")
-	checkErr(saveLicenses(context.TODO()))
+	checkErr(saveLicenses(ctx))
 }
 
 func getHandpickedRepos(ctx context.Context, ghClient *github.Client) (repos []*github.Repository, err error) {
@@ -276,10 +208,10 @@ func saveCatalogue(ctx context.Context, contribsn, reposn int) error {
 }
 
 // Removes directories like "vendor"
-func reductRepo() {
+func cleanRepo() {
 	logErr(os.RemoveAll(fmt.Sprintf("%s/.git", tmpDir)))
 
-	err := filepat.WalkDir(tmpDir, func(path string, d fs.DirEntry, err error) error {
+	_ = filepat.WalkDir(tmpDir, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			if dir := filepat.Base(path); dir == "vendor" {
 				logErr(os.RemoveAll(path))
@@ -287,7 +219,6 @@ func reductRepo() {
 		}
 		return nil
 	})
-	logErr(err)
 }
 
 func newGithubClient(githubAccessTok string) *github.Client {
