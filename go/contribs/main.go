@@ -116,7 +116,7 @@ func worker(workerID int, repos <-chan *github.Repository, contribsn, filesn *in
 
 			contribs = make([]any, 0)
 		)
-		log.Println("looking for Go files...")
+		logger.Println("looking for Go files...")
 		for file := range findGoFiles(repoDir) {
 			gofilesn++
 
