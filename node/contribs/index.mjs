@@ -288,6 +288,21 @@ const saveLicenses = async () => {
         author: 'Streetwriters (Private) Ltd.',
         repo: ['streetwriters', 'notesnook'],
         type: 'GPL-3.0 license'
+      },
+      {
+        author: 'Nomic, Inc.',
+        repo: ['nomic-ai', 'gpt4all'],
+        type: 'MIT license'
+      },
+      {
+        author: 'Luciano Mammino, will Farrell and the Middy team',
+        repo: ['middyjs', 'middy'],
+        type: 'MIT license'
+      },
+      {
+        author: 'Salesforce.com, Inc.',
+        repo: ['salesforce', 'lwc'],
+        type: 'MIT license'
       }
     ]
   })
@@ -355,7 +370,9 @@ const getHandpickedRepositories = async githubClient => {
     ['backstage', 'backstage'],
     ['sitespeedio', 'sitespeed.io'],
     ['webdriverio', 'webdriverio'],
-    ['streetwriters', 'notesnook']
+    ['streetwriters', 'notesnook'],
+    ['nomic-ai', 'gpt4all'],
+    ['salesforce', 'lwc']
   ]) {
     console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({
