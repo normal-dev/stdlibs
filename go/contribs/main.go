@@ -150,9 +150,7 @@ func worker(workerID int, repos <-chan *github.Repository, contribsn, filesn *in
 		logger.Printf("found approx. %d cloned files (%d Go files)", repofilesn, gofilesn)
 		docsn, err := saveContribs(ctx, contribs)
 		logErr(logger, err)
-		if err != nil {
-			logger.Printf("%d contributions saved", docsn)
-		}
+		logger.Printf("%d contributions saved", docsn)
 	}
 }
 
