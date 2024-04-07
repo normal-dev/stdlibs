@@ -30,6 +30,8 @@ func init() {
 var mongoColl = goapis.MongoClient.Database("contribs").Collection("go")
 
 func main() {
+	ctx := context.TODO()
+
 	githubAccessTok := os.Getenv("GITHUB_ACCESS_TOKEN_CONTRIBS")
 	if githubAccessTok == "" {
 		panic("can't find Github access token")
@@ -38,8 +40,6 @@ func main() {
 	repos, err := getHandpickedRepos(ctx, ghclient)
 	checkErr(err)
 	log.Printf("found %d handpicked repos", len(repos))
-
-	ctx := context.TODO()
 
 	var wg sync.WaitGroup
 	reposchan := make(chan *github.Repository)
