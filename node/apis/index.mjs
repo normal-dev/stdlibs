@@ -104,6 +104,7 @@ try {
     version: version.substring(1),
     vids: {
       'node:assert': '-dp25Kt7LoA',
+      'node:buffer': 's15mAxFCiso',
       'node:http': 'JtYp2TemXc4'
     }
   })
