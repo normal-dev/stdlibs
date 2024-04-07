@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	filepat "path/filepath"
+	"sync"
 
 	goapis "contribs-go/api"
 
@@ -29,7 +30,6 @@ func init() {
 var mongoColl = goapis.MongoClient.Database("contribs").Collection("go")
 
 func main() {
-	ctx := context.TODO()
 	githubAccessTok := os.Getenv("GITHUB_ACCESS_TOKEN_CONTRIBS")
 	if githubAccessTok == "" {
 		panic("can't find Github access token")
@@ -39,14 +39,25 @@ func main() {
 	checkErr(err)
 	log.Printf("found %d handpicked repos", len(repos))
 
-	var contribsn, filesn int
+	ctx := context.TODO()
+
+	var wg sync.WaitGroup
 	reposchan := make(chan *github.Repository)
-	for idx := range 3 { // n workers
-		go worker(idx+1, reposchan, &contribsn, &filesn)
+	var contribsn, filesn int
+	for range 3 { // n workers
+		go worker(
+			ctx,
+			&wg,
+			reposchan,
+			&contribsn,
+			&filesn,
+		)
 	}
 	for _, repo := range repos {
 		reposchan <- repo
 	}
+
+	wg.Wait()
 
 	log.Printf("found %d Go contributions", contribsn)
 	log.Printf("found approx. %d files", filesn)
@@ -58,14 +69,22 @@ func main() {
 	checkErr(saveLicenses(ctx))
 }
 
-func worker(workerID int, repos <-chan *github.Repository, contribsn, filesn *int) {
+func worker(
+	ctx context.Context,
+	wg *sync.WaitGroup,
+	repos <-chan *github.Repository,
+	contribsn,
+	filesn *int,
+) {
 	for repo := range repos {
+		wg.Add(1)
+
 		repoOwner := repo.Owner.GetLogin()
 		repoName := repo.GetName()
 
 		logger := log.New(
 			os.Stdout,
-			fmt.Sprintf("[%d]%s/%s: ", workerID, repoOwner, repoName),
+			fmt.Sprintf("%s/%s: ", repoOwner, repoName),
 			log.Lmsgprefix,
 		)
 
@@ -73,12 +92,8 @@ func worker(workerID int, repos <-chan *github.Repository, contribsn, filesn *in
 		repoDir, err := os.MkdirTemp("", fmt.Sprintf("%s_%s", repoOwner, repoName))
 		checkErr(err)
 
-		defer checkErr(os.RemoveAll(repoDir))
-
-		ctx := context.TODO()
-
 		logger.Println("cleaning...")
-		checkErr(clean(ctx, repoDir, repoOwner, repoName))
+		checkErr(delRepo(ctx, repoDir, repoOwner, repoName))
 
 		logger.Printf("cloning repo %s to %s...", repo.GetCloneURL(), repoDir)
 
@@ -87,16 +102,17 @@ func worker(workerID int, repos <-chan *github.Repository, contribsn, filesn *in
 			"-q",
 			"--depth", "1",
 			"--no-tags",
-			"--filter=blob:limit=40k",
+			"--filter=blob:limit=50k",
 			*repo.CloneURL,
 			repoDir,
 		).Run(); err != nil {
 			logErr(logger, err)
+			logErr(logger, os.RemoveAll(repoDir))
 			continue
 		}
 
 		logger.Println("cleaning repo files...")
-		cleanRepo(logger, repoDir)
+		baseRepo(logger, repoDir)
 
 		var repofilesn int
 		go func() {
@@ -151,6 +167,10 @@ func worker(workerID int, repos <-chan *github.Repository, contribsn, filesn *in
 		docsn, err := saveContribs(ctx, contribs)
 		logErr(logger, err)
 		logger.Printf("%d contributions saved", docsn)
+
+		go logErr(logger, os.RemoveAll(repoDir))
+
+		wg.Done()
 	}
 }
 
@@ -215,6 +235,8 @@ func getHandpickedRepos(ctx context.Context, ghClient *github.Client) (repos []*
 		{"gohugoio", "hugo"},
 		{"harness", "gitness"},
 		{"aquasecurity", "trivy"},
+		{"cilium", "ebpf"},
+		{"uber-go", "zap"},
 	} {
 		owner, name := repo[0], repo[1]
 		log.Printf("fetching repo %s/%s...", owner, name)
@@ -287,7 +309,7 @@ func saveCatalogue(ctx context.Context, contribsn, reposn int) error {
 }
 
 // Removes directories like "vendor"
-func cleanRepo(logger *log.Logger, dir string) {
+func baseRepo(logger *log.Logger, dir string) {
 	logErr(logger, os.RemoveAll(fmt.Sprintf("%s/.git", dir)))
 
 	_ = filepat.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
@@ -308,7 +330,7 @@ func newGithubClient(githubAccessTok string) *github.Client {
 	return github.NewClient(httpClient)
 }
 
-func clean(ctx context.Context, repoDir, repoOwner, repoName string) error {
+func delRepo(ctx context.Context, repoDir, repoOwner, repoName string) error {
 	if err := os.RemoveAll(repoDir); err != nil {
 		return err
 	}
