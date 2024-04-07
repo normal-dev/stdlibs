@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"os/exec"
 	filepat "path/filepath"
 
 	goapis "contribs-go/api"
@@ -205,6 +206,86 @@ func saveCatalogue(ctx context.Context, contribsn, reposn int) error {
 		NRepos:    reposn,
 	})
 	return err
+}
+
+func worker(repos <-chan *github.Repository, contribsn, filesn *int) {
+	for repo := range repos {
+		ctx := context.TODO()
+
+		repoOwner := repo.Owner.GetLogin()
+		repoName := repo.GetName()
+
+		log.Println("cleaning...")
+		checkErr(clean(ctx, repoOwner, repoName))
+
+		log.Printf("cloning repo %s to %s...", repo.GetCloneURL(), tmpDir)
+
+		if err := exec.Command("git",
+			"clone",
+			"-q",
+			"--depth", "1",
+			"--no-tags",
+			"--filter=blob:limit=40k",
+			*repo.CloneURL,
+			tmpDir,
+		).Run(); err != nil {
+			log.Println(err.Error())
+			continue
+		}
+
+		log.Println("cleaning repo files...")
+		cleanRepo()
+
+		var repofilesn int
+		go func() {
+			err := filepat.Walk(tmpDir, func(path string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				repofilesn++
+				return nil
+			})
+			*filesn += repofilesn
+			logErr(err)
+		}()
+
+		var (
+			gofilesn, apisn int
+
+			contribs = make([]any, 0)
+		)
+		log.Println("looking for Go files...")
+		for file := range findGoFiles(tmpDir) {
+			gofilesn++
+
+			fileBytes, err := os.ReadFile(file)
+			logErr(err)
+			apis, ok, _ := findGoAPIs(fileBytes)
+			if !ok {
+				continue
+			}
+			apisn += len(apis)
+
+			pat := file[len(tmpDir):]
+			code := string(fileBytes)
+			filepath := filepat.Dir(pat)
+			filename := filepat.Base(pat)
+			contribs = append(contribs, model.Contrib{
+				APIs:      apis,
+				Code:      code,
+				Filepath:  filepath,
+				Filename:  filename,
+				RepoOwner: repoOwner,
+				RepoName:  repoName,
+			})
+			*contribsn += 1
+		}
+
+		log.Printf("found %d contributions (%d Go apis)", len(contribs), apisn)
+		log.Printf("found approx. %d cloned files (%d Go files)", repofilesn, gofilesn)
+		_, err := saveContribs(ctx, contribs)
+		logErr(err)
+	}
 }
 
 // Removes directories like "vendor"
