@@ -41,7 +41,7 @@ func main() {
 
 	var contribsn, filesn int
 	reposchan := make(chan *github.Repository)
-	for idx := range 2 { // n workers
+	for idx := range 3 { // n workers
 		go worker(idx+1, reposchan, &contribsn, &filesn)
 	}
 	for _, repo := range repos {
@@ -65,7 +65,7 @@ func worker(workerID int, repos <-chan *github.Repository, contribsn, filesn *in
 
 		logger := log.New(
 			os.Stdout,
-			fmt.Sprintf("%s/%s[%d]", repoOwner, repoName, workerID),
+			fmt.Sprintf("[%d]%s/%s: ", workerID, repoOwner, repoName),
 			log.Lmsgprefix,
 		)
 
