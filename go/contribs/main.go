@@ -31,21 +31,10 @@ func init() {
 	}
 }
 
-var (
-	tmpDir string
-
-	mongoColl = goapis.MongoClient.Database("contribs").Collection("go")
-	ctx       = context.TODO()
-)
+var mongoColl = goapis.MongoClient.Database("contribs").Collection("go")
 
 func main() {
-	log.Printf("creating temp dir...")
-	dir, err := os.MkdirTemp("", "contribs-go")
-	checkErr(err)
-	tmpDir = dir
-
-	defer checkErr(os.RemoveAll(tmpDir))
-
+	ctx := context.TODO()
 	githubAccessTok := os.Getenv("GITHUB_ACCESS_TOKEN_CONTRIBS")
 	if githubAccessTok == "" {
 		panic("can't find Github access token")
@@ -210,15 +199,21 @@ func saveCatalogue(ctx context.Context, contribsn, reposn int) error {
 
 func worker(repos <-chan *github.Repository, contribsn, filesn *int) {
 	for repo := range repos {
+		log.Printf("creating temp dir...")
+		repoDir, err := os.MkdirTemp("", "contribs-go")
+		checkErr(err)
+
+		defer checkErr(os.RemoveAll(repoDir))
+
 		ctx := context.TODO()
 
 		repoOwner := repo.Owner.GetLogin()
 		repoName := repo.GetName()
 
 		log.Println("cleaning...")
-		checkErr(clean(ctx, repoOwner, repoName))
+		checkErr(clean(ctx, repoDir, repoOwner, repoName))
 
-		log.Printf("cloning repo %s to %s...", repo.GetCloneURL(), tmpDir)
+		log.Printf("cloning repo %s to %s...", repo.GetCloneURL(), repoDir)
 
 		if err := exec.Command("git",
 			"clone",
@@ -227,18 +222,18 @@ func worker(repos <-chan *github.Repository, contribsn, filesn *int) {
 			"--no-tags",
 			"--filter=blob:limit=40k",
 			*repo.CloneURL,
-			tmpDir,
+			repoDir,
 		).Run(); err != nil {
 			log.Println(err.Error())
 			continue
 		}
 
 		log.Println("cleaning repo files...")
-		cleanRepo()
+		cleanRepo(repoDir)
 
 		var repofilesn int
 		go func() {
-			err := filepat.Walk(tmpDir, func(path string, info os.FileInfo, err error) error {
+			err := filepat.Walk(repoDir, func(path string, info os.FileInfo, err error) error {
 				if err != nil {
 					return err
 				}
@@ -255,7 +250,7 @@ func worker(repos <-chan *github.Repository, contribsn, filesn *int) {
 			contribs = make([]any, 0)
 		)
 		log.Println("looking for Go files...")
-		for file := range findGoFiles(tmpDir) {
+		for file := range findGoFiles(repoDir) {
 			gofilesn++
 
 			fileBytes, err := os.ReadFile(file)
@@ -266,7 +261,7 @@ func worker(repos <-chan *github.Repository, contribsn, filesn *int) {
 			}
 			apisn += len(apis)
 
-			pat := file[len(tmpDir):]
+			pat := file[len(repoDir):]
 			code := string(fileBytes)
 			filepath := filepat.Dir(pat)
 			filename := filepat.Base(pat)
@@ -283,16 +278,16 @@ func worker(repos <-chan *github.Repository, contribsn, filesn *int) {
 
 		log.Printf("found %d contributions (%d Go apis)", len(contribs), apisn)
 		log.Printf("found approx. %d cloned files (%d Go files)", repofilesn, gofilesn)
-		_, err := saveContribs(ctx, contribs)
+		_, err = saveContribs(ctx, contribs)
 		logErr(err)
 	}
 }
 
 // Removes directories like "vendor"
-func cleanRepo() {
-	logErr(os.RemoveAll(fmt.Sprintf("%s/.git", tmpDir)))
+func cleanRepo(dir string) {
+	logErr(os.RemoveAll(fmt.Sprintf("%s/.git", dir)))
 
-	_ = filepat.WalkDir(tmpDir, func(path string, d fs.DirEntry, err error) error {
+	_ = filepat.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			if dir := filepat.Base(path); dir == "vendor" {
 				logErr(os.RemoveAll(path))
@@ -310,8 +305,8 @@ func newGithubClient(githubAccessTok string) *github.Client {
 	return github.NewClient(httpClient)
 }
 
-func clean(ctx context.Context, repoOwner, repoName string) error {
-	if err := os.RemoveAll(tmpDir); err != nil {
+func clean(ctx context.Context, repoDir, repoOwner, repoName string) error {
+	if err := os.RemoveAll(repoDir); err != nil {
 		return err
 	}
 	_, err := mongoColl.DeleteMany(ctx, bson.M{
