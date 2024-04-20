@@ -29,8 +29,8 @@ func main() {
 
 	apis := goapis.Get()
 	docs := make([]any, len(apis))
-	for _, api := range apis {
-		docs = append(docs, newAPIDoc(api))
+	for i, api := range apis {
+		docs[i] = newAPIDoc(api)
 	}
 	log.Printf("saving %d apis...", len(apis))
 	checkErr(saveAPIs(context.TODO(), docs))
