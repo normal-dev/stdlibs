@@ -71,6 +71,7 @@ func saveCat(ctx context.Context, nss map[string]struct{}, napis int) error {
 		Vids: map[string]string{
 			"archive/tar": "FBoHtOuFnHY",
 			"errors":      "7aXtDJF6vGU",
+			"bufio":       "WPWIm_Qxi5E",
 			"fmt":         "uuDo2S8qbcc",
 		},
 	})
