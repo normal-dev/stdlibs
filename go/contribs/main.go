@@ -93,7 +93,7 @@ func worker(
 		checkErr(err)
 
 		logger.Println("cleaning...")
-		checkErr(delRepo(ctx, repoDir, repoOwner, repoName))
+		checkErr(cleanRepo(ctx, repoDir, repoOwner, repoName))
 
 		logger.Printf("cloning repo %s to %s...", repo.GetCloneURL(), repoDir)
 
@@ -112,7 +112,7 @@ func worker(
 		}
 
 		logger.Println("cleaning repo files...")
-		baseRepo(logger, repoDir)
+		stripeRepo(logger, repoDir)
 
 		var repofilesn int
 		go func() {
@@ -237,6 +237,7 @@ func getHandpickedRepos(ctx context.Context, ghClient *github.Client) (repos []*
 		{"aquasecurity", "trivy"},
 		{"cilium", "ebpf"},
 		{"uber-go", "zap"},
+		{"stackrox", "stackrox"},
 	} {
 		owner, name := repo[0], repo[1]
 		log.Printf("fetching repo %s/%s...", owner, name)
@@ -309,7 +310,7 @@ func saveCatalogue(ctx context.Context, contribsn, reposn int) error {
 }
 
 // Removes directories like "vendor"
-func baseRepo(logger *log.Logger, dir string) {
+func stripeRepo(logger *log.Logger, dir string) {
 	logErr(logger, os.RemoveAll(fmt.Sprintf("%s/.git", dir)))
 
 	_ = filepat.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
@@ -330,7 +331,7 @@ func newGithubClient(githubAccessTok string) *github.Client {
 	return github.NewClient(httpClient)
 }
 
-func delRepo(ctx context.Context, repoDir, repoOwner, repoName string) error {
+func cleanRepo(ctx context.Context, repoDir, repoOwner, repoName string) error {
 	if err := os.RemoveAll(repoDir); err != nil {
 		return err
 	}

@@ -330,6 +330,11 @@ func saveLicenses(ctx context.Context) error {
 				Repo:   [2]string{"uber-go", "zap"},
 				Type:   "MIT license",
 			},
+			{
+				Author: "StackRox",
+				Repo:   [2]string{"stackrox", "stackrox"},
+				Type:   "Apache-2.0 license",
+			},
 		},
 	}
 	_, err = mongoColl.InsertOne(context.TODO(), licenses)
