@@ -28,11 +28,12 @@ func main() {
 	checkErr(clean(context.TODO()))
 
 	apis := goapis.Get()
-	log.Printf("saving %d apis...", len(apis))
+	docs := make([]any, len(apis))
 	for _, api := range apis {
-		// TODO: Save all at once
-		checkErr(saveAPI(context.TODO(), api))
+		docs = append(docs, newAPIDoc(api))
 	}
+	log.Printf("saving %d apis...", len(apis))
+	checkErr(saveAPIs(context.TODO(), docs))
 
 	ns := make(map[string]struct{})
 	for _, api := range apis {
@@ -42,7 +43,7 @@ func main() {
 	checkErr(saveCat(context.TODO(), ns, len(apis)))
 }
 
-func saveAPI(ctx context.Context, api goapis.API) error {
+func newAPIDoc(api goapis.API) bson.D {
 	doc := bson.D{
 		bson.E{Key: "_id", Value: api.ID()},
 		bson.E{Key: "doc", Value: api.Doc},
@@ -53,7 +54,11 @@ func saveAPI(ctx context.Context, api goapis.API) error {
 	if api.Value != nil {
 		doc = append(doc, bson.E{Key: "value", Value: *api.Value})
 	}
-	_, err := mongoColl.InsertOne(ctx, doc)
+	return doc
+}
+
+func saveAPIs(ctx context.Context, docs []any) error {
+	_, err := mongoColl.InsertMany(ctx, docs)
 	return err
 }
 
