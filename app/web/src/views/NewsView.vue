@@ -15,8 +15,7 @@ document.title = 'stdlibs.com - News'
       <v-row class="mt-4">
         <v-col
           sm="12"
-          md="6"
-          cols="6">
+          md="6">
           <v-card
             flat>
             <v-card-item>
@@ -36,7 +35,9 @@ document.title = 'stdlibs.com - News'
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="6">
+        <v-col
+          sm="12"
+          md="6">
           <v-card
             flat>
             <v-card-item>
@@ -61,8 +62,7 @@ document.title = 'stdlibs.com - News'
       <v-row>
         <v-col
           sm="12"
-          md="6"
-          cols="6">
+          md="6">
           <v-card
             flat>
             <v-card-item>

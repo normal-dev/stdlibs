@@ -83,7 +83,7 @@ onMounted(async () => {
         <v-col>
           <v-card
             variant="text">
-            <v-card-title class="text-h3">
+            <v-card-title class="text-h4">
               stdlibs.com
             </v-card-title>
             <v-card-subtitle class="font-weight-medium text-subtitle-1">
