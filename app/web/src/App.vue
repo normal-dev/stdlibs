@@ -35,17 +35,15 @@ watch(() => theme.global.current.value.dark, (dark) => {
         fluid
         class="mx-auto d-flex align-center justify-center">
         <v-btn
-          v-if="route.path === '/impressum' || route.path === '/privacy'"
-          size="small"
-          variant="text"
-          icon="mdi-arrow-left"
-          to="/" />
-        <v-btn
-          v-else
           size="small"
           variant="text"
           icon="mdi-home-outline"
           to="/" />
+        <v-btn
+          size="small"
+          variant="text"
+          icon="mdi-newspaper-variant-outline"
+          to="/news" />
 
         <v-spacer />
 
@@ -72,14 +70,14 @@ watch(() => theme.global.current.value.dark, (dark) => {
           color="dark"
           to="/impressum"
           size="small"
-          variant="text">
+          variant="plain">
           Impressum
         </v-btn>
         <v-btn
           color="dark"
           to="/privacy"
           size="small"
-          variant="text">
+          variant="plain">
           Privacy
         </v-btn>
         <v-spacer />
