@@ -335,11 +335,15 @@ func saveLicenses(ctx context.Context) error {
 				Repo:   [2]string{"stackrox", "stackrox"},
 				Type:   "Apache-2.0 license",
 			},
-
 			{
 				Author: "The frp Authors",
 				Repo:   [2]string{"fatedier", "frp"},
 				Type:   "Apache-2.0 license",
+			},
+			{
+				Author: "Ava Labs, Inc,",
+				Repo:   [2]string{"ava-labs", "avalanchego"},
+				Type:   "BSD-3-Clause license",
 			},
 		},
 	}
