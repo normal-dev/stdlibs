@@ -307,10 +307,6 @@ const setDocumentTitle = inject('setDocumentTitle')
 const licenses = await getLicenses(technology)
 provide('licenses', licenses)
 
-onBeforeMount(async () => {
-  setDocumentTitle(technology)
-})
-
 onMounted(async () => {
   toggleIsLoadingNamespaces()
   toggleIsLoadingApis()
@@ -455,4 +451,6 @@ onMounted(async () => {
     })
   })
 })
+
+setDocumentTitle(technology)
 </script>
