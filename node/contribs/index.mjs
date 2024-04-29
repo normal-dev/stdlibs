@@ -306,7 +306,7 @@ const saveLicenses = async () => {
       },
       {
         author: 'OpenJS Foundation and other contributors',
-        repo: ['qunitjs', 'qunit'],
+        repo: ['eslint', 'eslint'],
         type: 'MIT license'
       }
     ]
@@ -378,7 +378,7 @@ const getHandpickedRepositories = async githubClient => {
     ['streetwriters', 'notesnook'],
     ['nomic-ai', 'gpt4all'],
     ['salesforce', 'lwc'],
-    ['qunitjs', 'qunit']
+    ['eslint', 'eslint']
   ]) {
     console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({
