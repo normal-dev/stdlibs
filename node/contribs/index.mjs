@@ -305,11 +305,6 @@ const saveLicenses = async () => {
         type: 'MIT license'
       },
       {
-        author: 'Raycast',
-        repo: ['raycast', 'extensions'],
-        type: 'MIT license'
-      },
-      {
         author: 'Botpress Technologies, Inc.',
         repo: ['botpress', 'botpress'],
         type: 'MIT license'
