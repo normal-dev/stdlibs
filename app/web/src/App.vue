@@ -36,12 +36,12 @@ watch(() => theme.global.current.value.dark, (dark) => {
         class="mx-auto d-flex align-center justify-center">
         <v-btn
           size="small"
-          variant="text"
+          variant="plain"
           icon="mdi-home-outline"
           to="/" />
         <v-btn
           size="small"
-          variant="text"
+          variant="plain"
           icon="mdi-newspaper-variant-outline"
           to="/news" />
 
@@ -49,7 +49,7 @@ watch(() => theme.global.current.value.dark, (dark) => {
 
         <v-btn
           size="small"
-          variant="text"
+          variant="plain"
           :icon="themeToggleIcon"
           @click="toggleTheme()" />
       </v-container>

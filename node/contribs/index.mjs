@@ -303,6 +303,11 @@ const saveLicenses = async () => {
         author: 'Salesforce.com, Inc.',
         repo: ['salesforce', 'lwc'],
         type: 'MIT license'
+      },
+      {
+        author: 'OpenJS Foundation and other contributors',
+        repo: ['qunitjs', 'qunit'],
+        type: 'MIT license'
       }
     ]
   })
@@ -372,7 +377,8 @@ const getHandpickedRepositories = async githubClient => {
     ['webdriverio', 'webdriverio'],
     ['streetwriters', 'notesnook'],
     ['nomic-ai', 'gpt4all'],
-    ['salesforce', 'lwc']
+    ['salesforce', 'lwc'],
+    ['qunitjs', 'qunit']
   ]) {
     console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({

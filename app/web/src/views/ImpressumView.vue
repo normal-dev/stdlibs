@@ -5,16 +5,9 @@ document.title = 'stdlibs.com - Impressum'
 <template>
   <v-main>
     <v-container>
-      <h1 class="text-h4 font-weight-light">
-        Impressum
-      </h1>
-      <h2 class="text-subtitle-1 mt-1 mb-4 text-medium-emphasis">
-        Maintainer and business information
-      </h2>
-
-      <h3 class="text-h6 mt-2">
+      <p class="font-weight-bold">
         Maintainer
-      </h3>
+      </p>
       <p>
         normal dev e.K.<br>
         Sophie-Charlotten-Straße 37<br>
@@ -23,18 +16,18 @@ document.title = 'stdlibs.com - Impressum'
       </p>
       <br>
 
-      <h3 class="text-h6 mt-2">
+      <p class="font-weight-bold">
         German trade register
-      </h3>
+      </p>
       <p>
         HRA 55484 B<br>
         14057 Charlottenburg (Berlin)
       </p>
       <br>
 
-      <h3 class="text-h6 mt-2">
+      <p class="font-weight-bold">
         VAT identification
-      </h3>
+      </p>
       <p>
         HRA 55484 B<br>
         DE321639936

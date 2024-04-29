@@ -1,7 +1,16 @@
 <script setup>
 document.title = 'stdlibs.com - News'
 
+// YYYY-MM-DD
 const news = [
+  {
+    title: 'We added four new contributions',
+    date: '2024-04-15',
+    text: `The famous logger prometheus/prometheus has been added to the list of
+      Go contributions. Also for Go, rclone/rclone uses the file system API. For
+      Node.js we added angular/angular with path, http and fs API calls, as well
+      as sveltejs/svelte with assertion usages.`
+  },
   {
     title: 'Go 1.22 released',
     date: '2024-02-06',
@@ -24,8 +33,8 @@ const news = [
     text: `spf13/cobra adds reflect contributions for Golang and
       vercel/next.js with node:http and node:https for Node.js.
       Microsofts microsoft/code imports node:worker_threads, while
-      prettier/prettier leverages the file system API. The last addition
-      is ueber-go/zap with time, fmt and bytes usage.`
+      prettier/prettier leverages the file system API. The latest addition
+      is ueber-go/zap with time, fmt and bytes usages.`
   },
   {
     title: 'Node.js 20.9.0 released',
@@ -41,14 +50,7 @@ const news = [
 <template>
   <v-main>
     <v-container>
-      <h1 class="text-h4 font-weight-light">
-        News
-      </h1>
-      <h2 class="text-subtitle-1 mt-1 mb-4 text-medium-emphasis">
-        New contributions and algorithm updates
-      </h2>
-
-      <v-row class="mt-4">
+      <v-row>
         <v-col
           v-for="(article, index) in news"
           :key="index"

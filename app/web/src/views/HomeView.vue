@@ -78,24 +78,7 @@ onMounted(async () => {
     }" />
   <v-main>
     <v-container>
-      <!-- Logo -->
-      <v-row class="mx-auto text-center">
-        <v-col>
-          <v-card
-            variant="text">
-            <v-card-title class="text-h4">
-              stdlibs.com
-            </v-card-title>
-            <v-card-subtitle class="font-weight-medium text-subtitle-1">
-              Hand-picked API examples for your favorite technology including
-              Go, Node.js, Python and more
-            </v-card-subtitle>
-          </v-card>
-        </v-col>
-      </v-row>
-
-      <!-- Languages -->
-      <v-row class="mt-2 pa-4">
+      <v-row>
         <!-- Go -->
         <v-col
           cols="12"
@@ -284,66 +267,13 @@ onMounted(async () => {
         </v-col>
       </v-row>
 
-      <!-- Texts -->
-      <v-row class="mt-2 pa-4">
-        <v-col
-          xxl="6"
-          xl="6"
-          lg="6"
-          md="12"
-          sm="12">
-          <p class="text-body-1">
-            <span class="font-weight-medium">stdlibs.com</span> helps you to
-            better understand the so-called standard library of your daily
-            programming language or technology, or more precisely, its API.
-            Standard libraries "<span class="font-italic">typically include
-              definitions for commonly used algorithms, data structures, and
-              mechanisms for input and output.</span>"
-          </p>
-        </v-col>
-      </v-row>
-      <v-row class="mt-2 pa-4">
-        <v-col
-          xxl="6"
-          xl="6"
-          lg="6"
-          md="12"
-          sm="12"
-          offset-md="0"
-          offset-sm="0"
-          offset-lg="6">
-          <p class="text-body-1 text-right">
-            We conduct regularly static code analysis to compile fresh lists of API
-            usages and their line numbers from industry-proven open-source
-            repositories. You can navigate through these repository files with an
-            specifically for this purpose configured code viewer, to examine how
-            the API is consumed
-          </p>
-        </v-col>
-      </v-row>
-      <v-row class="mt-2 pa-4">
-        <v-col
-          xxl="6"
-          xl="6"
-          lg="6"
-          md="12"
-          sm="12">
-          <p class="text-body-1">
-            Using our services is more precise and predictable compared to other
-            research methods: You spend less time on low-quality answers from
-            the internet, finding an API is easy thanks to the automatically
-            generated catalogues, we guarentee a high quality of open-source
-            contributions
-          </p>
-        </v-col>
-      </v-row>
-
       <!-- Contributions -->
       <v-lazy
+
         :min-height="200"
         :options="{ threshold: 0.25}"
         transition="fade-transition">
-        <v-row class="mt-2 pa-4">
+        <v-row class="mt-4">
           <v-col class="d-flex justify-center align-center">
             <v-list
               bg-color="transparent"

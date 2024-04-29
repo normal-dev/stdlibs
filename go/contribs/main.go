@@ -240,6 +240,8 @@ func getHandpickedRepos(ctx context.Context, ghClient *github.Client) (repos []*
 		{"stackrox", "stackrox"},
 		{"fatedier", "frp"},
 		{"ava-labs", "avalanchego"},
+		{"etcd-io", "etcd"},
+		{"gonum", "plot"},
 	} {
 		owner, name := repo[0], repo[1]
 		log.Printf("fetching repo %s/%s...", owner, name)
