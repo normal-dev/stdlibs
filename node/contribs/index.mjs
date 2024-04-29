@@ -308,6 +308,11 @@ const saveLicenses = async () => {
         author: 'Raycast',
         repo: ['raycast', 'extensions'],
         type: 'MIT license'
+      },
+      {
+        author: 'Botpress Technologies, Inc.',
+        repo: ['botpress', 'botpress'],
+        type: 'MIT license'
       }
     ]
   })
@@ -378,7 +383,7 @@ const getHandpickedRepositories = async githubClient => {
     ['streetwriters', 'notesnook'],
     ['nomic-ai', 'gpt4all'],
     ['salesforce', 'lwc'],
-    ['raycast', 'extensions']
+    ['botpress', 'botpress']
   ]) {
     console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({
