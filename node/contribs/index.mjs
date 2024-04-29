@@ -32,7 +32,7 @@ const findNodeJsFiles = async (directory, files) => {
       }
     } catch (error) {
       // Symbolic links result into an error and can be ignored
-      console.error(error)
+      console.warn(error)
     }
   }
 
