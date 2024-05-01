@@ -60,6 +60,18 @@
             "env": {
                 "GITHUB_ACCESS_TOKEN_CONTRIBS": "${input:github_access_token}"
             }
+        },
+        {
+            "name": "Contributions Node.js test",
+            "type": "node",
+            "request": "launch",
+            "args": [
+                "--test"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/node/contribs/extract.test.mjs"
         }
     ],
     "inputs": [

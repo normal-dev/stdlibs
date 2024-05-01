@@ -5,6 +5,8 @@ import { builtinModules as builtin } from 'node:module'
 
 const babelTraverse = _babelTraverse.default
 
+const eq = (a, b) => a === b
+
 export const publicBuiltinModules = builtin
   .filter(module => !module.startsWith('_'))
   .map(module => `node:${module}`)
@@ -23,21 +25,20 @@ const extract = src => {
       sourceType: 'unambiguous',
       plugins: ['typescript']
     })
-
     const apis = []
     babelTraverse(ast, {
-      // import fs from 'node:fs'
-      ImportDeclaration: path => {
+      ImportDeclaration(path) {
         const node = path.node
         const module = node.source.value
         if (!publicBuiltinModules.includes(module)) {
           return
         }
 
+        // For each specifier (which includes imports)
         for (const specifier of node.specifiers) {
+          // Some prevalidation
           switch (specifier.type) {
             // TODO: import { strict as assert } from 'node:assert'
-            // TODO: Merge "import * as path from 'node:path'"
 
             // import { readFile } from 'node:fs'
             case 'ImportSpecifier':
@@ -55,10 +56,11 @@ const extract = src => {
 
             // import fs from 'node:fs'
             case 'ImportDefaultSpecifier':
-              apis.push({
-                ident: `${module}.default`,
-                line: node.loc.start.line,
-              })
+              // apis.push({
+              //   ident: `${module}.default`,
+              //   line: node.loc.start.line,
+              // })
+              resolveImportDefaultSpec(ast, module, apis)
 
               break
 
@@ -80,6 +82,41 @@ const extract = src => {
     // This can fail
     return []
   }
+}
+
+const resolveImportSpec = (node, apis) => {
+}
+
+const resolveImportDefaultSpec = (ast, module, apis) => {
+  try {
+    babelTraverse(ast, {
+      // Class: console.Console
+
+      // Object: path.posix
+
+      // Literal: path.delim
+
+      // Reference: assert.default()
+
+      // Function: assert()
+      CallExpression(path) {
+        const node = path.node
+        switch (node.callee.type) {
+          case 'Identifier':
+            if (eq(node.callee.name, module)) {
+              console.log('found')
+            }
+            break
+        }
+      }
+    })
+  } catch (error) {
+    // This can fail
+    console.warn(error)
+  }
+}
+
+const resolveImportNamespaceSpec = (node, apis) => {
 }
 
 export default extract

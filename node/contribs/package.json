@@ -4,7 +4,9 @@
   "engines": {
     "node": "20.8.0"
   },
-  "scripts": {},
+  "scripts": {
+    "test": "node --test"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
