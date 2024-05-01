@@ -1,0 +1,20 @@
+import fs from 'node:fs'
+import assert from 'node:assert'
+
+const fn = () => {
+  const fs = () => void 0
+  fs()
+}
+
+fn()
+
+const fn2 = () => {
+  const fs = () => void 0
+  fs()
+}
+
+fn2()
+
+function a(assert) {}
+
+a()
