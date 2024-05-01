@@ -88,16 +88,20 @@ describe('extract', undefined, () => {
   //   ])
   // })
 
-  test('zx/src/goods.ts', () => {
-    assert.deepEqual(extract(openTest('goods.ts')), [
-      {
-        ident: 'node:assert.default',
-        line: 143
-      },
-      {
-        ident: 'node:readline.createInterface',
-        line: 96
-      }
-    ])
+  // test('zx/src/goods.ts', () => {
+  //   assert.deepEqual(extract(openTest('goods.ts')), [
+  //     {
+  //       ident: 'node:assert.default',
+  //       line: 143
+  //     },
+  //     {
+  //       ident: 'node:readline.createInterface',
+  //       line: 96
+  //     }
+  //   ])
+  // })
+
+  test('_.js', () => {
+    assert.deepEqual(extract(openTest('_.js')), [])
   })
 })

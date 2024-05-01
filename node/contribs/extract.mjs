@@ -105,6 +105,8 @@ const resolveImportDefaultSpec = (ast, module, apis) => {
           case 'Identifier':
             if (eq(node.callee.name, module)) {
               console.log('found')
+
+              // TODO: Check scope!
             }
             break
         }
