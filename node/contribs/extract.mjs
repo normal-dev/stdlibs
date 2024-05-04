@@ -1,6 +1,5 @@
 import babelParser from '@babel/parser'
 import _babelTraverse from '@babel/traverse'
-// TODO: Import "@babel/types" for "ImportDefaultSpecifier"
 import { builtinModules as builtin } from 'node:module'
 
 const babelTraverse = _babelTraverse.default
@@ -29,16 +28,17 @@ const extract = src => {
     babelTraverse(ast, {
       ImportDeclaration(path) {
         const node = path.node
-        const module = node.source.value
+        const module = node.source.value // Save as [fs node:fs]
+        // Exlcude non-built-in modules
         if (!publicBuiltinModules.includes(module)) {
           return
         }
 
-        // For each specifier (which includes imports)
+        // For each import
         for (const specifier of node.specifiers) {
           // Some prevalidation
           switch (specifier.type) {
-            // TODO: import { strict as assert } from 'node:assert'
+            // TODO: Support aliases: import { strict as assert } from 'node:assert'
 
             // import { readFile } from 'node:fs'
             case 'ImportSpecifier':
@@ -103,12 +103,16 @@ const resolveImportDefaultSpec = (ast, module, apis) => {
         const node = path.node
         switch (node.callee.type) {
           case 'Identifier':
-            if (eq(node.callee.name, module)) {
-              console.log('found')
-
-              // TODO: Check scope!
+            // Check if callee is imported module name ("fs")
+            // TODO: The imported identifier in a named import needs to be checked if it equals the callee
+            if (eq(`node:${node.callee.name}`, module)) {
+              if (!hasModuleBinding(node.path.scope)) {
+                apis.push({
+                  ident: `${module}.default`,
+                  line: node.loc.start.line,
+                })
+              }
             }
-            break
         }
       }
     })
@@ -117,6 +121,16 @@ const resolveImportDefaultSpec = (ast, module, apis) => {
     console.warn(error)
   }
 }
+
+const hasModuleBinding = (scope, module) => {
+  for (const [name, _] of Object.entries(scope.bindings)) {
+    if (`node:${name}` === module) {
+      return false
+    }
+  }
+  return true
+}
+
 
 const resolveImportNamespaceSpec = (node, apis) => {
 }

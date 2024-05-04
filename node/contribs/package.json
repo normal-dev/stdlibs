@@ -14,5 +14,8 @@
     "@babel/traverse": "^7.24.0",
     "mongodb": "^6.5.0",
     "octokit": "^3.1.2"
+  },
+  "devDependencies": {
+    "@babel/types": "^7.24.5"
   }
 }
