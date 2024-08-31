@@ -1,18 +1,23 @@
-import babelParser from '@babel/parser'
-import _babelTraverse from '@babel/traverse'
+import { parse } from '@babel/parser'
+import * as t from '@babel/types'
+import { createRequire } from 'module'
 import { builtinModules as builtin } from 'node:module'
 
-const babelTraverse = _babelTraverse.default
+const require = createRequire(import.meta.url)
+const traverse = require('@babel/traverse').default
 
-const eq = (a, b) => a === b
-
-export const publicBuiltinModules = builtin
+export const stdlib = builtin
   .filter(module => !module.startsWith('_'))
   .map(module => `node:${module}`)
 
+const newApi = (ident, line, _default = false) => ({
+  ident: `${ident}${_default ? '.default' : ''}`,
+  line
+})
+
 const extract = src => {
   try {
-    const ast = babelParser.parse(src, {
+    const ast = parse(src, {
       allowAwaitOutsideFunction: true,
       allowImportExportEverywhere: true,
       allowNewTargetOutsideFunction: true,
@@ -24,52 +29,20 @@ const extract = src => {
       sourceType: 'unambiguous',
       plugins: ['typescript']
     })
+
     const apis = []
-    babelTraverse(ast, {
-      ImportDeclaration(path) {
-        const node = path.node
-        const module = node.source.value // Save as [fs node:fs]
-        // Exlcude non-built-in modules
-        if (!publicBuiltinModules.includes(module)) {
+    traverse(ast, {
+      ImportDeclaration (path) {
+        const { node: { source: { value: module }, specifiers } } = path
+        if (!stdlib.includes(module)) {
           return
         }
 
-        // For each import
-        for (const specifier of node.specifiers) {
-          // Some prevalidation
-          switch (specifier.type) {
-            // TODO: Support aliases: import { strict as assert } from 'node:assert'
-
-            // import { readFile } from 'node:fs'
-            case 'ImportSpecifier':
-              switch (specifier.imported.type) {
-                case 'Identifier':
-                  apis.push({
-                    ident: `${module}.${specifier.imported.name}`,
-                    line: node.loc.start.line,
-                  })
-
-                  break
-              }
-
-              break
-
+        for (const { type, local: { name: ident } } of specifiers) {
+          switch (type) {
             // import fs from 'node:fs'
             case 'ImportDefaultSpecifier':
-              // apis.push({
-              //   ident: `${module}.default`,
-              //   line: node.loc.start.line,
-              // })
-              resolveImportDefaultSpec(ast, module, apis)
-
-              break
-
-            // import * as path from 'node:fs'
-            case 'ImportNamespaceSpecifier':
-              apis.push({
-                ident: module,
-                line: node.loc.start.line,
-              })
+              resolveDefault(ast, module, ident, apis)
 
               break
           }
@@ -79,60 +52,100 @@ const extract = src => {
 
     return apis
   } catch (error) {
-    // This can fail
+    console.warn(error)
     return []
   }
 }
 
-const resolveImportSpec = (node, apis) => {
-}
-
-const resolveImportDefaultSpec = (ast, module, apis) => {
+/**
+ *
+ * @param {t.Node} ast
+ * @param {string} module
+ * @param {string} ident
+ * @param {Array<object>} apis
+ */
+const resolveDefault = (ast, module, ident, apis) => {
   try {
-    babelTraverse(ast, {
-      // Class: console.Console
+    traverse(ast, {
+      // Debug
+      enter (path) {
+        // console.debug(path)
+      },
 
-      // Object: path.posix
-
-      // Literal: path.delim
-
-      // Reference: assert.default()
-
-      // Function: assert()
-      CallExpression(path) {
+      // assert.log()
+      CallExpression (path) {
+        /** @param {t.CallExpression} node */
         const node = path.node
-        switch (node.callee.type) {
-          case 'Identifier':
-            // Check if callee is imported module name ("fs")
-            // TODO: The imported identifier in a named import needs to be checked if it equals the callee
-            if (eq(`node:${node.callee.name}`, module)) {
-              if (!hasModuleBinding(node.path.scope)) {
-                apis.push({
-                  ident: `${module}.default`,
-                  line: node.loc.start.line,
-                })
-              }
+
+        if (isGlobalScope(path)) {
+          if (node.callee?.object.name === ident) {
+            apis.push(
+              newApi(
+                module,
+                node.loc.start.line,
+                true
+              )
+            )
+          }
+        } else {
+          const obj = node.callee.object.name
+          const binding = path.scope.bindings
+          if (binding[obj] === ident && binding[obj].kind !== 'param') {
+            console.log(obj)
+          }
+        }
+      },
+
+      // const obj = {
+      //  a: assert
+      // }
+      ObjectProperty (path) {
+        /** @param {t.ObjectProperty} node */
+        const node = path.node
+
+        if (isGlobalScope(path)) {
+          if (node?.value?.name === ident) {
+            apis.push(
+              newApi(
+                module,
+                path.node.key.loc.start.line,
+                true
+              )
+            )
+          }
+        }
+      },
+
+      // const a = assert
+      VariableDeclaration (path) {
+        /** @param {t.VariableDeclaration} node */
+        const node = path.node
+
+        if (isGlobalScope(path)) {
+          // Global
+
+          for (const decl of node.declarations) {
+            if (decl?.init?.name === ident) {
+              apis.push(
+                newApi(
+                  module,
+                  decl.loc.start.line,
+                  true
+                )
+              )
             }
+          }
         }
       }
     })
   } catch (error) {
-    // This can fail
     console.warn(error)
   }
 }
 
-const hasModuleBinding = (scope, module) => {
-  for (const [name, _] of Object.entries(scope.bindings)) {
-    if (`node:${name}` === module) {
-      return false
-    }
-  }
-  return true
-}
-
-
-const resolveImportNamespaceSpec = (node, apis) => {
+const isGlobalScope = path => {
+  const { scope: { parent } } = path
+  return parent === undefined
 }
 
 export default extract

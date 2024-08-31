@@ -22,7 +22,7 @@
             "cwd": "${workspaceRoot}/app/web",
         },
         {
-            "name": "APIs Go",
+            "name": "Go: API",
             "type": "go",
             "request": "launch",
             "mode": "auto",
@@ -30,7 +30,7 @@
             "args": []
         },
         {
-            "name": "APIs Node.js",
+            "name": "Node.js: API",
             "type": "node",
             "request": "launch",
             "skipFiles": [
@@ -39,7 +39,7 @@
             "program": "${workspaceFolder}/node/apis/index.mjs"
         },
         {
-            "name": "Contributions Go",
+            "name": "Go: Contributions",
             "type": "go",
             "request": "launch",
             "mode": "auto",
@@ -50,7 +50,7 @@
             }
         },
         {
-            "name": "Contributions Node.js",
+            "name": "Node.js: Contributions",
             "type": "node",
             "request": "launch",
             "skipFiles": [
@@ -62,14 +62,15 @@
             }
         },
         {
-            "name": "Contributions Node.js test",
+            "name": "Node.js: Contributions test",
             "type": "node",
             "request": "launch",
             "args": [
                 "--test"
             ],
             "skipFiles": [
-                "<node_internals>/**"
+                "${workspaceFolder}/<node_internals>/**",
+                "${workspaceFolder}/node_modules/**"
             ],
             "program": "${workspaceFolder}/node/contribs/extract.test.mjs"
         }

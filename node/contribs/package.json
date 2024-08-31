@@ -5,17 +5,22 @@
     "node": "20.8.0"
   },
   "scripts": {
+    "lint": "eslint --ext .js .",
+    "lint:fix": "eslint --ext .js . --fix",
     "test": "node --test"
   },
+  "type": "commonjs",
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@babel/parser": "^7.24.0",
-    "@babel/traverse": "^7.24.0",
+    "@babel/parser": "^7.25.6",
+    "@babel/traverse": "^7.25.6",
     "mongodb": "^6.5.0",
     "octokit": "^3.1.2"
   },
   "devDependencies": {
-    "@babel/types": "^7.24.5"
+    "@babel/types": "^7.25.6",
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0"
   }
 }

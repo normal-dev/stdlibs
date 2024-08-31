@@ -1,13 +1,13 @@
 import { execSync } from 'node:child_process'
-import { readFileSync, rmSync, readdirSync, statSync } from 'node:fs'
+import { readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { Octokit } from 'octokit'
-import extract, { publicBuiltinModules } from './extract.mjs'
 import mongoClient from './db.mjs'
+import extract from './extract.mjs'
 
 // MongoDB Ids
 const CAT_ID = '_cat'
-const LICENSES_ID = "_licenses"
+const LICENSES_ID = '_licenses'
 const TEMPORARY_DIRECTORY = path.join('/tmp', `contribs-node${Date.now()}`)
 
 const mongoCollection = mongoClient.db('contribs').collection('node')
@@ -397,7 +397,7 @@ const cleanRepository = async (repositoryOwner, repositoryName) => {
 
     await mongoCollection.deleteMany({
       repo_owner: repositoryOwner,
-      repo_name: repositoryName,
+      repo_name: repositoryName
     })
   } catch (error) {
     console.error(error)
