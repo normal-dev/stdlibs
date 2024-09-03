@@ -1,10 +1,11 @@
 import { parse } from '@babel/parser'
-import * as t from '@babel/types'
+import types from '@babel/types'
 import { createRequire } from 'module'
 import { builtinModules as builtin } from 'node:module'
 // Mimic import to preserve autocompletion
 const require = createRequire(import.meta.url)
 const traverse = require('@babel/traverse').default
+const { Node, Identifier, isImportSpecifier } = types
 
 export const stdlib = builtin
   .filter(module => !module.startsWith('_'))
@@ -59,10 +60,12 @@ const extract = src => {
   }
 }
 
-const isModuleBinding = path => {
+const isModuleBinding = (path, module) => {
   const { scope, node } = path
   const binding = scope.getBinding(node.name)
-  return (binding && binding.kind === 'module')
+  if ((!binding || binding.kind !== 'module')) return false
+  if (binding.path.parent.source.value !== module) return false
+  return true
 }
 
 const isImport = path => {
@@ -84,7 +87,7 @@ const hasLocation = path => {
 
 /**
  *
- * @param {t.Node} ast
+ * @param {Node} ast
  * @param {string} module
  * @param {string} ident
  * @param {Array<object>} apis
@@ -93,9 +96,9 @@ const resolveDefault = (ast, module, apis) => {
   try {
     traverse(ast, {
       Identifier (path) {
-        /** @param {t.Identifier} node */
+        /** @param {Identifier} node */
         if (isImport(path)) return
-        if (!isModuleBinding(path)) return
+        if (!isModuleBinding(path, module)) return
         if (!hasLocation(path)) return
 
         const { node: { loc: { start: { line } } } } = path
@@ -148,7 +151,7 @@ const resolveDefault = (ast, module, apis) => {
 
 /**
  *
- * @param {t.Node} ast
+ * @param {Node} ast
  * @param {string} module
  * @param {string} ident
  * @param {Array<object>} apis
@@ -157,12 +160,12 @@ const resolveSpecifier = (ast, module, apis) => {
   try {
     traverse(ast, {
       Identifier (path) {
-        /** @param {t.Identifier} node */
+        /** @param {Identifier} node */
         if (isImport(path)) return
-        if (!isModuleBinding(path)) return
+        if (!isModuleBinding(path, module)) return
         if (!hasLocation(path)) return
 
-        const { node: { loc: { start: { line } } } } = path
+        const { node: { loc: { start: { line } }, name } } = path
 
         const { container } = path
         switch (container.type) {
@@ -183,7 +186,7 @@ const resolveSpecifier = (ast, module, apis) => {
 
               case 'MemberExpression': {
                 if (path.key === 'object') {
-                  apis.push(newApi(module, node.name, line))
+                  apis.push(newApi(module, name, line))
                 }
               }
             }
@@ -192,7 +195,7 @@ const resolveSpecifier = (ast, module, apis) => {
           }
 
           case 'ObjectProperty':
-            apis.push(newApi(module, node.name, line))
+            apis.push(newApi(module, name, line))
             break
 
           case 'VariableDeclaration':
