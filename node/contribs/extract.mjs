@@ -2,7 +2,7 @@ import { parse } from '@babel/parser'
 import * as t from '@babel/types'
 import { createRequire } from 'module'
 import { builtinModules as builtin } from 'node:module'
-
+// Mimic import to preserve autocompletion
 const require = createRequire(import.meta.url)
 const traverse = require('@babel/traverse').default
 
@@ -10,8 +10,8 @@ export const stdlib = builtin
   .filter(module => !module.startsWith('_'))
   .map(module => `node:${module}`)
 
-const newApi = (ident, line, _default = false) => ({
-  ident: `${ident}${_default ? '.default' : ''}`,
+const newApi = (module, ident, line) => ({
+  ident: `${module}.${ident}`,
   line
 })
 
@@ -30,7 +30,7 @@ const extract = src => {
       plugins: ['typescript']
     })
 
-    const apis = []
+    const contribs = []
     traverse(ast, {
       ImportDeclaration (path) {
         const { node: { source: { value: module }, specifiers } } = path
@@ -38,22 +38,42 @@ const extract = src => {
           return
         }
 
-        for (const { type, local: { name: ident } } of specifiers) {
+        for (const { type } of specifiers) {
           switch (type) {
             // import fs from 'node:fs'
             case 'ImportDefaultSpecifier':
-              resolveDefault(ast, module, ident, apis)
+              resolveDefault(ast, module, contribs)
+              break
 
+            case 'ImportSpecifier':
+              resolveSpecifier(ast, module, contribs)
               break
           }
         }
       }
     })
 
-    return apis
+    return contribs
   } catch (error) {
     console.warn(error)
     return []
+  }
+}
+
+const isModuleBinding = binding => {
+  return (binding && binding.kind === 'module')
+}
+
+const isImport = path => {
+  switch (path.parent.type) {
+    case 'ImportDeclaration':
+    case 'ImportDefaultSpecifier':
+    case 'ImportNamespaceSpecifier':
+    case 'ImportSpecifier':
+      return true
+
+    default:
+      return false
   }
 }
 
@@ -64,7 +84,7 @@ const extract = src => {
  * @param {string} ident
  * @param {Array<object>} apis
  */
-const resolveDefault = (ast, module, ident, apis) => {
+const resolveDefault = (ast, module, apis) => {
   try {
     traverse(ast, {
       // Debug
@@ -72,69 +92,55 @@ const resolveDefault = (ast, module, ident, apis) => {
         // console.debug(path)
       },
 
-      // assert.log()
-      CallExpression (path) {
-        /** @param {t.CallExpression} node */
+      Identifier (path) {
+        /** @param {t.Identifier} node */
         const node = path.node
 
-        if (isGlobalScope(path)) {
-          if (node.callee?.object.name === ident) {
-            apis.push(
-              newApi(
-                module,
-                node.loc.start.line,
-                true
-              )
-            )
-          }
-        } else {
-          const obj = node.callee.object.name
-          const binding = path.scope.bindings
-          if (binding[obj] === ident && binding[obj].kind !== 'param') {
-            console.log(obj)
-          }
-        }
-      },
+        if (isImport(path)) return
 
-      // const obj = {
-      //  a: assert
-      // }
-      ObjectProperty (path) {
-        /** @param {t.ObjectProperty} node */
-        const node = path.node
+        const { scope } = path
+        const binding = scope.getBinding(node.name)
+        if (!isModuleBinding(binding)) return
 
-        if (isGlobalScope(path)) {
-          if (node?.value?.name === ident) {
-            apis.push(
-              newApi(
-                module,
-                path.node.key.loc.start.line,
-                true
-              )
-            )
-          }
-        }
-      },
+        const { container } = path
+        switch (container.type) {
+          case 'CallExpression':
+            break
 
-      // const a = assert
-      VariableDeclaration (path) {
-        /** @param {t.VariableDeclaration} node */
-        const node = path.node
-
-        if (isGlobalScope(path)) {
-          // Global
-
-          for (const decl of node.declarations) {
-            if (decl?.init?.name === ident) {
-              apis.push(
-                newApi(
-                  module,
-                  decl.loc.start.line,
-                  true
+          case 'MemberExpression': {
+            const { property } = container
+            switch (property.type) {
+              case 'Identifier':
+                apis.push(
+                  newApi(module, property.name, node.loc.start.line)
                 )
-              )
+                break
+
+              case 'StringLiteral':
+                apis.push(
+                  newApi(module, property.value, node.loc.start.line)
+                )
+
+                break
             }
+
+            break
           }
+
+          case 'ObjectProperty':
+            switch (container.value.type) {
+              case 'Identifier':
+                apis.push(newApi(module, 'default', node.loc.start.line))
+                break
+
+              case 'MemberExpression':
+                break
+            }
+
+            break
+
+          case 'VariableDeclaration':
+            break
         }
       }
     })
@@ -143,9 +149,56 @@ const resolveDefault = (ast, module, ident, apis) => {
   }
 }
 
-const isGlobalScope = path => {
-  const { scope: { parent } } = path
-  return parent === undefined
+/**
+ *
+ * @param {t.Node} ast
+ * @param {string} module
+ * @param {string} ident
+ * @param {Array<object>} apis
+ */
+const resolveSpecifier = (ast, module, apis) => {
+  try {
+    traverse(ast, {
+      // Debug
+      enter (path) {
+        // console.debug(path)
+      },
+
+      Identifier (path) {
+        /** @param {t.Identifier} node */
+        const node = path.node
+
+        if (isImport(path)) return
+
+        const { scope } = path
+        const binding = scope.getBinding(node.name)
+        if (!isModuleBinding(binding)) return
+
+        const { container } = path
+        switch (container.type) {
+          case 'CallExpression': {
+            const { callee: { name } } = container
+            apis.push(newApi(module, name, node.loc.start.line))
+
+            break
+          }
+
+          case 'MemberExpression': {
+            break
+          }
+
+          case 'ObjectProperty':
+
+            break
+
+          case 'VariableDeclaration':
+            break
+        }
+      }
+    })
+  } catch (error) {
+    console.warn(error)
+  }
 }
 
 export default extract

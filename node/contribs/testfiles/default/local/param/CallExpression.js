@@ -1,8 +1,8 @@
 import assert from 'node:assert'
 
 function a (b) {
-  assert.log()
+  assert.equal()
   function c (assert) {
-    assert.log()
+    assert.equal()
   }
 }

@@ -22,25 +22,24 @@ func init() {
 var mongoColl = goapis.MongoClient.Database("apis").Collection("go")
 
 func main() {
-	log.Printf("using Go version %s", runtime.Version()[2:])
+	ctx := context.TODO()
 
-	log.Println("cleaning...")
-	checkErr(clean(context.TODO()))
+	log.Printf("version: %s", runtime.Version()[2:])
+	checkErr(clean(ctx))
 
 	apis := goapis.Get()
 	docs := make([]any, len(apis))
 	for i, api := range apis {
 		docs[i] = newAPIDoc(api)
 	}
-	log.Printf("saving %d apis...", len(apis))
-	checkErr(saveAPIs(context.TODO(), docs))
+	checkErr(saveAPIs(ctx, docs))
 
 	ns := make(map[string]struct{})
 	for _, api := range apis {
 		ns[api.Ns] = struct{}{}
 	}
-	log.Printf("saving catalogue...")
-	checkErr(saveCat(context.TODO(), ns, len(apis)))
+
+	checkErr(saveCat(ctx, ns, len(apis)))
 }
 
 func newAPIDoc(api goapis.API) bson.D {
@@ -73,12 +72,7 @@ func saveCat(ctx context.Context, nss map[string]struct{}, napis int) error {
 		NNs:     len(nss),
 		Ns:      ns,
 		Version: strings.TrimPrefix(runtime.Version(), "go"),
-		Vids: map[string]string{
-			"archive/tar": "FBoHtOuFnHY",
-			"bufio":       "WPWIm_Qxi5E",
-			"errors":      "7aXtDJF6vGU",
-			"fmt":         "uuDo2S8qbcc",
-		},
+		Vids:    map[string]string{},
 	})
 	return err
 }

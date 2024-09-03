@@ -1,10 +1,8 @@
-// TODO: Read https://stackoverflow.com/questions/32132064/how-to-discover-all-package-types-at-runtime
 package api
 
 import (
 	"fmt"
 	"go/types"
-	"log"
 	"regexp"
 
 	"golang.org/x/tools/go/packages"
@@ -23,11 +21,8 @@ func (api API) ID() string {
 }
 
 func Get() []API {
-	log.Println("getting all pkgs...")
 	pkgs := getAllPkgs()
-	log.Println("filtering pkgs...")
 	filterPkgs(pkgs)
-	log.Println("getting apis...")
 	return getAPIs(pkgs)
 }
 

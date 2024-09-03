@@ -1,0 +1,7 @@
+{
+    "extends": "standard",
+    "rules": {
+        "prefer-promise-reject-errors": "off",
+        "no-labels": "off"
+    }
+}

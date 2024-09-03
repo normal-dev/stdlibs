@@ -26,7 +26,6 @@ func init() {
 
 	uri := os.Getenv("MONGO_DB_URI")
 	if uri == "" {
-		log.Printf("can't find MongoDB URI, falling back to %s", "mongodb://localhost:27017")
 		uri = "mongodb://localhost:27017"
 	}
 

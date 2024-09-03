@@ -39,7 +39,7 @@ func main() {
 	ghclient := newGithubClient(githubAccessTok)
 	repos, err := getHandpickedRepos(ctx, ghclient)
 	checkErr(err)
-	log.Printf("found %d handpicked repos", len(repos))
+	log.Printf("repos: %d", len(repos))
 
 	var wg sync.WaitGroup
 	reposchan := make(chan *github.Repository)
@@ -59,13 +59,10 @@ func main() {
 
 	wg.Wait()
 
-	log.Printf("found %d Go contributions", contribsn)
-	log.Printf("found approx. %d files", filesn)
+	log.Printf("contribs: %d", contribsn)
+	log.Printf("files: %d", filesn)
 
-	log.Printf("saving catalogue...")
 	checkErr(saveCatalogue(ctx, contribsn, len(repos)))
-
-	log.Printf("saving licenses...")
 	checkErr(saveLicenses(ctx))
 }
 
@@ -88,14 +85,11 @@ func worker(
 			log.Lmsgprefix,
 		)
 
-		logger.Printf("creating temp repo dir...")
 		repoDir, err := os.MkdirTemp("", fmt.Sprintf("%s_%s", repoOwner, repoName))
 		checkErr(err)
-
-		logger.Println("cleaning...")
 		checkErr(cleanRepo(ctx, repoDir, repoOwner, repoName))
 
-		logger.Printf("cloning repo %s to %s...", repo.GetCloneURL(), repoDir)
+		logger.Printf("repo: %s", repo.GetCloneURL())
 
 		if err := exec.Command("git",
 			"clone",
@@ -111,7 +105,6 @@ func worker(
 			continue
 		}
 
-		logger.Println("cleaning repo files...")
 		stripeRepo(logger, repoDir)
 
 		var repofilesn int
@@ -132,7 +125,6 @@ func worker(
 
 			contribs = make([]any, 0)
 		)
-		logger.Println("looking for Go files...")
 		for file := range findGoFiles(repoDir) {
 			gofilesn++
 
@@ -162,11 +154,11 @@ func worker(
 			*contribsn += 1
 		}
 
-		logger.Printf("found %d contributions (%d Go apis)", len(contribs), apisn)
-		logger.Printf("found approx. %d cloned files (%d Go files)", repofilesn, gofilesn)
-		docsn, err := saveContribs(ctx, contribs)
+		logger.Printf("contribs: %d", len(contribs))
+		logger.Printf("apis: %d", apisn)
+		logger.Printf("files: %d", gofilesn)
+		_, err = saveContribs(ctx, contribs)
 		logErr(logger, err)
-		logger.Printf("%d contributions saved", docsn)
 
 		go logErr(logger, os.RemoveAll(repoDir))
 
@@ -244,7 +236,7 @@ func getHandpickedRepos(ctx context.Context, ghClient *github.Client) (repos []*
 		{"gonum", "plot"},
 	} {
 		owner, name := repo[0], repo[1]
-		log.Printf("fetching repo %s/%s...", owner, name)
+		log.Printf("repo: %s/%s...", owner, name)
 		repo, _, err := ghClient.Repositories.Get(ctx, owner, name)
 		if err != nil {
 			return repos, err

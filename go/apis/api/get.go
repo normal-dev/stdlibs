@@ -24,11 +24,8 @@ func (api API) ID() string {
 }
 
 func Get() []API {
-	log.Println("getting all pkgs...")
 	pkgs := getAllPkgs()
-	log.Println("filtering pkgs...")
 	filterPkgs(pkgs)
-	log.Println("getting apis from pkgs...")
 	return getAPIs(pkgs)
 }
 
@@ -135,6 +132,10 @@ func getAPIs(pkgs map[string][]types.Object) []API {
 			default:
 				continue
 			}
+
+			log.Printf("namespace: %s", api.Ns)
+			log.Printf("name: %s", api.Name)
+			log.Printf("type: %s", api.Type)
 
 			apis = append(apis, api)
 		}

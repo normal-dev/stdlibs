@@ -5,11 +5,17 @@
     "node": "20.12.2"
   },
   "scripts": {
+    "lint": "eslint --ext .js .",
+    "lint:fix": "eslint --ext .js . --fix",
     "start": "node index.mjs"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "mongodb": "^6.5.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0"
   }
 }
