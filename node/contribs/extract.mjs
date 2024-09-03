@@ -40,7 +40,6 @@ const extract = src => {
 
         for (const { type } of specifiers) {
           switch (type) {
-            // import fs from 'node:fs'
             case 'ImportDefaultSpecifier':
               resolveDefault(ast, module, contribs)
               break
@@ -60,7 +59,9 @@ const extract = src => {
   }
 }
 
-const isModuleBinding = binding => {
+const isModuleBinding = path => {
+  const { scope, node } = path
+  const binding = scope.getBinding(node.name)
   return (binding && binding.kind === 'module')
 }
 
@@ -77,6 +78,10 @@ const isImport = path => {
   }
 }
 
+const hasLocation = path => {
+  return !!path.node.loc
+}
+
 /**
  *
  * @param {t.Node} ast
@@ -87,20 +92,13 @@ const isImport = path => {
 const resolveDefault = (ast, module, apis) => {
   try {
     traverse(ast, {
-      // Debug
-      enter (path) {
-        // console.debug(path)
-      },
-
       Identifier (path) {
         /** @param {t.Identifier} node */
-        const node = path.node
-
         if (isImport(path)) return
+        if (!isModuleBinding(path)) return
+        if (!hasLocation(path)) return
 
-        const { scope } = path
-        const binding = scope.getBinding(node.name)
-        if (!isModuleBinding(binding)) return
+        const { node: { loc: { start: { line } } } } = path
 
         const { container } = path
         switch (container.type) {
@@ -112,13 +110,13 @@ const resolveDefault = (ast, module, apis) => {
             switch (property.type) {
               case 'Identifier':
                 apis.push(
-                  newApi(module, property.name, node.loc.start.line)
+                  newApi(module, property.name, line)
                 )
                 break
 
               case 'StringLiteral':
                 apis.push(
-                  newApi(module, property.value, node.loc.start.line)
+                  newApi(module, property.value, line)
                 )
 
                 break
@@ -130,16 +128,15 @@ const resolveDefault = (ast, module, apis) => {
           case 'ObjectProperty':
             switch (container.value.type) {
               case 'Identifier':
-                apis.push(newApi(module, 'default', node.loc.start.line))
-                break
-
-              case 'MemberExpression':
+                apis.push(newApi(module, 'default', line))
                 break
             }
 
             break
 
-          case 'VariableDeclaration':
+          case 'VariableDeclarator':
+            apis.push(newApi(module, 'default', line))
+
             break
         }
       }
@@ -159,36 +156,43 @@ const resolveDefault = (ast, module, apis) => {
 const resolveSpecifier = (ast, module, apis) => {
   try {
     traverse(ast, {
-      // Debug
-      enter (path) {
-        // console.debug(path)
-      },
-
       Identifier (path) {
         /** @param {t.Identifier} node */
-        const node = path.node
-
         if (isImport(path)) return
+        if (!isModuleBinding(path)) return
+        if (!hasLocation(path)) return
 
-        const { scope } = path
-        const binding = scope.getBinding(node.name)
-        if (!isModuleBinding(binding)) return
+        const { node: { loc: { start: { line } } } } = path
 
         const { container } = path
         switch (container.type) {
           case 'CallExpression': {
             const { callee: { name } } = container
-            apis.push(newApi(module, name, node.loc.start.line))
+            apis.push(newApi(module, name, line))
 
             break
           }
 
           case 'MemberExpression': {
+            switch (container.type) {
+              case 'Identifier':
+                break
+
+              case 'StringLiteral':
+                break
+
+              case 'MemberExpression': {
+                if (path.key === 'object') {
+                  apis.push(newApi(module, node.name, line))
+                }
+              }
+            }
+
             break
           }
 
           case 'ObjectProperty':
-
+            apis.push(newApi(module, node.name, line))
             break
 
           case 'VariableDeclaration':
