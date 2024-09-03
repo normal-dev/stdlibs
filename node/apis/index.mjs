@@ -56,8 +56,7 @@ await mongoColl.insertOne({
   n_ns: stdlib.length,
   ns: stdlib,
   version: version.substring(1),
-  vids: {
-  }
+  vids: { }
 })
 
 process.exit(0)

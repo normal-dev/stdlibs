@@ -8,7 +8,7 @@ import extract from './extract.mjs'
 // MongoDB Ids
 const CAT_ID = '_cat'
 const LICENSES_ID = '_licenses'
-const TEMPORARY_DIRECTORY = path.join('/tmp', `contribs-node${Date.now()}`)
+const TMP_DIR = path.join('/tmp', `contribs-node${Date.now()}`)
 
 const mongoCollection = mongoClient.db('contribs').collection('node')
 
@@ -39,9 +39,8 @@ const findNodeJsFiles = async (directory, files) => {
   return files
 }
 
-const deleteTemporaryDirectory = () => {
-  console.debug('deleting temp dir %s...', TEMPORARY_DIRECTORY)
-  rmSync(TEMPORARY_DIRECTORY, { force: true, recursive: true })
+const rmTmpDir = () => {
+  rmSync(TMP_DIR, { force: true, recursive: true })
 }
 
 const saveLicenses = async () => {
@@ -314,17 +313,17 @@ const saveLicenses = async () => {
   return insertOneResult.acknowledged
 }
 
-const saveContributions = async contributions => {
+const saveContribs = async contributions => {
   const insertManyResult = await mongoCollection.insertMany(contributions)
   return insertManyResult.insertedCount
 }
 
-const saveCatalogue = async (amountContributions, amountRepositories) => {
+const saveCatalogue = async (contribsn, reposn) => {
   await mongoCollection.deleteOne({ _id: CAT_ID })
   const insertOneResult = await mongoCollection.insertOne({
     _id: CAT_ID,
-    n_contribs: amountContributions,
-    n_repos: amountRepositories
+    n_contribs: contribsn,
+    n_repos: reposn
   })
   return insertOneResult.acknowledged
 }
@@ -380,7 +379,7 @@ const getHandpickedRepositories = async githubClient => {
     ['salesforce', 'lwc'],
     ['botpress', 'botpress']
   ]) {
-    console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
+    console.debug('repo: %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
     const repository = await githubClient.rest.repos.get({
       owner: handpickedRepository.at(0),
       repo: handpickedRepository.at(1)
@@ -391,84 +390,71 @@ const getHandpickedRepositories = async githubClient => {
   return repositories
 }
 
-const cleanRepository = async (repositoryOwner, repositoryName) => {
-  try {
-    deleteTemporaryDirectory()
-
-    await mongoCollection.deleteMany({
-      repo_owner: repositoryOwner,
-      repo_name: repositoryName
-    })
-  } catch (error) {
-    console.error(error)
-    process.exit(1)
-  }
+const cleanRepo = async (repoOwner, repoName) => {
+  rmTmpDir()
+  await mongoCollection.deleteMany({
+    repo_owner: repoOwner,
+    repo_name: repoName
+  })
 }
 
-try {
-  const githubAccessToken = process.env.GITHUB_ACCESS_TOKEN_CONTRIBS
-  if (!githubAccessToken) {
-    throw new Error('missing Github access token')
-  }
-  const githubClient = new Octokit({ auth: githubAccessToken })
+const githubAccessTok = process.env.GITHUB_ACCESS_TOKEN_CONTRIBS
+if (!githubAccessTok) {
+  throw new Error('missing Github access token')
+}
+const githubClient = new Octokit({ auth: githubAccessTok })
 
-  const handpickedRepositories = await getHandpickedRepositories(githubClient)
-  console.debug('found %d repos', handpickedRepositories.length)
+const repos = await getHandpickedRepositories(githubClient)
+console.debug('repos: %d', repos.length)
 
-  let amountContributions = 0
-  for (const repository of handpickedRepositories) {
-    const repositoryOwner = repository.owner.login
-    const repositoryName = repository.name
-    console.debug('cleaning...')
-    await cleanRepository(repositoryOwner, repositoryName)
+let contribsn = 0
+for (const repo of repos) {
+  const repoOwner = repo.owner.login
+  const repoName = repo.name
+  await cleanRepo(repoOwner, repoName)
 
-    console.debug('cloning repo %s to %s...', repository.clone_url, TEMPORARY_DIRECTORY)
-    execSync(`git clone -q --depth 1 --no-tags --filter=blob:limit=100k ${repository.clone_url} ${TEMPORARY_DIRECTORY}`)
+  console.debug('repo: %s', repo.clone_url)
+  execSync(`git clone -q --depth 1 --no-tags --filter=blob:limit=100k ${repo.clone_url} ${TMP_DIR}`)
 
-    console.debug('cleaning repo files...')
-    rmSync(`${TEMPORARY_DIRECTORY}/.git`, { force: true, maxRetries: 1, recursive: true })
-    execSync(`find ${TEMPORARY_DIRECTORY}/ -name 'node_modules' -type d -prune -exec rm -rf '{}' +`)
+  rmSync(`${TMP_DIR}/.git`, { force: true, maxRetries: 1, recursive: true })
+  execSync(`find ${TMP_DIR}/ -name 'node_modules' -type d -prune -exec rm -rf '{}' +`)
 
-    console.debug('searching Node.js files...')
-    const contributions = []
-    for (let file of await findNodeJsFiles(TEMPORARY_DIRECTORY, [])) {
-      const buffer = readFileSync(file)
-      const code = buffer.toString()
-      const apis = extract(code)
+  const contribs = []
+  for (let file of await findNodeJsFiles(TMP_DIR, [])) {
+    console.debug('file: %s')
+    const buffer = readFileSync(file)
+    const code = buffer.toString()
+    const apis = extract(code)
 
-      if (apis.length === 0) {
-        continue
-      }
-
-      file = file.split(TEMPORARY_DIRECTORY).pop()
-      const filepath = path.dirname(file)
-      const filename = path.basename(file)
-
-      contributions.push({
-        apis,
-        code,
-        filepath,
-        filename,
-        repo_name: repositoryName,
-        repo_owner: repositoryOwner
-      })
-
-      amountContributions += 1
+    if (apis.length === 0) {
+      continue
     }
 
-    console.debug('found %d contributions', contributions.length)
-    const contributionsSaved = await saveContributions(contributions)
-    console.debug('%d contributions saved', contributionsSaved)
+    console.debug('apis: %d', apis.length)
+
+    file = file.split(TMP_DIR).pop()
+    const filepath = path.dirname(file)
+    const filename = path.basename(file)
+
+    contribs.push({
+      apis,
+      code,
+      filepath,
+      filename,
+      repo_name: repoName,
+      repo_owner: repoOwner
+    })
+
+    contribsn += 1
   }
 
-  const licencesSaved = await saveLicenses()
-  console.debug('licenses saved: %s', licencesSaved)
-
-  const catalogueSaved = await saveCatalogue(amountContributions, handpickedRepositories.length)
-  console.debug('catalogue saved: %s', catalogueSaved)
-
-  process.exit(0)
-} catch (error) {
-  console.error(error)
-  process.exit(1)
+  await saveContribs(contribs)
+  console.debug('contribs: %d', contribs.length)
 }
+
+const licencesSaved = await saveLicenses()
+console.debug('licenses: %s', licencesSaved)
+
+await saveCatalogue(contribsn, repos.length)
+
+process.exit(0)

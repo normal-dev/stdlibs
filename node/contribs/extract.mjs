@@ -1,11 +1,12 @@
 import { parse } from '@babel/parser'
-import types from '@babel/types'
+import { NodePath } from '@babel/traverse'
+import babelTypes from '@babel/types'
 import { createRequire } from 'module'
 import { builtinModules as builtin } from 'node:module'
-// Mimic import to preserve autocompletion
+const { Node, Identifier } = babelTypes
+
 const require = createRequire(import.meta.url)
 const traverse = require('@babel/traverse').default
-const { Node, Identifier, isImportSpecifier } = types
 
 export const stdlib = builtin
   .filter(module => !module.startsWith('_'))
@@ -34,22 +35,12 @@ const extract = src => {
     const contribs = []
     traverse(ast, {
       ImportDeclaration (path) {
-        const { node: { source: { value: module }, specifiers } } = path
+        const { node: { source: { value: module } } } = path
         if (!stdlib.includes(module)) {
           return
         }
 
-        for (const { type } of specifiers) {
-          switch (type) {
-            case 'ImportDefaultSpecifier':
-              resolveDefault(ast, module, contribs)
-              break
-
-            case 'ImportSpecifier':
-              resolveSpecifier(ast, module, contribs)
-              break
-          }
-        }
+        resolveModule(ast, module, contribs)
       }
     })
 
@@ -60,6 +51,11 @@ const extract = src => {
   }
 }
 
+/**
+ * @param {NodePath} path
+ * @param {string} module
+ * @returns {boolean}
+ */
 const isModuleBinding = (path, module) => {
   const { scope, node } = path
   const binding = scope.getBinding(node.name)
@@ -68,7 +64,11 @@ const isModuleBinding = (path, module) => {
   return true
 }
 
-const isImport = path => {
+/**
+ * @param {NodePath} path
+ * @returns {boolean}
+ */
+const isImported = path => {
   switch (path.parent.type) {
     case 'ImportDeclaration':
     case 'ImportDefaultSpecifier':
@@ -81,6 +81,11 @@ const isImport = path => {
   }
 }
 
+/**
+ *
+ * @param {NodePath} path
+ * @returns {boolean}
+ */
 const hasLocation = path => {
   return !!path.node.loc
 }
@@ -89,60 +94,29 @@ const hasLocation = path => {
  *
  * @param {Node} ast
  * @param {string} module
- * @param {string} ident
  * @param {Array<object>} apis
  */
-const resolveDefault = (ast, module, apis) => {
+const resolveModule = (ast, module, apis) => {
   try {
     traverse(ast, {
       Identifier (path) {
-        /** @param {Identifier} node */
-        if (isImport(path)) return
+        if (isImported(path)) return
         if (!isModuleBinding(path, module)) return
         if (!hasLocation(path)) return
 
-        const { node: { loc: { start: { line } } } } = path
-
-        const { container } = path
-        switch (container.type) {
-          case 'CallExpression':
+        const { scope, node } = path
+        const binding = scope.getBinding(node.name)
+        switch (binding.path.type) {
+          case 'ImportDefaultSpecifier':
+            resolveDefault(path, module, apis)
             break
 
-          case 'MemberExpression': {
-            const { property } = container
-            switch (property.type) {
-              case 'Identifier':
-                apis.push(
-                  newApi(module, property.name, line)
-                )
-                break
-
-              case 'StringLiteral':
-                apis.push(
-                  newApi(module, property.value, line)
-                )
-
-                break
-            }
-
-            break
-          }
-
-          case 'ObjectProperty':
-            switch (container.value.type) {
-              case 'Identifier':
-                apis.push(newApi(module, 'default', line))
-                break
-            }
-
-            break
-
-          case 'VariableDeclarator':
-            apis.push(newApi(module, 'default', line))
-
+          case 'ImportSpecifier':
+            resolveSpecifier(path, module, apis)
             break
         }
       }
+
     })
   } catch (error) {
     console.warn(error)
@@ -150,59 +124,105 @@ const resolveDefault = (ast, module, apis) => {
 }
 
 /**
- *
- * @param {Node} ast
+ * @param {NodePath} path
  * @param {string} module
- * @param {string} ident
  * @param {Array<object>} apis
  */
-const resolveSpecifier = (ast, module, apis) => {
+const resolveDefault = (path, module, apis) => {
   try {
-    traverse(ast, {
-      Identifier (path) {
-        /** @param {Identifier} node */
-        if (isImport(path)) return
-        if (!isModuleBinding(path, module)) return
-        if (!hasLocation(path)) return
+    /** @param {Identifier} node */
+    const { node } = path
+    const { loc: { start: { line } } } = node
 
-        const { node: { loc: { start: { line } }, name } } = path
+    const { container } = path
+    switch (container.type) {
+      case 'CallExpression':
+        break
 
-        const { container } = path
-        switch (container.type) {
-          case 'CallExpression': {
-            const { callee: { name } } = container
-            apis.push(newApi(module, name, line))
-
-            break
-          }
-
-          case 'MemberExpression': {
-            switch (container.type) {
-              case 'Identifier':
-                break
-
-              case 'StringLiteral':
-                break
-
-              case 'MemberExpression': {
-                if (path.key === 'object') {
-                  apis.push(newApi(module, name, line))
-                }
-              }
-            }
-
-            break
-          }
-
-          case 'ObjectProperty':
-            apis.push(newApi(module, name, line))
+      case 'MemberExpression': {
+        const { property } = container
+        switch (property.type) {
+          case 'Identifier':
+            apis.push(
+              newApi(module, property.name, line)
+            )
             break
 
-          case 'VariableDeclaration':
+          case 'StringLiteral':
+            apis.push(
+              newApi(module, property.value, line)
+            )
+
             break
         }
+
+        break
       }
-    })
+
+      case 'ObjectProperty':
+        switch (container.value.type) {
+          case 'Identifier':
+            apis.push(newApi(module, 'default', line))
+            break
+        }
+
+        break
+
+      case 'VariableDeclarator':
+        apis.push(newApi(module, 'default', line))
+
+        break
+    }
+  } catch (error) {
+    console.warn(error)
+  }
+}
+
+/**
+ * @param {NodePath} path
+ * @param {string} module
+ * @param {Array<object>} apis
+ */
+const resolveSpecifier = (path, module, apis) => {
+  try {
+    /** @param {Identifier} node */
+    const { node } = path
+    const { loc: { start: { line } }, name } = node
+
+    const { container } = path
+    switch (container.type) {
+      case 'CallExpression': {
+        const { callee: { name } } = container
+        apis.push(newApi(module, name, line))
+
+        break
+      }
+
+      case 'MemberExpression': {
+        switch (container.type) {
+          case 'Identifier':
+            break
+
+          case 'StringLiteral':
+            break
+
+          case 'MemberExpression': {
+            if (path.key === 'object') {
+              apis.push(newApi(module, name, line))
+            }
+          }
+        }
+
+        break
+      }
+
+      case 'ObjectProperty':
+        apis.push(newApi(module, name, line))
+        break
+
+      case 'VariableDeclaration':
+        break
+    }
   } catch (error) {
     console.warn(error)
   }

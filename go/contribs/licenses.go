@@ -357,6 +357,6 @@ func saveLicenses(ctx context.Context) error {
 			},
 		},
 	}
-	_, err = mongoColl.InsertOne(context.TODO(), licenses)
+	_, err = mongoColl.InsertOne(ctx, licenses)
 	return err
 }
