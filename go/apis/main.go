@@ -1,15 +1,15 @@
 package main
 
 import (
+	"apis-go/model"
 	"context"
 	"log"
+	"mongo"
 	"os"
 	"runtime"
 	"strings"
 
 	goapis "apis-go/api"
-
-	"apis-go/model"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -19,7 +19,7 @@ func init() {
 	log.Default().SetOutput(os.Stderr)
 }
 
-var mongoColl = goapis.MongoClient.Database("apis").Collection("go")
+var mongoColl = mongo.MongoClient.Database("apis").Collection("go")
 
 func main() {
 	ctx := context.TODO()

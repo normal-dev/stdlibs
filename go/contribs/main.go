@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"mongo"
 	"os"
 	"os/exec"
 	filepat "path/filepath"
 	"sync"
 
-	goapis "contribs-go/api"
+	goapis "apis-go/api"
 
 	"contribs-go/model"
 
@@ -27,7 +28,7 @@ func init() {
 	}
 }
 
-var mongoColl = goapis.MongoClient.Database("contribs").Collection("go")
+var mongoColl = mongo.MongoClient.Database("contribs").Collection("go")
 
 func main() {
 	ctx := context.TODO()
@@ -267,7 +268,7 @@ func findGoFiles(dir string) chan string {
 }
 
 func findLocus(src []byte) ([]model.Locus, bool, error) {
-	ex := NewExtractor(src)
+	ex := newExtractor(src)
 	if ex.Error != nil {
 		return []model.Locus{}, false, ex.Error
 	}
@@ -293,7 +294,7 @@ func saveContribs(ctx context.Context, contribs []any) (int, error) {
 }
 
 func saveCatalogue(ctx context.Context, contribsn, reposn int) error {
-	coll := goapis.MongoClient.Database(goapis.DB_CONTRIBS).Collection("go")
+	coll := mongo.MongoClient.Database(mongo.DB_CONTRIBS).Collection("go")
 	if _, err := coll.DeleteOne(ctx, bson.M{"_id": model.CAT_ID}); err != nil {
 		return err
 	}

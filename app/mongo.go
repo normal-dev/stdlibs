@@ -1,4 +1,4 @@
-package api
+package main
 
 import (
 	"context"
@@ -9,12 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const (
-	DB_APIs     = "apis"
-	DB_CONTRIBS = "contribs"
-)
-
-var MongoClient *mongo.Client
+var mongoClient *mongo.Client
 
 func init() {
 	log.SetFlags(0)
@@ -34,5 +29,5 @@ func init() {
 		panic(err.Error())
 	}
 
-	MongoClient = client
+	mongoClient = client
 }

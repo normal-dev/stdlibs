@@ -1,7 +1,7 @@
 FROM golang:1.22
 
 WORKDIR /
-ENV NODE_VERSION=20.8.0
+ENV NODE_VERSION=22.5.1
 RUN apt install -y curl
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
 ENV NVM_DIR=/root/.nvm
@@ -11,6 +11,7 @@ RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
 ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
 COPY web /web
 COPY website /website
+
 WORKDIR /web
 RUN npm ci
 RUN npm run build

@@ -22,7 +22,7 @@ type extractor struct {
 	info *types.Info
 }
 
-func NewExtractor(src []byte) *extractor {
+func newExtractor(src []byte) *extractor {
 	ex := &extractor{}
 
 	srcFile, fset, err := parse(src)

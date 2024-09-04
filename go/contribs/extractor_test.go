@@ -13,7 +13,7 @@ import (
 func TestExtractor_Extract(t *testing.T) {
 	for _, tt := range getTests(t) {
 		t.Run(tt.name, func(t *testing.T) {
-			ex := NewExtractor([]byte(tt.src))
+			ex := newExtractor([]byte(tt.src))
 			if ex.Error != nil {
 				t.Fatal(ex.Error)
 			}

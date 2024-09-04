@@ -1,11 +1,11 @@
-package api
+package mongo
 
 import (
 	"context"
 	"log"
 	"os"
 
-	"go.mongodb.org/mongo-driver/mongo"
+	mgo "go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -14,7 +14,7 @@ const (
 	DB_CONTRIBS = "contribs"
 )
 
-var MongoClient *mongo.Client
+var MongoClient *mgo.Client
 
 func init() {
 	log.SetFlags(0)
@@ -22,8 +22,6 @@ func init() {
 }
 
 func init() {
-	log.Println("connecting to MongoDB...")
-
 	uri := os.Getenv("MONGO_DB_URI")
 	if uri == "" {
 		uri = "mongodb://localhost:27017"
@@ -31,7 +29,7 @@ func init() {
 
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
-	client, err := mongo.Connect(context.Background(), opts)
+	client, err := mgo.Connect(context.Background(), opts)
 	if err != nil {
 		panic(err.Error())
 	}

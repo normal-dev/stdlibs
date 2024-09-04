@@ -43,10 +43,6 @@ func getAPIs(pkgs map[string][]types.Object) []API {
 				Ns:   pkg,
 			}
 
-			if doc := getGoDoc(api.ID()); doc != "" {
-				api.Doc = doc
-			}
-
 			switch o := obj.(type) {
 			case *types.Var:
 				switch o.Type().String() {
