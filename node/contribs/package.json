@@ -2,7 +2,7 @@
   "name": "contribs-node",
   "version": "0.0.0",
   "engines": {
-    "node": "20.8.0"
+    "node": "22.5.1"
   },
   "scripts": {
     "lint": "eslint --ext .js .",

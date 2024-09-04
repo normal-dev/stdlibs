@@ -1,7 +1,6 @@
 FROM golang:1.22
 
 WORKDIR /
-
 COPY apis /apis
 COPY mongo /mongo
 
