@@ -56,12 +56,31 @@ const extract = src => {
  * @param {string} module
  * @returns {boolean}
  */
-const isModuleBinding = (path, module) => {
+const isModuleImport = (path, module) => {
   const { scope, node } = path
   const binding = scope.getBinding(node.name)
   if ((!binding || binding.kind !== 'module')) return false
   if (binding.path.parent.source.value !== module) return false
   return true
+}
+
+/**
+ * @param {NodePath} path
+ * @returns {string}
+ */
+const resolveCanonicalName = path => {
+  const { node: { name }, scope } = path
+  const binding = scope.getBinding(name)
+  switch (binding.path.node.type) {
+    case 'ImportNamespaceSpecifier':
+    case 'ImportDefaultSpecifier':
+      return 'default'
+
+    case 'ImportSpecifier':
+      break
+  }
+
+  return binding.path.node.imported.name
 }
 
 /**
@@ -82,7 +101,6 @@ const isImported = path => {
 }
 
 /**
- *
  * @param {NodePath} path
  * @returns {boolean}
  */
@@ -91,7 +109,6 @@ const hasLocation = path => {
 }
 
 /**
- *
  * @param {Node} ast
  * @param {string} module
  * @param {Array<object>} apis
@@ -101,132 +118,89 @@ const resolveModule = (ast, module, apis) => {
     traverse(ast, {
       Identifier (path) {
         if (isImported(path)) return
-        if (!isModuleBinding(path, module)) return
+        if (!isModuleImport(path, module)) return
         if (!hasLocation(path)) return
 
-        const { scope, node } = path
-        const binding = scope.getBinding(node.name)
-        switch (binding.path.type) {
-          case 'ImportDefaultSpecifier':
-            resolveDefault(path, module, apis)
-            break
+        const { node, container } = path
+        const { loc: { start: { line } }, name } = node
 
-          case 'ImportNamespaceSpecifier':
-            resolveDefault(path, module, apis)
-            break
+        if (Array.isArray(container)) {
+          for (const node of container) {
+            if (node.name !== name) continue
 
-          case 'ImportSpecifier':
-            resolveSpecifier(path, module, apis)
+            const canonical = resolveCanonicalName(path)
+            apis.push(newApi(module, canonical, line))
+          }
+
+          return
+        }
+
+        const { type, value } = container
+        switch (type) {
+          case 'CallExpression': {
+            break
+          }
+
+          case 'MemberExpression': {
+            const { property: { type } } = container
+            const { node: { name }, scope } = path
+            const binding = scope.getBinding(name)
+
+            switch (binding.path.type) {
+              case 'ImportSpecifier':
+                apis.push(
+                  newApi(module, name, line)
+                )
+
+                return
+            }
+
+            switch (type) {
+              case 'Identifier': {
+                const { property: { name } } = container
+                apis.push(
+                  newApi(module, name, line)
+                )
+
+                return
+              }
+
+              case 'MemberExpression': {
+                const { property: { name } } = container
+                apis.push(
+                  newApi(module, name, line)
+                )
+
+                return
+              }
+
+              case 'StringLiteral': {
+                const { property: { value } } = container
+                apis.push(
+                  newApi(module, value, line)
+                )
+
+                return
+              }
+            }
+
+            break
+          }
+
+          case 'ObjectProperty':
+            switch (value.type) {
+              case 'Identifier':
+                break
+            }
+
             break
         }
+
+        const canonical = resolveCanonicalName(path)
+        apis.push(newApi(module, canonical, line))
       }
 
     })
-  } catch (error) {
-    console.warn(error)
-  }
-}
-
-/**
- * @param {NodePath} path
- * @param {string} module
- * @param {Array<object>} apis
- */
-const resolveDefault = (path, module, apis) => {
-  try {
-    /** @param {Identifier} node */
-    const { node } = path
-    const { loc: { start: { line } } } = node
-
-    const { container } = path
-    switch (container.type) {
-      case 'CallExpression':
-        break
-
-      case 'MemberExpression': {
-        const { property } = container
-        switch (property.type) {
-          case 'Identifier':
-            apis.push(
-              newApi(module, property.name, line)
-            )
-            break
-
-          case 'StringLiteral':
-            apis.push(
-              newApi(module, property.value, line)
-            )
-
-            break
-        }
-
-        break
-      }
-
-      case 'ObjectProperty':
-        switch (container.value.type) {
-          case 'Identifier':
-            apis.push(newApi(module, 'default', line))
-            break
-        }
-
-        break
-
-      case 'VariableDeclarator':
-        apis.push(newApi(module, 'default', line))
-
-        break
-    }
-  } catch (error) {
-    console.warn(error)
-  }
-}
-
-/**
- * @param {NodePath} path
- * @param {string} module
- * @param {Array<object>} apis
- */
-const resolveSpecifier = (path, module, apis) => {
-  try {
-    /** @param {Identifier} node */
-    const { node } = path
-    const { loc: { start: { line } }, name } = node
-
-    const { container } = path
-    switch (container.type) {
-      case 'CallExpression': {
-        const { callee: { name } } = container
-        apis.push(newApi(module, name, line))
-
-        break
-      }
-
-      case 'MemberExpression': {
-        switch (container.type) {
-          case 'Identifier':
-            break
-
-          case 'StringLiteral':
-            break
-
-          case 'MemberExpression': {
-            if (path.key === 'object') {
-              apis.push(newApi(module, name, line))
-            }
-          }
-        }
-
-        break
-      }
-
-      case 'ObjectProperty':
-        apis.push(newApi(module, name, line))
-        break
-
-      case 'VariableDeclaration':
-        break
-    }
   } catch (error) {
     console.warn(error)
   }

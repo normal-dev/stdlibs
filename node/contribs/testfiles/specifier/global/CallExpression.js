@@ -1,3 +1,3 @@
 import { equal } from 'node:assert'
 
-equal()
+equal('a', 'b')
