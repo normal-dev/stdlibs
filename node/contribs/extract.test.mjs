@@ -7,6 +7,26 @@ import extract from './extract.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+const openTest = name => {
+  const file = readFileSync(`${__dirname}/testfiles/${name}`, 'utf-8')
+  return file.toString()
+}
+
+describe('namespace', undefined, () => {
+  test('MemberExpression', () => {
+    assert.deepEqual(extract(openTest('namespace/MemberExpression.js')), [
+      {
+        ident: 'node:fs.existsSync',
+        line: 4
+      },
+      {
+        ident: 'node:http.Agent',
+        line: 5
+      }
+    ])
+  })
+})
+
 // describe('ImportDefaultSpecifier', undefined, () => {
 //   describe('global', undefined, () => {
 //     test('MemberExpression', () => {
@@ -105,74 +125,69 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 //   })
 // })
 
-describe('proprietary', undefined, () => {
-  test('build.js', () => {
-    assert.deepEqual(extract(openTest('proprietary/build.js')), [
-      {
-        ident: 'node:fs/promises.mkdir',
-        line: 50
-      },
-      {
-        ident: 'node:fs/promises.rm',
-        line: 111
-      },
-      {
-        ident: 'node:fs/promises.readFile',
-        line: 160
-      },
-      {
-        ident: 'node:fs/promises.writeFile',
-        line: 175
-      },
-      {
-        ident: 'node:fs.existsSync',
-        line: 110
-      },
-      {
-        ident: 'node:fs.existsSync',
-        line: 157
-      },
-      {
-        ident: 'node:path.resolve',
-        line: 45
-      },
-      {
-        ident: 'node:path.resolve',
-        line: 101
-      },
-      {
-        ident: 'node:path.resolve',
-        line: 149
-      },
-      {
-        ident: 'node:path.basename',
-        line: 161
-      },
-      {
-        ident: 'node:path.resolve',
-        line: 176
-      },
-      {
-        ident: 'node:zlib.gzipSync',
-        line: 163
-      },
-      {
-        ident: 'node:zlib.brotliCompressSync',
-        line: 164
-      },
-      {
-        ident: 'node:os.cpus',
-        line: 79
-      },
-      {
-        ident: 'node:module.createRequire',
-        line: 32
-      }
-    ])
-  })
-})
-
-const openTest = name => {
-  const file = readFileSync(`${__dirname}/testfiles/${name}`, 'utf-8')
-  return file.toString()
-}
+// describe('proprietary', undefined, () => {
+//   test('build.js', () => {
+//     assert.deepEqual(extract(openTest('proprietary/build.js')), [
+//       {
+//         ident: 'node:fs/promises.mkdir',
+//         line: 50
+//       },
+//       {
+//         ident: 'node:fs/promises.rm',
+//         line: 111
+//       },
+//       {
+//         ident: 'node:fs/promises.readFile',
+//         line: 160
+//       },
+//       {
+//         ident: 'node:fs/promises.writeFile',
+//         line: 175
+//       },
+//       {
+//         ident: 'node:fs.existsSync',
+//         line: 110
+//       },
+//       {
+//         ident: 'node:fs.existsSync',
+//         line: 157
+//       },
+//       {
+//         ident: 'node:path.resolve',
+//         line: 45
+//       },
+//       {
+//         ident: 'node:path.resolve',
+//         line: 101
+//       },
+//       {
+//         ident: 'node:path.resolve',
+//         line: 149
+//       },
+//       {
+//         ident: 'node:path.basename',
+//         line: 161
+//       },
+//       {
+//         ident: 'node:path.resolve',
+//         line: 176
+//       },
+//       {
+//         ident: 'node:zlib.gzipSync',
+//         line: 163
+//       },
+//       {
+//         ident: 'node:zlib.brotliCompressSync',
+//         line: 164
+//       },
+//       {
+//         ident: 'node:os.cpus',
+//         line: 79
+//       },
+//       {
+//         ident: 'node:module.createRequire',
+//         line: 32
+//       }
+//     ])
+//   })
+// })

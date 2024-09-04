@@ -7,7 +7,7 @@
   "scripts": {
     "lint": "eslint --ext .js .",
     "lint:fix": "eslint --ext .js . --fix",
-    "test": "node --test"
+    "test": "node --test --watch"
   },
   "type": "commonjs",
   "author": "",

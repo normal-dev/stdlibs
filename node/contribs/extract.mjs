@@ -111,6 +111,10 @@ const resolveModule = (ast, module, apis) => {
             resolveDefault(path, module, apis)
             break
 
+          case 'ImportNamespaceSpecifier':
+            resolveDefault(path, module, apis)
+            break
+
           case 'ImportSpecifier':
             resolveSpecifier(path, module, apis)
             break

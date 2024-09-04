@@ -35,11 +35,8 @@ const (
 var mongoClient *mongo.Client
 
 func init() {
-	log.Println("connecting to MongoDB...")
-
 	uri := os.Getenv("MONGO_DB_URI")
 	if uri == "" {
-		log.Printf("can't find MongoDB URI, falling back to %s", "mongodb://localhost:27017")
 		uri = "mongodb://localhost:27017"
 	}
 
@@ -135,7 +132,7 @@ func main() {
 				return
 			}
 
-			err = mongoColl.FindOne(context.TODO(), bson.D{{Key: "_id", Value: model.CAT_ID}}).Decode(&c)
+			err = mongoColl.FindOne(ctx, bson.D{{Key: "_id", Value: model.CAT_ID}}).Decode(&c)
 			if err != nil {
 				// TODO: Check for not found error
 				log.Println(err.Error())
@@ -155,7 +152,7 @@ func main() {
 				return
 			}
 
-			err = mongoColl.FindOne(context.TODO(), bson.D{{Key: "_id", Value: model.CAT_ID}}).Decode(&c)
+			err = mongoColl.FindOne(ctx, bson.D{{Key: "_id", Value: model.CAT_ID}}).Decode(&c)
 			if err != nil {
 				// TODO: Check for not found error
 				log.Println(err.Error())

@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Server",
+            "name": "Web: Server",
             "type": "go",
             "request": "launch",
             "mode": "auto",
@@ -15,7 +15,7 @@
             ],
         },
         {
-            "name": "Client",
+            "name": "Web: Client",
             "command": "npm run dev",
             "type": "node-terminal",
             "request": "launch",
@@ -30,15 +30,6 @@
             "args": []
         },
         {
-            "name": "Node.js: API",
-            "type": "node",
-            "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}/node/apis/index.mjs"
-        },
-        {
             "name": "Go: Contributions",
             "type": "go",
             "request": "launch",
@@ -48,6 +39,15 @@
             "env": {
                 "GITHUB_ACCESS_TOKEN_CONTRIBS": "${input:github_access_token}"
             }
+        },
+        {
+            "name": "Node.js: API",
+            "type": "node",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/node/apis/index.mjs"
         },
         {
             "name": "Node.js: Contributions",
