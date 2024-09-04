@@ -328,66 +328,66 @@ const saveCatalogue = async (contribsn, reposn) => {
   return insertOneResult.acknowledged
 }
 
-const getHandpickedRepositories = async githubClient => {
-  const repositories = []
-  for (const handpickedRepository of [
+const getRepos = async client => {
+  const repos = []
+  for (const repo of [
     ['socketio', 'socket.io'],
-    ['transloadit', 'uppy'],
-    ['sequelize', 'sequelize'],
-    ['appium', 'appium'],
-    ['puppeteer', 'puppeteer'],
-    ['avajs', 'ava'],
-    ['playcanvas', 'engine'],
-    ['tutao', 'tutanota'],
-    ['highlight', 'highlight'],
-    ['supabase', 'supabase'],
-    ['herbie-fp', 'herbie'],
-    ['midwayjs', 'midway'],
-    ['angular', 'angular'],
-    ['expo', 'expo'],
-    ['denoland', 'deno'],
-    ['vitejs', 'vite'],
-    ['discordjs', 'discord.js'],
-    ['fabricjs', 'fabric.js'],
-    ['vuejs', 'core'],
-    ['markedjs', 'marked'],
-    ['apify', 'crawlee'],
-    ['electron', 'electron'],
-    ['11ty', 'eleventy'],
-    ['dagger', 'dagger'],
-    ['cheeriojs', 'cheerio'],
-    ['lint-staged', 'lint-staged'],
-    ['metarhia', 'impress'],
-    ['oven-sh', 'bun'],
-    ['napi-rs', 'napi-rs'],
-    ['pingcap', 'ossinsight'],
-    ['sindresorhus', 'got'],
-    ['twbs', 'bootstrap'],
-    ['sveltejs', 'svelte'],
-    ['prettier', 'prettier'],
-    ['vercel', 'next.js'],
-    ['biomejs', 'biome'],
-    ['microsoft', 'vscode'],
-    ['ether', 'etherpad-lite'],
-    ['directus', 'directus'],
-    ['spacedriveapp', 'spacedrive'],
-    ['backstage', 'backstage'],
-    ['sitespeedio', 'sitespeed.io'],
-    ['webdriverio', 'webdriverio'],
-    ['streetwriters', 'notesnook'],
-    ['nomic-ai', 'gpt4all'],
-    ['salesforce', 'lwc'],
-    ['botpress', 'botpress']
+    ['transloadit', 'uppy']
+    // ['sequelize', 'sequelize'],
+    // ['appium', 'appium'],
+    // ['puppeteer', 'puppeteer'],
+    // ['avajs', 'ava'],
+    // ['playcanvas', 'engine'],
+    // ['tutao', 'tutanota'],
+    // ['highlight', 'highlight'],
+    // ['supabase', 'supabase'],
+    // ['herbie-fp', 'herbie'],
+    // ['midwayjs', 'midway'],
+    // ['angular', 'angular'],
+    // ['expo', 'expo'],
+    // ['denoland', 'deno'],
+    // ['vitejs', 'vite'],
+    // ['discordjs', 'discord.js'],
+    // ['fabricjs', 'fabric.js'],
+    // ['vuejs', 'core'],
+    // ['markedjs', 'marked'],
+    // ['apify', 'crawlee'],
+    // ['electron', 'electron'],
+    // ['11ty', 'eleventy'],
+    // ['dagger', 'dagger'],
+    // ['cheeriojs', 'cheerio'],
+    // ['lint-staged', 'lint-staged'],
+    // ['metarhia', 'impress'],
+    // ['oven-sh', 'bun'],
+    // ['napi-rs', 'napi-rs'],
+    // ['pingcap', 'ossinsight'],
+    // ['sindresorhus', 'got'],
+    // ['twbs', 'bootstrap'],
+    // ['sveltejs', 'svelte'],
+    // ['prettier', 'prettier'],
+    // ['vercel', 'next.js'],
+    // ['biomejs', 'biome'],
+    // ['microsoft', 'vscode'],
+    // ['ether', 'etherpad-lite'],
+    // ['directus', 'directus'],
+    // ['spacedriveapp', 'spacedrive'],
+    // ['backstage', 'backstage'],
+    // ['sitespeedio', 'sitespeed.io'],
+    // ['webdriverio', 'webdriverio'],
+    // ['streetwriters', 'notesnook'],
+    // ['nomic-ai', 'gpt4all'],
+    // ['salesforce', 'lwc'],
+    // ['botpress', 'botpress']
   ]) {
-    console.debug('repo: %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
-    const repository = await githubClient.rest.repos.get({
-      owner: handpickedRepository.at(0),
-      repo: handpickedRepository.at(1)
+    console.debug('repo: %s/%s...', repo.at(0), repo.at(1))
+    const repository = await client.rest.repos.get({
+      owner: repo.at(0),
+      repo: repo.at(1)
     })
-    repositories.push(repository.data)
+    repos.push(repository.data)
   }
 
-  return repositories
+  return repos
 }
 
 const cleanRepo = async (repoOwner, repoName) => {
@@ -404,7 +404,7 @@ if (!githubAccessTok) {
 }
 const githubClient = new Octokit({ auth: githubAccessTok })
 
-const repos = await getHandpickedRepositories(githubClient)
+const repos = await getRepos(githubClient)
 console.debug('repos: %d', repos.length)
 
 let contribsn = 0
@@ -421,23 +421,23 @@ for (const repo of repos) {
 
   const contribs = []
   for (let file of await findNodeJsFiles(TMP_DIR, [])) {
-    console.debug('file: %s')
+    console.debug('file: %s', file)
     const buffer = readFileSync(file)
     const code = buffer.toString()
-    const apis = extract(code)
+    const locus = extract(code)
 
-    if (apis.length === 0) {
+    if (locus.length === 0) {
       continue
     }
 
-    console.debug('apis: %d', apis.length)
+    console.debug('locus: %d', locus.length)
 
     file = file.split(TMP_DIR).pop()
     const filepath = path.dirname(file)
     const filename = path.basename(file)
 
     contribs.push({
-      apis,
+      locus,
       code,
       filepath,
       filename,

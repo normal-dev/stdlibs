@@ -32,7 +32,7 @@ const extract = src => {
       plugins: ['typescript']
     })
 
-    const contribs = []
+    const locus = []
     traverse(ast, {
       ImportDeclaration (path) {
         const { node: { source: { value: module } } } = path
@@ -40,11 +40,11 @@ const extract = src => {
           return
         }
 
-        resolveModule(ast, module, contribs)
+        resolveModule(ast, module, locus)
       }
     })
 
-    return contribs
+    return locus
   } catch (error) {
     console.warn(error)
     return []

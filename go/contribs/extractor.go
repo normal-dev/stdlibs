@@ -59,18 +59,18 @@ func NewExtractor(src []byte) *extractor {
 	return ex
 }
 
-func (ex *extractor) Extract() map[model.API]struct{} {
-	apis := make(map[model.API]struct{})
+func (ex *extractor) Extract() map[model.Locus]struct{} {
+	apis := make(map[model.Locus]struct{})
 
 	if ex.Error != nil || ex.info == nil {
 		return apis
 	}
 
 	var (
-		newAPI = func(pos token.Pos, imporSpec *ast.ImportSpec, idents ...string) model.API {
+		newAPI = func(pos token.Pos, imporSpec *ast.ImportSpec, idents ...string) model.Locus {
 			tokPos := ex.fset.Position(pos)
 			pkg := strings.Trim(imporSpec.Path.Value, "\"")
-			return model.API{
+			return model.Locus{
 				Ident: fmt.Sprintf("%s.%s", pkg, strings.Join(idents, ".")),
 				Line:  tokPos.Line,
 			}

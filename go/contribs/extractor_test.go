@@ -32,19 +32,19 @@ func TestExtractor_Extract(t *testing.T) {
 func getTests(t *testing.T) []struct {
 	name string
 	src  string
-	want map[model.API]struct{}
+	want map[model.Locus]struct{}
 } {
 	t.Helper()
 
 	return []struct {
 		name string
 		src  string
-		want map[model.API]struct{}
+		want map[model.Locus]struct{}
 	}{
 		{
 			name: "moby/moby/pkg/system/chtimes.go",
 			src:  openTest(t, "chtimes"),
-			want: map[model.API]struct{}{
+			want: map[model.Locus]struct{}{
 				{
 					Ident: "os.Chtimes",
 					Line:  42,
@@ -86,7 +86,7 @@ func getTests(t *testing.T) []struct {
 		{
 			name: "kubernetes/kubernetes/pkg/util/filesystem/defaultfs.go",
 			src:  openTest(t, "defaultfs"),
-			want: map[model.API]struct{}{
+			want: map[model.Locus]struct{}{
 				{
 					Ident: "os.Chtimes",
 					Line:  109,
@@ -200,7 +200,7 @@ func getTests(t *testing.T) []struct {
 		{
 			name: "moby/moby/pkg/tarsum/fileinfosums.go",
 			src:  openTest(t, "fileinfosums"),
-			want: map[model.API]struct{}{
+			want: map[model.Locus]struct{}{
 				{
 					Ident: "runtime.GOOS",
 					Line:  47,
@@ -234,7 +234,7 @@ func getTests(t *testing.T) []struct {
 		{
 			name: "golang/go/src/context/context.go",
 			src:  openTest(t, "context"),
-			want: map[model.API]struct{}{
+			want: map[model.Locus]struct{}{
 				{
 					Ident: "sync/atomic.Int32",
 					Line:  302,
@@ -324,7 +324,7 @@ func getTests(t *testing.T) []struct {
 		{
 			name: "golang/go/src/strconv/ctoa_test.go",
 			src:  openTest(t, "ctoa_test"),
-			want: map[model.API]struct{}{
+			want: map[model.Locus]struct{}{
 				{
 					Ident: "testing.T",
 					Line:  12,
@@ -338,7 +338,7 @@ func getTests(t *testing.T) []struct {
 		{
 			name: "golang/go/test/fixedbugs/bug233.go",
 			src:  openTest(t, "bug233"),
-			want: map[model.API]struct{}{
+			want: map[model.Locus]struct{}{
 				{
 					Ident: "fmt.Print",
 					Line:  9,
@@ -348,7 +348,7 @@ func getTests(t *testing.T) []struct {
 		{
 			name: "cilium/test/bpf_tests/trf.pb.go",
 			src:  openTest(t, "trf.pb"),
-			want: map[model.API]struct{}{
+			want: map[model.Locus]struct{}{
 				{
 					Ident: "reflect.TypeOf",
 					Line:  364,

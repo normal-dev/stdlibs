@@ -25,7 +25,7 @@ func (api API) ID() string {
 
 func Get() []API {
 	pkgs := getAllPkgs()
-	filterPkgs(pkgs)
+	stripePkgs(pkgs)
 	return getAPIs(pkgs)
 }
 
@@ -159,7 +159,7 @@ func getAllPkgs() map[string][]types.Object {
 	return pkgs
 }
 
-func filterPkgs(pkgs map[string][]types.Object) {
+func stripePkgs(pkgs map[string][]types.Object) {
 	regexp := regexp.MustCompile("(^vendor|/internal|internal/|/internal/)")
 	for pkg, objs := range pkgs {
 		if regexp.MatchString(pkg) {

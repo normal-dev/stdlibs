@@ -37,7 +37,7 @@ func main() {
 		panic("can't find Github access token")
 	}
 	ghclient := newGithubClient(githubAccessTok)
-	repos, err := getHandpickedRepos(ctx, ghclient)
+	repos, err := getRepos(ctx, ghclient)
 	checkErr(err)
 	log.Printf("repos: %d", len(repos))
 
@@ -121,7 +121,7 @@ func worker(
 		}()
 
 		var (
-			gofilesn, apisn int
+			gofilesn, locusn int
 
 			contribs = make([]any, 0)
 		)
@@ -133,18 +133,18 @@ func worker(
 				logErr(logger, err)
 				continue
 			}
-			apis, ok, _ := findGoAPIs(fileBytes)
+			locus, ok, _ := findLocus(fileBytes)
 			if !ok {
 				continue
 			}
-			apisn += len(apis)
+			locusn += len(locus)
 
 			pat := file[len(repoDir):]
 			code := string(fileBytes)
 			filepath := filepat.Dir(pat)
 			filename := filepat.Base(pat)
 			contribs = append(contribs, model.Contrib{
-				APIs:      apis,
+				Locus:     locus,
 				Code:      code,
 				Filepath:  filepath,
 				Filename:  filename,
@@ -155,7 +155,7 @@ func worker(
 		}
 
 		logger.Printf("contribs: %d", len(contribs))
-		logger.Printf("apis: %d", apisn)
+		logger.Printf("locus: %d", locusn)
 		logger.Printf("files: %d", gofilesn)
 		_, err = saveContribs(ctx, contribs)
 		logErr(logger, err)
@@ -166,7 +166,7 @@ func worker(
 	}
 }
 
-func getHandpickedRepos(ctx context.Context, ghClient *github.Client) (repos []*github.Repository, err error) {
+func getRepos(ctx context.Context, ghClient *github.Client) (repos []*github.Repository, err error) {
 	for _, repo := range [][2]string{
 		{"cli", "cli"},
 		{"traefik", "traefik"},
@@ -266,19 +266,19 @@ func findGoFiles(dir string) chan string {
 	return files
 }
 
-func findGoAPIs(src []byte) ([]model.API, bool, error) {
+func findLocus(src []byte) ([]model.Locus, bool, error) {
 	ex := NewExtractor(src)
 	if ex.Error != nil {
-		return []model.API{}, false, ex.Error
+		return []model.Locus{}, false, ex.Error
 	}
 
-	apis := ex.Extract()
+	locus := ex.Extract()
 	if ex.Error != nil {
-		return []model.API{}, false, ex.Error
+		return []model.Locus{}, false, ex.Error
 	}
 
-	ret := make([]model.API, 0)
-	for api := range apis {
+	ret := make([]model.Locus, 0)
+	for api := range locus {
 		ret = append(ret, api)
 	}
 	return ret, len(ret) > 0, nil
