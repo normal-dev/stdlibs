@@ -43,12 +43,12 @@ const codeViewerlanguage = computed(() => {
   return ''
 })
 const contributionApis = computed(() => {
-  return sortBy(contribution.apis, 'line')
+  return sortBy(contribution.locus, 'line')
 })
 const codeViewerLines = computed(() => {
-  return reduce(sortBy(contribution.apis, 'line'), (apis, api) => {
-    apis.push(api.line)
-    return apis
+  return reduce(sortBy(contribution.locus, 'line'), (locus, { line }) => {
+    locus.push(line)
+    return locus
   }, [])
 })
 

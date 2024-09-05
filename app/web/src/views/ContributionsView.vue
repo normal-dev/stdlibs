@@ -198,7 +198,7 @@
               #{{ (index+1)+pagination.perPage*(pagination.page-1) }}
             </div>
             <XCodeViewer
-              :lines="findLines(contribution.apis)"
+              :lines="findLines(contribution.locus)"
               :language="technologyToLanguageMapper.get(technology)"
               :contribution="contribution" />
           </div>
@@ -222,7 +222,7 @@
 <script setup>
 import XCodeViewer from '../components/XCodeViewer.vue'
 import { getCatalogue, getApis, getContributions, getLicenses } from '../api.js'
-import { nextTick, onMounted, ref, watch, computed, onBeforeMount, inject, provide } from 'vue'
+import { nextTick, onMounted, ref, watch, computed, inject, provide } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { get, find, reduce } from 'lodash'
 
@@ -279,12 +279,12 @@ const getContributionsHandler = async () => {
   // Scroll to contributions
   document.getElementById('contributions').scrollIntoView()
 }
-const findLines = apis => {
-  return reduce(apis, (apis, api) => {
-    if (api.ident === `${selectedNamespace.value}.${selectedApi.value.at(0)}`) {
-      apis.push(api.line)
+const findLines = locus => {
+  return reduce(locus, (locus, { ident, line }) => {
+    if (ident === `${selectedNamespace.value}.${selectedApi.value.at(0)}`) {
+      locus.push(line)
     }
-    return apis
+    return locus
   }, []).sort()
 }
 const resetPagination = () => {

@@ -3,7 +3,6 @@ import { ref, provide, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTheme } from 'vuetify/lib/framework.mjs'
 
-const route = useRoute()
 const theme = useTheme()
 
 const toggleTheme = () => {

@@ -21,7 +21,7 @@ COPY model /model
 COPY go.mod go.sum /
 RUN go mod download
 COPY *.go /
-ENV GIN_MODE release
+ENV GIN_MODE=release
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./app
 
 EXPOSE 8080

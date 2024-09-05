@@ -91,7 +91,7 @@ func worker(
 
 		repoDir, err := os.MkdirTemp("", fmt.Sprintf("%s_%s", repoOwner, repoName))
 		checkErr(err)
-		checkErr(rmRepo(ctx, repoDir, repoOwner, repoName))
+		checkErr(purgeRepo(ctx, repoDir, repoOwner, repoName))
 
 		logger.Printf("cloning: %s", repo.GetCloneURL())
 
@@ -162,8 +162,8 @@ func worker(
 			})
 
 			mu.Lock()
-			defer mu.Unlock()
 			*contribsn += 1
+			mu.Unlock()
 		}
 
 		logger.Printf("contribs: %d", len(contribs))
@@ -273,7 +273,7 @@ func stripeRepo(logger *log.Logger, dir string) {
 }
 
 // Removes the repository directory and database entry
-func rmRepo(ctx context.Context, repoDir, repoOwner, repoName string) error {
+func purgeRepo(ctx context.Context, repoDir, repoOwner, repoName string) error {
 	if err := os.RemoveAll(repoDir); err != nil {
 		return err
 	}
