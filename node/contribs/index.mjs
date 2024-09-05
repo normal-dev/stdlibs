@@ -8,21 +8,22 @@ import extract from './extract.mjs'
 // MongoDB Ids
 const CAT_ID = '_cat'
 const LICENSES_ID = '_licenses'
-const TMP_DIR = path.join('/tmp', `contribs-node${Date.now()}`)
 
 const mongoCollection = mongoClient.db('contribs').collection('node')
 
-const findNodeJsFiles = async (directory, files) => {
-  for (const filename of readdirSync(directory)) {
+const findNodeJsFiles = async (dir, files) => {
+  for (const filename of readdirSync(dir)) {
     try {
-      const file = path.join(directory, filename)
+      const stat = path.join(dir, filename)
 
-      const statistics = statSync(file)
-      if (statistics.isDirectory()) {
-        files = await findNodeJsFiles(file, files)
+      const stats = statSync(stat)
+      if (stats.isDirectory()) {
+        const dir = stat
+        files = await findNodeJsFiles(dir, files)
         continue
       }
 
+      const file = stat
       switch (path.extname(filename)) {
         case '.js':
         case '.mjs':
@@ -37,10 +38,6 @@ const findNodeJsFiles = async (directory, files) => {
   }
 
   return files
-}
-
-const rmTmpDir = () => {
-  rmSync(TMP_DIR, { force: true, recursive: true })
 }
 
 const saveLicenses = async () => {
@@ -332,8 +329,8 @@ const getRepos = async client => {
   const repos = []
   for (const repo of [
     ['socketio', 'socket.io'],
-    ['transloadit', 'uppy']
-      ['sequelize', 'sequelize'],
+    ['transloadit', 'uppy'],
+    ['sequelize', 'sequelize'],
     ['appium', 'appium'],
     ['puppeteer', 'puppeteer'],
     ['avajs', 'ava'],
@@ -391,7 +388,8 @@ const getRepos = async client => {
 }
 
 const cleanRepo = async (repoOwner, repoName) => {
-  rmTmpDir()
+  rmSync(path.join('/tmp', `${repoOwner}_${repoName}`), { force: true, recursive: true })
+
   await mongoCollection.deleteMany({
     repo_owner: repoOwner,
     repo_name: repoName
@@ -411,17 +409,25 @@ let contribsn = 0
 for (const repo of repos) {
   const repoOwner = repo.owner.login
   const repoName = repo.name
+  console.debug('repo: %s/%s', repoOwner, repoName)
+
+  const TMP_DIR = path.join('/tmp', `${repoOwner}_${repoName}`)
+
   await cleanRepo(repoOwner, repoName)
 
-  console.debug('repo: %s', repo.clone_url)
+  console.debug('cloning: %s', repo.clone_url)
   execSync(`git clone -q --depth 1 --no-tags --filter=blob:limit=100k ${repo.clone_url} ${TMP_DIR}`)
 
   rmSync(`${TMP_DIR}/.git`, { force: true, maxRetries: 1, recursive: true })
   execSync(`find ${TMP_DIR}/ -name 'node_modules' -type d -prune -exec rm -rf '{}' +`)
 
   const contribs = []
+  let locusn = 0
+  let filesn = 0
   for (let file of await findNodeJsFiles(TMP_DIR, [])) {
     console.debug('file: %s', file)
+    filesn += 1
+
     const buffer = readFileSync(file)
     const code = buffer.toString()
     const locus = extract(code)
@@ -429,7 +435,7 @@ for (const repo of repos) {
     if (locus.length === 0) {
       continue
     }
-
+    locusn += locus.length
     console.debug('locus: %d', locus.length)
 
     file = file.split(TMP_DIR).pop()
@@ -448,9 +454,13 @@ for (const repo of repos) {
     contribsn += 1
   }
 
-  await saveContribs(contribs)
   console.debug('contribs: %d', contribs.length)
+  console.debug('locus: %d', locusn)
+  console.debug('files: %d', filesn)
+  await saveContribs(contribs)
 }
+
+console.debug('contribs: %d', contribsn)
 
 const licencesSaved = await saveLicenses()
 console.debug('licenses: %s', licencesSaved)

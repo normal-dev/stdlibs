@@ -28,6 +28,8 @@ func init() {
 	}
 }
 
+const workersn = 3
+
 var mongoColl = mongo.MongoClient.Database("contribs").Collection("go")
 
 func main() {
@@ -45,7 +47,7 @@ func main() {
 	var wg sync.WaitGroup
 	reposchan := make(chan *github.Repository)
 	var contribsn, filesn int
-	for range 3 { // n workers
+	for range workersn { // n workers
 		go worker(
 			ctx,
 			&wg,
@@ -74,6 +76,7 @@ func worker(
 	contribsn,
 	filesn *int,
 ) {
+	var mu sync.Mutex
 	for repo := range repos {
 		wg.Add(1)
 
@@ -88,9 +91,9 @@ func worker(
 
 		repoDir, err := os.MkdirTemp("", fmt.Sprintf("%s_%s", repoOwner, repoName))
 		checkErr(err)
-		checkErr(cleanRepo(ctx, repoDir, repoOwner, repoName))
+		checkErr(rmRepo(ctx, repoDir, repoOwner, repoName))
 
-		logger.Printf("repo: %s", repo.GetCloneURL())
+		logger.Printf("cloning: %s", repo.GetCloneURL())
 
 		if err := exec.Command("git",
 			"clone",
@@ -117,7 +120,10 @@ func worker(
 				repofilesn++
 				return nil
 			})
+			mu.Lock()
+			defer mu.Unlock()
 			*filesn += repofilesn
+
 			logErr(logger, err)
 		}()
 
@@ -127,6 +133,7 @@ func worker(
 			contribs = make([]any, 0)
 		)
 		for file := range findGoFiles(repoDir) {
+			log.Printf("file: %s", file)
 			gofilesn++
 
 			fileBytes, err := os.ReadFile(file)
@@ -139,6 +146,7 @@ func worker(
 				continue
 			}
 			locusn += len(locus)
+			log.Printf("locus: %d", len(locus))
 
 			pat := file[len(repoDir):]
 			code := string(fileBytes)
@@ -152,6 +160,9 @@ func worker(
 				RepoOwner: repoOwner,
 				RepoName:  repoName,
 			})
+
+			mu.Lock()
+			defer mu.Unlock()
 			*contribsn += 1
 		}
 
@@ -171,70 +182,70 @@ func getRepos(ctx context.Context, ghClient *github.Client) (repos []*github.Rep
 	for _, repo := range [][2]string{
 		{"cli", "cli"},
 		{"traefik", "traefik"},
-		{"moby", "moby"},
-		{"docker", "compose"},
-		{"containers", "podman"},
-		{"helm", "helm"},
-		{"kubernetes", "kubernetes"},
-		{"minio", "minio"},
-		{"cloudflare", "cloudflared"},
-		{"cosmos", "cosmos-sdk"},
-		{"aws", "karpenter"},
-		{"cilium", "cilium"},
-		{"containerd", "containerd"},
-		{"containers", "buildah"},
-		{"hyperledger", "fabric"},
-		{"istio", "istio"},
-		{"pingcap", "tidb"},
-		{"vitessio", "vitess"},
-		{"go-delve", "delve"},
-		{"nektos", "act"},
-		{"slackhq", "nebula"},
-		{"go-gitea", "gitea"},
-		{"vmware-tanzu", "velero"},
-		{"vmware-tanzu", "sonobuoy"},
-		{"gravitational", "teleport"},
-		{"canonical", "lxd"},
-		{"eolinker", "apinto"},
-		{"portainer", "portainer"},
-		{"hyperledger", "firefly"},
-		{"gin-gonic", "gin"},
-		{"mattermost", "mattermost"},
-		{"beego", "beego"},
-		{"securego", "gosec"},
-		{"goreleaser", "goreleaser"},
-		{"caddyserver", "caddy"},
-		{"gopherjs", "gopherjs"},
-		{"v2ray", "v2ray-core"},
-		{"ollama", "ollama"},
-		{"spf13", "cobra"},
-		{"tailscale", "tailscale"},
-		{"rancher", "rancher"},
-		{"google", "syzkaller"},
-		{"goplus", "gop"},
-		{"ignite", "cli"},
-		{"apache", "incubator-devlake"},
-		{"rclone", "rclone"},
-		{"prometheus", "prometheus"},
-		{"benthosdev", "benthos"},
-		{"temporalio", "temporal"},
-		{"thanos-io", "thanos"},
-		{"envoyproxy", "envoy"},
-		{"ebitengine", "purego"},
-		{"goplus", "igop"},
-		{"alecthomas", "kong"},
-		{"alecthomas", "participle"},
-		{"go-critic", "go-critic"},
-		{"gohugoio", "hugo"},
-		{"harness", "gitness"},
-		{"aquasecurity", "trivy"},
-		{"cilium", "ebpf"},
-		{"uber-go", "zap"},
-		{"stackrox", "stackrox"},
-		{"fatedier", "frp"},
-		{"ava-labs", "avalanchego"},
-		{"etcd-io", "etcd"},
-		{"gonum", "plot"},
+		// {"moby", "moby"},
+		// {"docker", "compose"},
+		// {"containers", "podman"},
+		// {"helm", "helm"},
+		// {"kubernetes", "kubernetes"},
+		// {"minio", "minio"},
+		// {"cloudflare", "cloudflared"},
+		// {"cosmos", "cosmos-sdk"},
+		// {"aws", "karpenter"},
+		// {"cilium", "cilium"},
+		// {"containerd", "containerd"},
+		// {"containers", "buildah"},
+		// {"hyperledger", "fabric"},
+		// {"istio", "istio"},
+		// {"pingcap", "tidb"},
+		// {"vitessio", "vitess"},
+		// {"go-delve", "delve"},
+		// {"nektos", "act"},
+		// {"slackhq", "nebula"},
+		// {"go-gitea", "gitea"},
+		// {"vmware-tanzu", "velero"},
+		// {"vmware-tanzu", "sonobuoy"},
+		// {"gravitational", "teleport"},
+		// {"canonical", "lxd"},
+		// {"eolinker", "apinto"},
+		// {"portainer", "portainer"},
+		// {"hyperledger", "firefly"},
+		// {"gin-gonic", "gin"},
+		// {"mattermost", "mattermost"},
+		// {"beego", "beego"},
+		// {"securego", "gosec"},
+		// {"goreleaser", "goreleaser"},
+		// {"caddyserver", "caddy"},
+		// {"gopherjs", "gopherjs"},
+		// {"v2ray", "v2ray-core"},
+		// {"ollama", "ollama"},
+		// {"spf13", "cobra"},
+		// {"tailscale", "tailscale"},
+		// {"rancher", "rancher"},
+		// {"google", "syzkaller"},
+		// {"goplus", "gop"},
+		// {"ignite", "cli"},
+		// {"apache", "incubator-devlake"},
+		// {"rclone", "rclone"},
+		// {"prometheus", "prometheus"},
+		// {"benthosdev", "benthos"},
+		// {"temporalio", "temporal"},
+		// {"thanos-io", "thanos"},
+		// {"envoyproxy", "envoy"},
+		// {"ebitengine", "purego"},
+		// {"goplus", "igop"},
+		// {"alecthomas", "kong"},
+		// {"alecthomas", "participle"},
+		// {"go-critic", "go-critic"},
+		// {"gohugoio", "hugo"},
+		// {"harness", "gitness"},
+		// {"aquasecurity", "trivy"},
+		// {"cilium", "ebpf"},
+		// {"uber-go", "zap"},
+		// {"stackrox", "stackrox"},
+		// {"fatedier", "frp"},
+		// {"ava-labs", "avalanchego"},
+		// {"etcd-io", "etcd"},
+		// {"gonum", "plot"},
 	} {
 		owner, name := repo[0], repo[1]
 		log.Printf("repo: %s/%s...", owner, name)
@@ -245,6 +256,32 @@ func getRepos(ctx context.Context, ghClient *github.Client) (repos []*github.Rep
 		repos = append(repos, repo)
 	}
 	return
+}
+
+// Removes directories like "vendor"
+func stripeRepo(logger *log.Logger, dir string) {
+	logErr(logger, os.RemoveAll(fmt.Sprintf("%s/.git", dir)))
+
+	_ = filepat.WalkDir(dir, func(path string, dirEntry fs.DirEntry, err error) error {
+		if dirEntry.IsDir() {
+			if dir := filepat.Base(path); dir == "vendor" {
+				logErr(logger, os.RemoveAll(path))
+			}
+		}
+		return nil
+	})
+}
+
+// Removes the repository directory and database entry
+func rmRepo(ctx context.Context, repoDir, repoOwner, repoName string) error {
+	if err := os.RemoveAll(repoDir); err != nil {
+		return err
+	}
+	_, err := mongoColl.DeleteMany(ctx, bson.M{
+		"repo_owner": repoOwner,
+		"repo_name":  repoName,
+	})
+	return err
 }
 
 func findGoFiles(dir string) chan string {
@@ -306,37 +343,12 @@ func saveCatalogue(ctx context.Context, contribsn, reposn int) error {
 	return err
 }
 
-// Removes directories like "vendor"
-func stripeRepo(logger *log.Logger, dir string) {
-	logErr(logger, os.RemoveAll(fmt.Sprintf("%s/.git", dir)))
-
-	_ = filepat.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
-			if dir := filepat.Base(path); dir == "vendor" {
-				logErr(logger, os.RemoveAll(path))
-			}
-		}
-		return nil
-	})
-}
-
 func newGithubClient(githubAccessTok string) *github.Client {
 	tokSrc := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: githubAccessTok},
 	)
 	httpClient := oauth2.NewClient(context.TODO(), tokSrc)
 	return github.NewClient(httpClient)
-}
-
-func cleanRepo(ctx context.Context, repoDir, repoOwner, repoName string) error {
-	if err := os.RemoveAll(repoDir); err != nil {
-		return err
-	}
-	_, err := mongoColl.DeleteMany(ctx, bson.M{
-		"repo_owner": repoOwner,
-		"repo_name":  repoName,
-	})
-	return err
 }
 
 func checkErr(err error) {

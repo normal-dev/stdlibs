@@ -1,13 +1,14 @@
 package main
 
 import (
-	"apis-go/model"
 	"context"
 	"log"
 	"mongo"
 	"os"
 	"runtime"
 	"strings"
+
+	"apis-go/model"
 
 	goapis "apis-go/api"
 
@@ -30,7 +31,7 @@ func main() {
 	apis := goapis.Get()
 	docs := make([]any, len(apis))
 	for i, api := range apis {
-		docs[i] = newAPIDoc(api)
+		docs[i] = newDoc(api)
 	}
 	checkErr(saveAPIs(ctx, docs))
 
@@ -42,7 +43,7 @@ func main() {
 	checkErr(saveCat(ctx, ns, len(apis)))
 }
 
-func newAPIDoc(api goapis.API) bson.D {
+func newDoc(api goapis.API) bson.D {
 	doc := bson.D{
 		bson.E{Key: "_id", Value: api.ID()},
 		bson.E{Key: "doc", Value: api.Doc},

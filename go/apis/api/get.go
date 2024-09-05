@@ -148,7 +148,9 @@ func getAllPkgs() map[string][]types.Object {
 	}
 	pkgs := make(map[string][]types.Object)
 	for _, pkg := range stdPackages() {
+		log.Printf("pkg: %s", pkg.ID)
 		for _, name := range pkg.Types.Scope().Names() {
+			log.Printf("name: %s", name)
 			pkgs[pkg.ID] = append(pkgs[pkg.ID], pkg.Types.Scope().Lookup(name))
 		}
 	}
