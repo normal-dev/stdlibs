@@ -1,6 +1,5 @@
 <script setup>
 import { ref, provide, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import { useTheme } from 'vuetify/lib/framework.mjs'
 
 const theme = useTheme()

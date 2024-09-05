@@ -46,6 +46,11 @@ const saveLicenses = async () => {
     _id: LICENSES_ID,
     repos: [
       {
+        author: 'Guillermo Rauch and Socket.IO contributors',
+        repo: ['socketio', 'socket.io'],
+        type: 'MIT license'
+      },
+      {
         author: 'OpenJS Foundation',
         repo: ['jquery', 'jquery'],
         type: 'MIT license'
@@ -329,6 +334,7 @@ const getRepos = async client => {
   const repos = []
   for (const repo of [
     ['socketio', 'socket.io'],
+    ['jquery', 'jquery'],
     ['transloadit', 'uppy'],
     ['sequelize', 'sequelize'],
     ['appium', 'appium'],
