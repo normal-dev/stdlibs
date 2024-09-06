@@ -1,8 +1,11 @@
 import { parse } from '@babel/parser'
+// eslint-disable-next-line no-unused-vars
 import { NodePath } from '@babel/traverse'
 import babelTypes from '@babel/types'
 import { createRequire } from 'module'
 import { builtinModules as builtin } from 'node:module'
+
+// eslint-disable-next-line no-unused-vars
 const { Node, Identifier } = babelTypes
 
 const require = createRequire(import.meta.url)

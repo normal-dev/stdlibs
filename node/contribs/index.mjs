@@ -40,7 +40,7 @@ const findNodeJsFiles = async (dir, files) => {
   return files
 }
 
-const saveLicenses = async () => {
+const insertLicenses = async () => {
   await mongoCollection.deleteOne({ _id: LICENSES_ID })
   const insertOneResult = await mongoCollection.insertOne({
     _id: LICENSES_ID,
@@ -315,12 +315,12 @@ const saveLicenses = async () => {
   return insertOneResult.acknowledged
 }
 
-const saveContribs = async contributions => {
+const insertContribs = async contributions => {
   const insertManyResult = await mongoCollection.insertMany(contributions)
   return insertManyResult.insertedCount
 }
 
-const saveCatalogue = async (contribsn, reposn) => {
+const insertCatalogue = async (contribsn, reposn) => {
   await mongoCollection.deleteOne({ _id: CAT_ID })
   const insertOneResult = await mongoCollection.insertOne({
     _id: CAT_ID,
@@ -393,15 +393,6 @@ const getRepos = async client => {
   return repos
 }
 
-const cleanRepo = async (repoOwner, repoName) => {
-  rmSync(path.join('/tmp', `${repoOwner}_${repoName}`), { force: true, recursive: true })
-
-  await mongoCollection.deleteMany({
-    repo_owner: repoOwner,
-    repo_name: repoName
-  })
-}
-
 const githubAccessTok = process.env.GITHUB_ACCESS_TOKEN_CONTRIBS
 if (!githubAccessTok) {
   throw new Error('missing Github access token')
@@ -419,11 +410,10 @@ for (const repo of repos) {
 
   const TMP_DIR = path.join('/tmp', `${repoOwner}_${repoName}`)
 
-  await cleanRepo(repoOwner, repoName)
-
   console.debug('cloning: %s', repo.clone_url)
   execSync(`git clone -q --depth 1 --no-tags --filter=blob:limit=100k ${repo.clone_url} ${TMP_DIR}`)
 
+  // Remove extraneous
   rmSync(`${TMP_DIR}/.git`, { force: true, maxRetries: 1, recursive: true })
   execSync(`find ${TMP_DIR}/ -name 'node_modules' -type d -prune -exec rm -rf '{}' +`)
 
@@ -463,14 +453,26 @@ for (const repo of repos) {
   console.debug('contribs: %d', contribs.length)
   console.debug('locus: %d', locusn)
   console.debug('files: %d', filesn)
-  await saveContribs(contribs)
+
+  rmSync(path.join('/tmp', `${repoOwner}_${repoName}`), { force: true, recursive: true })
+
+  if (contribs.length === 0) {
+    continue
+  }
+
+  // Delete existing and insert new contributions
+  await mongoCollection.deleteMany({
+    repo_owner: repoOwner,
+    repo_name: repoName
+  })
+  await insertContribs(contribs)
 }
 
 console.debug('contribs: %d', contribsn)
 
-const licencesSaved = await saveLicenses()
+const licencesSaved = await insertLicenses()
 console.debug('licenses: %s', licencesSaved)
 
-await saveCatalogue(contribsn, repos.length)
+await insertCatalogue(contribsn, repos.length)
 
 process.exit(0)

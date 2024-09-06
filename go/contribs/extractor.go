@@ -33,11 +33,6 @@ func newExtractor(src []byte) *extractor {
 
 	ex.fset = fset
 	ex.nodes = srcFile
-
-	conf := types.Config{Importer: importer.ForCompiler(fset, "source", nil)}
-	info := &types.Info{
-		Types: make(map[ast.Expr]types.TypeAndValue),
-	}
 	defer func() {
 		if r := recover(); r != nil {
 			switch typ := r.(type) {
@@ -49,6 +44,12 @@ func newExtractor(src []byte) *extractor {
 			}
 		}
 	}()
+
+	conf := types.Config{Importer: importer.ForCompiler(fset, "source", nil)}
+	conf.DisableUnusedImportCheck = true
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+	}
 	_, err = conf.Check("main", fset, []*ast.File{srcFile}, info)
 	if err != nil {
 		ex.Error = err

@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"mongo"
-	"os"
 	"runtime"
 	"strings"
 
@@ -17,30 +15,28 @@ import (
 
 func init() {
 	log.SetFlags(0)
-	log.Default().SetOutput(os.Stderr)
 }
-
-var mongoColl = mongo.MongoClient.Database("apis").Collection("go")
 
 func main() {
 	ctx := context.TODO()
 
 	log.Printf("version: %s", runtime.Version()[2:])
-	checkErr(clean(ctx))
+	_, err := mongoColl.DeleteMany(ctx, bson.M{})
+	checkErr(err)
 
 	apis := goapis.Get()
 	docs := make([]any, len(apis))
 	for i, api := range apis {
 		docs[i] = newDoc(api)
 	}
-	checkErr(saveAPIs(ctx, docs))
+	checkErr(insertAPIs(ctx, docs))
 
 	ns := make(map[string]struct{})
 	for _, api := range apis {
 		ns[api.Ns] = struct{}{}
 	}
 
-	checkErr(saveCat(ctx, ns, len(apis)))
+	checkErr(insertCat(ctx, ns, len(apis)))
 }
 
 func newDoc(api goapis.API) bson.D {
@@ -57,12 +53,12 @@ func newDoc(api goapis.API) bson.D {
 	return doc
 }
 
-func saveAPIs(ctx context.Context, docs []any) error {
+func insertAPIs(ctx context.Context, docs []any) error {
 	_, err := mongoColl.InsertMany(ctx, docs)
 	return err
 }
 
-func saveCat(ctx context.Context, nss map[string]struct{}, napis int) error {
+func insertCat(ctx context.Context, nss map[string]struct{}, napis int) error {
 	var ns []string
 	for pkg := range nss {
 		ns = append(ns, pkg)
@@ -78,22 +74,8 @@ func saveCat(ctx context.Context, nss map[string]struct{}, napis int) error {
 	return err
 }
 
-func clean(ctx context.Context) error {
-	_, err := mongoColl.DeleteMany(ctx, bson.M{})
-	if err != nil {
-		return err
-	}
-	return err
-}
-
 func checkErr(err error) {
 	if err != nil {
 		panic(err.Error())
-	}
-}
-
-func logErr(err error) {
-	if err != nil {
-		log.Println(err.Error())
 	}
 }

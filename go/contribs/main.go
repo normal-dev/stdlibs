@@ -17,7 +17,6 @@ import (
 
 	"github.com/google/go-github/github"
 	"go.mongodb.org/mongo-driver/bson"
-	"golang.org/x/oauth2"
 )
 
 var gopkgs = make(map[string]struct{})
@@ -30,29 +29,29 @@ func init() {
 
 const workersn = 3
 
-var mongoColl = mongo.MongoClient.Database("contribs").Collection("go")
-
 func main() {
 	ctx := context.TODO()
 
-	githubAccessTok := os.Getenv("GITHUB_ACCESS_TOKEN_CONTRIBS")
-	if githubAccessTok == "" {
-		panic("can't find Github access token")
-	}
-	ghclient := newGithubClient(githubAccessTok)
-
 	repos, err := getRepos(ctx, ghclient)
 	checkErr(err)
-	log.Printf("repos: %d", len(repos))
+	reposn := len(repos)
+	log.Printf("repos: %d", reposn)
 
-	var wg sync.WaitGroup
-	reposchan := make(chan *github.Repository)
-	var contribsn, filesn int
-	for range workersn { // n workers
+	var (
+		reposchan = make(chan *github.Repository)
+		wg        sync.WaitGroup
+
+		contribsn, filesn int
+	)
+	defer func() {
+		checkErr(saveCatalogue(ctx, contribsn, reposn))
+		checkErr(saveLicenses(ctx))
+	}()
+	for range workersn {
 		go worker(
 			ctx,
-			&wg,
 			reposchan,
+			&wg,
 			&contribsn,
 			&filesn,
 		)
@@ -65,15 +64,12 @@ func main() {
 
 	log.Printf("contribs: %d", contribsn)
 	log.Printf("files: %d", filesn)
-
-	checkErr(saveCatalogue(ctx, contribsn, len(repos)))
-	checkErr(saveLicenses(ctx))
 }
 
 func worker(
 	ctx context.Context,
-	wg *sync.WaitGroup,
 	repos <-chan *github.Repository,
+	wg *sync.WaitGroup,
 	contribsn,
 	filesn *int,
 ) {
@@ -91,11 +87,12 @@ func worker(
 		)
 
 		repoDir, err := os.MkdirTemp("", fmt.Sprintf("%s_%s", repoOwner, repoName))
-		checkErr(err)
-		checkErr(purgeRepo(ctx, repoDir, repoOwner, repoName))
+		if err != nil {
+			logErr(logger, err)
+			continue
+		}
 
 		logger.Printf("cloning: %s", repo.GetCloneURL())
-
 		if err := exec.Command("git",
 			"clone",
 			"-q",
@@ -110,7 +107,7 @@ func worker(
 			continue
 		}
 
-		stripeRepo(logger, repoDir)
+		rmExtraneous(logger, repoDir)
 
 		var repofilesn int
 		go func() {
@@ -142,8 +139,9 @@ func worker(
 				logErr(logger, err)
 				continue
 			}
-			locus, ok, _ := findLocus(fileBytes)
+			locus, ok, err := findLocus(fileBytes)
 			if !ok {
+				logErr(logger, err)
 				continue
 			}
 			locusn += len(locus)
@@ -167,122 +165,47 @@ func worker(
 			mu.Unlock()
 		}
 
+		// Remove temporary repository directory
+		go logErr(logger, os.RemoveAll(repoDir))
+
 		logger.Printf("contribs: %d", len(contribs))
 		logger.Printf("locus: %d", locusn)
 		logger.Printf("files: %d", gofilesn)
-		_, err = saveContribs(ctx, contribs)
-		logErr(logger, err)
 
-		go logErr(logger, os.RemoveAll(repoDir))
+		if len(contribs) == 0 {
+			continue
+		}
+
+		// Delete existing contributions
+		_, err = mongoColl.DeleteMany(ctx, bson.M{
+			"repo_owner": repoOwner,
+			"repo_name":  repoName,
+		})
+		checkErr(err)
+		// Save new contributions
+		_, err = mongoColl.InsertMany(ctx, contribs)
+		checkErr(err)
 
 		wg.Done()
 	}
 }
 
-func getRepos(ctx context.Context, ghClient *github.Client) (repos []*github.Repository, err error) {
-	for _, repo := range [][2]string{
-		{"cli", "cli"},
-		{"traefik", "traefik"},
-		{"moby", "moby"},
-		{"docker", "compose"},
-		{"containers", "podman"},
-		{"helm", "helm"},
-		{"kubernetes", "kubernetes"},
-		{"minio", "minio"},
-		{"cloudflare", "cloudflared"},
-		{"cosmos", "cosmos-sdk"},
-		{"aws", "karpenter"},
-		{"cilium", "cilium"},
-		{"containerd", "containerd"},
-		{"containers", "buildah"},
-		{"hyperledger", "fabric"},
-		{"istio", "istio"},
-		{"pingcap", "tidb"},
-		{"vitessio", "vitess"},
-		{"go-delve", "delve"},
-		{"nektos", "act"},
-		{"slackhq", "nebula"},
-		{"go-gitea", "gitea"},
-		{"vmware-tanzu", "velero"},
-		{"vmware-tanzu", "sonobuoy"},
-		{"gravitational", "teleport"},
-		{"canonical", "lxd"},
-		{"eolinker", "apinto"},
-		{"portainer", "portainer"},
-		{"hyperledger", "firefly"},
-		{"gin-gonic", "gin"},
-		{"mattermost", "mattermost"},
-		{"beego", "beego"},
-		{"securego", "gosec"},
-		{"goreleaser", "goreleaser"},
-		{"caddyserver", "caddy"},
-		{"gopherjs", "gopherjs"},
-		{"v2ray", "v2ray-core"},
-		{"ollama", "ollama"},
-		{"spf13", "cobra"},
-		{"tailscale", "tailscale"},
-		{"rancher", "rancher"},
-		{"google", "syzkaller"},
-		{"goplus", "gop"},
-		{"ignite", "cli"},
-		{"apache", "incubator-devlake"},
-		{"rclone", "rclone"},
-		{"prometheus", "prometheus"},
-		{"benthosdev", "benthos"},
-		{"temporalio", "temporal"},
-		{"thanos-io", "thanos"},
-		{"envoyproxy", "envoy"},
-		{"ebitengine", "purego"},
-		{"goplus", "igop"},
-		{"alecthomas", "kong"},
-		{"alecthomas", "participle"},
-		{"go-critic", "go-critic"},
-		{"gohugoio", "hugo"},
-		{"harness", "gitness"},
-		{"aquasecurity", "trivy"},
-		{"cilium", "ebpf"},
-		{"uber-go", "zap"},
-		{"stackrox", "stackrox"},
-		{"fatedier", "frp"},
-		{"ava-labs", "avalanchego"},
-		{"etcd-io", "etcd"},
-		{"gonum", "plot"},
-	} {
-		owner, name := repo[0], repo[1]
-		log.Printf("repo: %s/%s...", owner, name)
-		repo, _, err := ghClient.Repositories.Get(ctx, owner, name)
-		if err != nil {
-			return repos, err
-		}
-		repos = append(repos, repo)
+func findLocus(src []byte) ([]model.Locus, bool, error) {
+	ex := newExtractor(src)
+	if ex.Error != nil {
+		return []model.Locus{}, false, ex.Error
 	}
-	return
-}
 
-// Removes directories like "vendor"
-func stripeRepo(logger *log.Logger, dir string) {
-	logErr(logger, os.RemoveAll(fmt.Sprintf("%s/.git", dir)))
-
-	_ = filepat.WalkDir(dir, func(path string, dirEntry fs.DirEntry, err error) error {
-		if dirEntry.IsDir() {
-			if dir := filepat.Base(path); dir == "vendor" {
-				logErr(logger, os.RemoveAll(path))
-			}
-		}
-		return nil
-	})
-}
-
-// Removes the repository directory and database entry
-func purgeRepo(ctx context.Context, repoDir, repoOwner, repoName string) error {
-	if err := os.RemoveAll(repoDir); err != nil {
-		return err
+	locus := ex.Extract()
+	if ex.Error != nil {
+		return []model.Locus{}, false, ex.Error
 	}
-	_, err := mongoColl.DeleteMany(ctx, bson.M{
-		"repo_owner": repoOwner,
-		"repo_name":  repoName,
-	})
-	return err
+
+	ret := make([]model.Locus, 0)
+	for api := range locus {
+		ret = append(ret, api)
+	}
+	return ret, len(ret) > 0, nil
 }
 
 func findGoFiles(dir string) chan string {
@@ -305,30 +228,18 @@ func findGoFiles(dir string) chan string {
 	return files
 }
 
-func findLocus(src []byte) ([]model.Locus, bool, error) {
-	ex := newExtractor(src)
-	if ex.Error != nil {
-		return []model.Locus{}, false, ex.Error
-	}
+// Removes directories like "vendor"
+func rmExtraneous(logger *log.Logger, dir string) {
+	logErr(logger, os.RemoveAll(fmt.Sprintf("%s/.git", dir)))
 
-	locus := ex.Extract()
-	if ex.Error != nil {
-		return []model.Locus{}, false, ex.Error
-	}
-
-	ret := make([]model.Locus, 0)
-	for api := range locus {
-		ret = append(ret, api)
-	}
-	return ret, len(ret) > 0, nil
-}
-
-func saveContribs(ctx context.Context, contribs []any) (int, error) {
-	if len(contribs) == 0 {
-		return 0, nil
-	}
-	res, err := mongoColl.InsertMany(ctx, contribs)
-	return len(res.InsertedIDs), err
+	_ = filepat.WalkDir(dir, func(path string, dirEntry fs.DirEntry, err error) error {
+		if dirEntry.IsDir() {
+			if dir := filepat.Base(path); dir == "vendor" {
+				logErr(logger, os.RemoveAll(path))
+			}
+		}
+		return nil
+	})
 }
 
 func saveCatalogue(ctx context.Context, contribsn, reposn int) error {
@@ -342,14 +253,6 @@ func saveCatalogue(ctx context.Context, contribsn, reposn int) error {
 		NRepos:    reposn,
 	})
 	return err
-}
-
-func newGithubClient(githubAccessTok string) *github.Client {
-	tokSrc := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: githubAccessTok},
-	)
-	httpClient := oauth2.NewClient(context.TODO(), tokSrc)
-	return github.NewClient(httpClient)
 }
 
 func checkErr(err error) {
