@@ -1,5 +1,10 @@
 <script setup>
-document.title = 'stdlibs.com - 404'
+import {
+  inject
+} from 'vue'
+
+const setDocumentTitle = inject('setDocumentTitle')
+setDocumentTitle('404')
 </script>
 
 <template>

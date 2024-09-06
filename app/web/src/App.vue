@@ -1,20 +1,25 @@
 <script setup>
-import { ref, provide, watch } from 'vue'
-import { useTheme } from 'vuetify/lib/framework.mjs'
+import {
+  ref,
+  provide,
+  watch
+} from 'vue'
+import {
+  useTheme
+} from 'vuetify/lib/framework.mjs'
 
 const theme = useTheme()
 
 const toggleTheme = () => {
   theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
 }
-
 const themeToggleIcon = ref('mdi-invert-colors')
 
 provide('setDocumentTitle', title => {
   document.title = `stdlibs.com - ${title}`
 })
 
-watch(() => theme.global.current.value.dark, (dark) => {
+watch(() => theme.global.current.value.dark, dark => {
   if (dark) {
     themeToggleIcon.value = 'mdi-invert-colors'
   } else {
@@ -26,29 +31,29 @@ watch(() => theme.global.current.value.dark, (dark) => {
 <template>
   <v-app id="inspire">
     <v-app-bar
-      color="transparent"
       absolute
+      color="transparent"
       flat>
       <v-container
-        fluid
-        class="mx-auto d-flex align-center justify-center">
+        class="mx-auto d-flex align-center justify-center"
+        fluid>
         <v-btn
-          size="small"
-          variant="plain"
           icon="mdi-home-outline"
-          to="/" />
-        <v-btn
           size="small"
-          variant="plain"
+          to="/"
+          variant="plain" />
+        <v-btn
           icon="mdi-newspaper-variant-outline"
-          to="/news" />
+          size="small"
+          to="/news"
+          variant="plain" />
 
         <v-spacer />
 
         <v-btn
+          :icon="themeToggleIcon"
           size="small"
           variant="plain"
-          :icon="themeToggleIcon"
           @click="toggleTheme()" />
       </v-container>
     </v-app-bar>
@@ -58,23 +63,23 @@ watch(() => theme.global.current.value.dark, (dark) => {
     </Suspense>
 
     <v-footer
-      color="transparent"
+      absolute
       app
-      absolute>
+      color="transparent">
       <v-container
         id="app"
         fluid>
         <v-btn
           color="dark"
-          to="/impressum"
           size="small"
+          to="/impressum"
           variant="plain">
           Impressum
         </v-btn>
         <v-btn
           color="dark"
-          to="/privacy"
           size="small"
+          to="/privacy"
           variant="plain">
           Privacy
         </v-btn>
