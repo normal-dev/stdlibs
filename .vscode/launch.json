@@ -44,18 +44,14 @@
             "name": "Node.js: API",
             "type": "node",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": [],
             "program": "${workspaceFolder}/node/apis/index.mjs"
         },
         {
             "name": "Node.js: Contributions",
             "type": "node",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": [],
             "program": "${workspaceFolder}/node/contribs/index.mjs",
             "env": {
                 "GITHUB_ACCESS_TOKEN_CONTRIBS": "${input:github_access_token}"
@@ -68,17 +64,14 @@
             "args": [
                 "--test"
             ],
-            "skipFiles": [
-                "${workspaceFolder}/<node_internals>/**",
-                "${workspaceFolder}/node_modules/**"
-            ],
+            "skipFiles": [],
             "program": "${workspaceFolder}/node/contribs/extract.test.mjs"
         }
     ],
     "inputs": [
         {
             "id": "github_access_token",
-            "description": "Github access token",
+            "description": "GitHub access token",
             "type": "promptString"
         }
     ]
