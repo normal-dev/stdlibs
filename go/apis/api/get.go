@@ -86,7 +86,29 @@ func getAPIs(pkgs map[string][]types.Object) []API {
 
 				switch typ := o.Type().Underlying().(type) {
 				case *types.Basic:
-					api.Type = typ.Name()
+
+					switch typ.Kind() {
+					case types.UntypedBool:
+						api.Type = types.Typ[types.Bool].String()
+
+					case types.UntypedInt:
+						api.Type = types.Typ[types.Int].String()
+
+					case types.UntypedFloat:
+						api.Type = types.Typ[types.Float64].String()
+
+					case types.UntypedString:
+						api.Type = types.Typ[types.String].String()
+
+					case types.UntypedRune:
+						api.Type = types.Typ[types.Rune].String()
+
+					case types.UntypedNil:
+						api.Type = types.Typ[types.UntypedNil].String()
+
+					default:
+						api.Type = typ.Name()
+					}
 
 				default:
 					api.Type = o.Type().String()
