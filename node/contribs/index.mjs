@@ -9,6 +9,7 @@ import extract from './extract.mjs'
 const CAT_ID = '_cat'
 const LICENSES_ID = '_licenses'
 
+// TODO: Create indices for "contribs.locus" and "apis.ns/apis._id"
 const mongoCollection = mongoClient.db('contribs').collection('node')
 
 const findNodeJsFiles = async (dir, files) => {
@@ -393,13 +394,13 @@ const getRepos = async client => {
   return repos
 }
 
-const githubAccessTok = process.env.GITHUB_ACCESS_TOKEN_CONTRIBS
-if (!githubAccessTok) {
+const accessTok = process.env.GITHUB_ACCESS_TOKEN_CONTRIBS
+if (!accessTok) {
   throw new Error('missing Github access token')
 }
-const githubClient = new Octokit({ auth: githubAccessTok })
+const ghClient = new Octokit({ auth: accessTok })
 
-const repos = await getRepos(githubClient)
+const repos = await getRepos(ghClient)
 console.debug('repos: %d', repos.length)
 
 let contribsn = 0
