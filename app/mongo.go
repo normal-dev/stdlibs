@@ -2,19 +2,19 @@ package main
 
 import (
 	"context"
-	"log"
+	"errors"
 	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var mongoClient *mongo.Client
+const (
+	db_apis     = "apis"
+	db_contribs = "contribs"
+)
 
-func init() {
-	log.SetFlags(0)
-	log.Default().SetOutput(os.Stderr)
-}
+var mongoClient *mongo.Client
 
 func init() {
 	uri := os.Getenv("MONGO_DB_URI")
@@ -30,4 +30,27 @@ func init() {
 	}
 
 	mongoClient = client
+}
+
+func init() {
+	// Create indices for "contribs.locus" and "apis.ns/apis._id"
+}
+
+func mongoCollFromTech(tech, db string) (*mongo.Collection, error) {
+	var mongoColl *mongo.Collection
+	switch tech {
+	case tech_go:
+		mongoColl = mongoClient.Database(db).Collection("go")
+
+	case tech_node:
+		mongoColl = mongoClient.Database(db).Collection("node")
+
+	case tech_python:
+		return nil, errors.New("not implemented")
+
+	default:
+		return nil, errors.New("can't find tech")
+	}
+
+	return mongoColl, nil
 }

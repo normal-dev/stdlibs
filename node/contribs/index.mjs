@@ -409,6 +409,7 @@ for (const repo of repos) {
   console.debug('repo: %s/%s', repoOwner, repoName)
 
   const TMP_DIR = path.join('/tmp', `${repoOwner}_${repoName}`)
+  rmSync(path.join('/tmp', `${repoOwner}_${repoName}`), { force: true, recursive: true })
 
   console.debug('cloning: %s', repo.clone_url)
   execSync(`git clone -q --depth 1 --no-tags --filter=blob:limit=100k ${repo.clone_url} ${TMP_DIR}`)
@@ -431,6 +432,7 @@ for (const repo of repos) {
     if (locus.length === 0) {
       continue
     }
+
     locusn += locus.length
     console.debug('locus: %d', locus.length)
 

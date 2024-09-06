@@ -15,7 +15,7 @@ export const stdlib = builtin
   .filter(module => !module.startsWith('_'))
   .map(module => `node:${module}`)
 
-const newApi = (module, ident, line) => ({
+const newApi = (module, ident, line, _) => ({
   ident: `${module}.${ident}`,
   line
 })
@@ -60,30 +60,16 @@ const extract = src => {
  * @returns {boolean}
  */
 const isModuleImport = (path, module) => {
-  const { scope, node } = path
-  const binding = scope.getBinding(node.name)
-  if ((!binding || binding.kind !== 'module')) return false
-  if (binding.path.parent.source.value !== module) return false
-  return true
-}
-
-/**
- * @param {NodePath} path
- * @returns {string}
- */
-const resolveCanonicalName = path => {
-  const { node: { name }, scope } = path
+  const { scope, node: { name } } = path
   const binding = scope.getBinding(name)
-  switch (binding.path.node.type) {
-    case 'ImportNamespaceSpecifier':
-    case 'ImportDefaultSpecifier':
-      return 'default'
-
-    case 'ImportSpecifier':
-      break
+  if ((!binding || binding.kind !== 'module')) {
+    return false
+  }
+  if (binding.path.parent.source.value !== module) {
+    return false
   }
 
-  return binding.path.node.imported.name
+  return true
 }
 
 /**
@@ -111,6 +97,38 @@ const hasLocation = path => {
   return !!path.node.loc
 }
 
+const isResolveable = (path, module) => {
+  if (isImported(path)) {
+    return false
+  }
+  if (!isModuleImport(path, module)) {
+    return false
+  }
+  if (!hasLocation(path)) {
+    return false
+  }
+  return true
+}
+
+/**
+ * @param {NodePath} path
+ * @returns {string}
+ */
+const resolveCanonicalName = path => {
+  const { node: { name }, scope } = path
+  const binding = scope.getBinding(name)
+  switch (binding.path.node.type) {
+    case 'ImportNamespaceSpecifier':
+    case 'ImportDefaultSpecifier':
+      return 'default'
+
+    case 'ImportSpecifier':
+      break
+  }
+
+  return binding.path.node.imported.name
+}
+
 /**
  * @param {Node} ast
  * @param {string} module
@@ -120,29 +138,25 @@ const resolveModule = (ast, module, apis) => {
   try {
     traverse(ast, {
       Identifier (path) {
-        if (isImported(path)) return
-        if (!isModuleImport(path, module)) return
-        if (!hasLocation(path)) return
+        if (!isResolveable(path, module)) {
+          return
+        }
 
         const { node, container } = path
-        const { loc: { start: { line } }, name } = node
+        const { loc: { start: { column, line } } } = node
 
         if (Array.isArray(container)) {
-          for (const node of container) {
-            if (node.name !== name) continue
-
-            const canonical = resolveCanonicalName(path)
-            apis.push(newApi(module, canonical, line))
-          }
+          const canonical = resolveCanonicalName(path)
+          apis.push(newApi(module, canonical, line, column))
 
           return
         }
 
         const { type, value } = container
         switch (type) {
-          case 'CallExpression': {
+          case 'CallExpression':
+          case 'ConditionalExpression':
             break
-          }
 
           case 'MemberExpression': {
             const { property: { type } } = container
@@ -152,26 +166,18 @@ const resolveModule = (ast, module, apis) => {
             switch (binding.path.type) {
               case 'ImportSpecifier':
                 apis.push(
-                  newApi(module, name, line)
+                  newApi(module, name, line, column)
                 )
 
                 return
             }
 
             switch (type) {
-              case 'Identifier': {
-                const { property: { name } } = container
-                apis.push(
-                  newApi(module, name, line)
-                )
-
-                return
-              }
-
+              case 'Identifier':
               case 'MemberExpression': {
                 const { property: { name } } = container
                 apis.push(
-                  newApi(module, name, line)
+                  newApi(module, name, line, column)
                 )
 
                 return
@@ -180,7 +186,7 @@ const resolveModule = (ast, module, apis) => {
               case 'StringLiteral': {
                 const { property: { value } } = container
                 apis.push(
-                  newApi(module, value, line)
+                  newApi(module, value, line, column)
                 )
 
                 return
@@ -190,19 +196,22 @@ const resolveModule = (ast, module, apis) => {
             break
           }
 
-          case 'ObjectProperty':
+          case 'ObjectProperty': {
+            switch (path.key) {
+              case 'key':
+                return
+            }
+
             switch (value.type) {
               case 'Identifier':
                 break
             }
-
-            break
+          }
         }
 
         const canonical = resolveCanonicalName(path)
-        apis.push(newApi(module, canonical, line))
+        apis.push(newApi(module, canonical, line, column))
       }
-
     })
   } catch (error) {
     console.warn(error)

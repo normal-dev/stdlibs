@@ -41,8 +41,8 @@ document.title = 'stdlibs.com - Privacy'
         We use the information we collect in various ways, including to:
       </p>
       <v-list
-        density="compact"
-        bg-color="transparent">
+        bg-color="transparent"
+        density="compact">
         <v-list-item title="Provide, operate, and maintain our website" />
         <v-list-item title="Improve, personalize, and expand our website" />
         <v-list-item title="Understand and analyze how you use our website" />

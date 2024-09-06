@@ -449,15 +449,15 @@ onMounted(async () => {
 
           <!-- Contributions code -->
           <div
-            v-for="(contribution, index) in contributions"
-            :key="contribution._id">
+            v-for="(contrib, index) in contributions"
+            :key="contrib._id">
             <div class="text-right text-caption mb-2 mt-4">
               #{{ (index+1)+pagination.perPage*(pagination.page-1) }}
             </div>
             <XCodeViewer
-              :contribution="contribution"
+              :contribution="contrib"
               :language="techMapper.get(technology)"
-              :lines="findLines(contribution.locus)" />
+              :lines="findLines(contrib.locus)" />
           </div>
 
           <v-pagination
