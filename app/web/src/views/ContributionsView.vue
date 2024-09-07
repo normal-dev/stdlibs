@@ -127,7 +127,7 @@ onMounted(async () => {
   // Resolving namespaces done
   toggleIsLoadingNamespaces()
 
-  // Fetch apis based on namespace
+  // Fetch Apis based on namespace
   apis.value = await getApis(technology, selectedNamespace.value)
   filteredApis.value = apis.value
 
@@ -155,14 +155,14 @@ onMounted(async () => {
     resetPagination()
     setDocumentTitle(`${technology}/${selectedNamespace.value}`)
 
-    // Fetch apis with given namespace
+    // Fetch Apis with given namespace
     apis.value = await getApis(technology, selectedNamespace.value)
     filteredApis.value = apis.value
     if (apis.value.length === 0) {
       throw new Error('can\'t find apis')
     }
 
-    // Resolving apis done
+    // Resolving Apis done
     toggleIsLoadingApis()
 
     document.getElementById('apis').scrollIntoView()

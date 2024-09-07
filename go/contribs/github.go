@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/google/go-github/github"
@@ -13,7 +14,7 @@ var ghclient *github.Client
 func init() {
 	accessTok := os.Getenv("GITHUB_ACCESS_TOKEN_CONTRIBS")
 	if accessTok == "" {
-		panic("can't find Github access token")
+		fmt.Fprintln(os.Stderr, "can't find Github access token")
 	}
 	tokSrc := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: accessTok},

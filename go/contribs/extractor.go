@@ -61,10 +61,10 @@ func newExtractor(src []byte) *extractor {
 }
 
 func (ex *extractor) Extract() map[model.Locus]struct{} {
-	apis := make(map[model.Locus]struct{})
+	locus := make(map[model.Locus]struct{})
 
 	if ex.Error != nil || ex.info == nil {
-		return apis
+		return locus
 	}
 
 	var (
@@ -110,13 +110,13 @@ func (ex *extractor) Extract() map[model.Locus]struct{} {
 					continue
 				}
 
-				api := newAPI(sel.Pos(), imporSpec, sel.Name)
-				apis[api] = struct{}{}
+				l := newAPI(sel.Pos(), imporSpec, sel.Name)
+				locus[l] = struct{}{}
 			}
 		}
 	}
 
-	return apis
+	return locus
 }
 
 func (ex *extractor) findImport(x *ast.Ident) *ast.ImportSpec {

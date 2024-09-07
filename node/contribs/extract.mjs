@@ -15,7 +15,7 @@ export const stdlib = builtin
   .filter(module => !module.startsWith('_'))
   .map(module => `node:${module}`)
 
-const newApi = (module, ident, line, _) => ({
+const newLocus = (module, ident, line, _) => ({
   ident: `${module}.${ident}`,
   line
 })
@@ -132,9 +132,9 @@ const resolveCanonicalName = path => {
 /**
  * @param {Node} ast
  * @param {string} module
- * @param {Array<object>} apis
+ * @param {Array<object>} locus
  */
-const resolveModule = (ast, module, apis) => {
+const resolveModule = (ast, module, locus) => {
   try {
     traverse(ast, {
       Identifier (path) {
@@ -147,7 +147,7 @@ const resolveModule = (ast, module, apis) => {
 
         if (Array.isArray(container)) {
           const canonical = resolveCanonicalName(path)
-          apis.push(newApi(module, canonical, line, column))
+          locus.push(newLocus(module, canonical, line, column))
 
           return
         }
@@ -165,8 +165,8 @@ const resolveModule = (ast, module, apis) => {
 
             switch (binding.path.type) {
               case 'ImportSpecifier':
-                apis.push(
-                  newApi(module, name, line, column)
+                locus.push(
+                  newLocus(module, name, line, column)
                 )
 
                 return
@@ -176,8 +176,8 @@ const resolveModule = (ast, module, apis) => {
               case 'Identifier':
               case 'MemberExpression': {
                 const { property: { name } } = container
-                apis.push(
-                  newApi(module, name, line, column)
+                locus.push(
+                  newLocus(module, name, line, column)
                 )
 
                 return
@@ -185,8 +185,8 @@ const resolveModule = (ast, module, apis) => {
 
               case 'StringLiteral': {
                 const { property: { value } } = container
-                apis.push(
-                  newApi(module, value, line, column)
+                locus.push(
+                  newLocus(module, value, line, column)
                 )
 
                 return
@@ -210,7 +210,7 @@ const resolveModule = (ast, module, apis) => {
         }
 
         const canonical = resolveCanonicalName(path)
-        apis.push(newApi(module, canonical, line, column))
+        locus.push(newLocus(module, canonical, line, column))
       }
     })
   } catch (error) {

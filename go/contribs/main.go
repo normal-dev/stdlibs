@@ -30,7 +30,7 @@ func init() {
 const workersn = 3
 
 func main() {
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	repos, err := getRepos(ctx, ghclient)
 	checkErr(err)
