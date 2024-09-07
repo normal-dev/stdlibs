@@ -1,28 +1,30 @@
 import { execSync } from 'node:child_process'
-import { readFileSync, rmSync, readdirSync, statSync } from 'node:fs'
+import { readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { Octokit } from 'octokit'
-import extract, { publicBuiltinModules } from './extract.mjs'
 import mongoClient from './db.mjs'
+import extract from './extract.mjs'
 
 // MongoDB Ids
 const CAT_ID = '_cat'
-const LICENSES_ID = "_licenses"
-const TEMPORARY_DIRECTORY = path.join('/tmp', `contribs-node${Date.now()}`)
+const LICENSES_ID = '_licenses'
 
+// TODO: Create indices for "contribs.locus" and "apis.ns/apis._id"
 const mongoCollection = mongoClient.db('contribs').collection('node')
 
-const findNodeJsFiles = async (directory, files) => {
-  for (const filename of readdirSync(directory)) {
+const findNodeJsFiles = async (dir, files) => {
+  for (const filename of readdirSync(dir)) {
     try {
-      const file = path.join(directory, filename)
+      const stat = path.join(dir, filename)
 
-      const statistics = statSync(file)
-      if (statistics.isDirectory()) {
-        files = await findNodeJsFiles(file, files)
+      const stats = statSync(stat)
+      if (stats.isDirectory()) {
+        const dir = stat
+        files = await findNodeJsFiles(dir, files)
         continue
       }
 
+      const file = stat
       switch (path.extname(filename)) {
         case '.js':
         case '.mjs':
@@ -39,16 +41,16 @@ const findNodeJsFiles = async (directory, files) => {
   return files
 }
 
-const deleteTemporaryDirectory = () => {
-  console.debug('deleting temp dir %s...', TEMPORARY_DIRECTORY)
-  rmSync(TEMPORARY_DIRECTORY, { force: true, recursive: true })
-}
-
-const saveLicenses = async () => {
+const insertLicenses = async () => {
   await mongoCollection.deleteOne({ _id: LICENSES_ID })
   const insertOneResult = await mongoCollection.insertOne({
     _id: LICENSES_ID,
     repos: [
+      {
+        author: 'Guillermo Rauch and Socket.IO contributors',
+        repo: ['socketio', 'socket.io'],
+        type: 'MIT license'
+      },
       {
         author: 'OpenJS Foundation',
         repo: ['jquery', 'jquery'],
@@ -314,25 +316,26 @@ const saveLicenses = async () => {
   return insertOneResult.acknowledged
 }
 
-const saveContributions = async contributions => {
+const insertContribs = async contributions => {
   const insertManyResult = await mongoCollection.insertMany(contributions)
   return insertManyResult.insertedCount
 }
 
-const saveCatalogue = async (amountContributions, amountRepositories) => {
+const insertCatalogue = async (contribsn, reposn) => {
   await mongoCollection.deleteOne({ _id: CAT_ID })
   const insertOneResult = await mongoCollection.insertOne({
     _id: CAT_ID,
-    n_contribs: amountContributions,
-    n_repos: amountRepositories
+    n_contribs: contribsn,
+    n_repos: reposn
   })
   return insertOneResult.acknowledged
 }
 
-const getHandpickedRepositories = async githubClient => {
-  const repositories = []
-  for (const handpickedRepository of [
+const getRepos = async client => {
+  const repos = []
+  for (const repo of [
     ['socketio', 'socket.io'],
+    ['jquery', 'jquery'],
     ['transloadit', 'uppy'],
     ['sequelize', 'sequelize'],
     ['appium', 'appium'],
@@ -380,95 +383,99 @@ const getHandpickedRepositories = async githubClient => {
     ['salesforce', 'lwc'],
     ['botpress', 'botpress']
   ]) {
-    console.debug('fetching repo %s/%s...', handpickedRepository.at(0), handpickedRepository.at(1))
-    const repository = await githubClient.rest.repos.get({
-      owner: handpickedRepository.at(0),
-      repo: handpickedRepository.at(1)
+    console.debug('repo: %s/%s...', repo.at(0), repo.at(1))
+    const repository = await client.rest.repos.get({
+      owner: repo.at(0),
+      repo: repo.at(1)
     })
-    repositories.push(repository.data)
+    repos.push(repository.data)
   }
 
-  return repositories
+  return repos
 }
 
-const cleanRepository = async (repositoryOwner, repositoryName) => {
-  try {
-    deleteTemporaryDirectory()
-
-    await mongoCollection.deleteMany({
-      repo_owner: repositoryOwner,
-      repo_name: repositoryName,
-    })
-  } catch (error) {
-    console.error(error)
-    process.exit(1)
-  }
+const accessTok = process.env.GITHUB_ACCESS_TOKEN_CONTRIBS
+if (!accessTok) {
+  throw new Error('missing Github access token')
 }
+const ghClient = new Octokit({ auth: accessTok })
 
-try {
-  const githubAccessToken = process.env.GITHUB_ACCESS_TOKEN_CONTRIBS
-  if (!githubAccessToken) {
-    throw new Error('missing Github access token')
-  }
-  const githubClient = new Octokit({ auth: githubAccessToken })
+const repos = await getRepos(ghClient)
+console.debug('repos: %d', repos.length)
 
-  const handpickedRepositories = await getHandpickedRepositories(githubClient)
-  console.debug('found %d repos', handpickedRepositories.length)
+let contribsn = 0
+for (const repo of repos) {
+  const repoOwner = repo.owner.login
+  const repoName = repo.name
+  console.debug('repo: %s/%s', repoOwner, repoName)
 
-  let amountContributions = 0
-  for (const repository of handpickedRepositories) {
-    const repositoryOwner = repository.owner.login
-    const repositoryName = repository.name
-    console.debug('cleaning...')
-    await cleanRepository(repositoryOwner, repositoryName)
+  const TMP_DIR = path.join('/tmp', `${repoOwner}_${repoName}`)
+  rmSync(path.join('/tmp', `${repoOwner}_${repoName}`), { force: true, recursive: true })
 
-    console.debug('cloning repo %s to %s...', repository.clone_url, TEMPORARY_DIRECTORY)
-    execSync(`git clone -q --depth 1 --no-tags --filter=blob:limit=100k ${repository.clone_url} ${TEMPORARY_DIRECTORY}`)
+  console.debug('cloning: %s', repo.clone_url)
+  execSync(`git clone -q --depth 1 --no-tags --filter=blob:limit=100k ${repo.clone_url} ${TMP_DIR}`)
 
-    console.debug('cleaning repo files...')
-    rmSync(`${TEMPORARY_DIRECTORY}/.git`, { force: true, maxRetries: 1, recursive: true })
-    execSync(`find ${TEMPORARY_DIRECTORY}/ -name 'node_modules' -type d -prune -exec rm -rf '{}' +`)
+  // Remove extraneous
+  rmSync(`${TMP_DIR}/.git`, { force: true, maxRetries: 1, recursive: true })
+  execSync(`find ${TMP_DIR}/ -name 'node_modules' -type d -prune -exec rm -rf '{}' +`)
 
-    console.debug('searching Node.js files...')
-    const contributions = []
-    for (let file of await findNodeJsFiles(TEMPORARY_DIRECTORY, [])) {
-      const buffer = readFileSync(file)
-      const code = buffer.toString()
-      const apis = extract(code)
+  const contribs = []
+  let locusn = 0
+  let filesn = 0
+  for (let file of await findNodeJsFiles(TMP_DIR, [])) {
+    console.debug('file: %s', file)
+    filesn += 1
 
-      if (apis.length === 0) {
-        continue
-      }
+    const buffer = readFileSync(file)
+    const code = buffer.toString()
+    const locus = extract(code)
 
-      file = file.split(TEMPORARY_DIRECTORY).pop()
-      const filepath = path.dirname(file)
-      const filename = path.basename(file)
-
-      contributions.push({
-        apis,
-        code,
-        filepath,
-        filename,
-        repo_name: repositoryName,
-        repo_owner: repositoryOwner
-      })
-
-      amountContributions += 1
+    if (locus.length === 0) {
+      continue
     }
 
-    console.debug('found %d contributions', contributions.length)
-    const contributionsSaved = await saveContributions(contributions)
-    console.debug('%d contributions saved', contributionsSaved)
+    locusn += locus.length
+    console.debug('locus: %d', locus.length)
+
+    file = file.split(TMP_DIR).pop()
+    const filepath = path.dirname(file)
+    const filename = path.basename(file)
+
+    contribs.push({
+      locus,
+      code,
+      filepath,
+      filename,
+      repo_name: repoName,
+      repo_owner: repoOwner
+    })
+
+    contribsn += 1
   }
 
-  const licencesSaved = await saveLicenses()
-  console.debug('licenses saved: %s', licencesSaved)
+  console.debug('contribs: %d', contribs.length)
+  console.debug('locus: %d', locusn)
+  console.debug('files: %d', filesn)
 
-  const catalogueSaved = await saveCatalogue(amountContributions, handpickedRepositories.length)
-  console.debug('catalogue saved: %s', catalogueSaved)
+  rmSync(path.join('/tmp', `${repoOwner}_${repoName}`), { force: true, recursive: true })
 
-  process.exit(0)
-} catch (error) {
-  console.error(error)
-  process.exit(1)
+  if (contribs.length === 0) {
+    continue
+  }
+
+  // Delete existing and insert new contributions
+  await mongoCollection.deleteMany({
+    repo_owner: repoOwner,
+    repo_name: repoName
+  })
+  await insertContribs(contribs)
 }
+
+console.debug('contribs: %d', contribsn)
+
+const licencesSaved = await insertLicenses()
+console.debug('licenses: %s', licencesSaved)
+
+await insertCatalogue(contribsn, repos.length)
+
+process.exit(0)

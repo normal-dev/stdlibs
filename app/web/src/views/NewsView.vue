@@ -55,8 +55,8 @@ hashing of smaller inputs.`
           v-for="(article, index) in news"
           :key="index"
           cols="12"
-          sm="12"
-          md="4">
+          md="4"
+          sm="12">
           <v-card flat>
             <v-card-item>
               <v-card-title>{{ article.title }}</v-card-title>

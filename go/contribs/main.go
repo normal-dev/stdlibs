@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"mongo"
 	"os"
 	"os/exec"
 	filepat "path/filepath"
 	"sync"
 
-	goapis "contribs-go/api"
+	goapis "apis-go/api"
 
 	"contribs-go/model"
 
 	"github.com/google/go-github/github"
 	"go.mongodb.org/mongo-driver/bson"
-	"golang.org/x/oauth2"
 )
 
 var gopkgs = make(map[string]struct{})
@@ -27,28 +27,31 @@ func init() {
 	}
 }
 
-var mongoColl = goapis.MongoClient.Database("contribs").Collection("go")
+const workersn = 3
 
 func main() {
-	ctx := context.TODO()
+	ctx := context.Background()
 
-	githubAccessTok := os.Getenv("GITHUB_ACCESS_TOKEN_CONTRIBS")
-	if githubAccessTok == "" {
-		panic("can't find Github access token")
-	}
-	ghclient := newGithubClient(githubAccessTok)
-	repos, err := getHandpickedRepos(ctx, ghclient)
+	repos, err := getRepos(ctx, ghclient)
 	checkErr(err)
-	log.Printf("found %d handpicked repos", len(repos))
+	reposn := len(repos)
+	log.Printf("repos: %d", reposn)
 
-	var wg sync.WaitGroup
-	reposchan := make(chan *github.Repository)
-	var contribsn, filesn int
-	for range 3 { // n workers
+	var (
+		reposchan = make(chan *github.Repository)
+		wg        sync.WaitGroup
+
+		contribsn, filesn int
+	)
+	defer func() {
+		checkErr(saveCatalogue(ctx, contribsn, reposn))
+		checkErr(saveLicenses(ctx))
+	}()
+	for range workersn {
 		go worker(
 			ctx,
-			&wg,
 			reposchan,
+			&wg,
 			&contribsn,
 			&filesn,
 		)
@@ -59,23 +62,18 @@ func main() {
 
 	wg.Wait()
 
-	log.Printf("found %d Go contributions", contribsn)
-	log.Printf("found approx. %d files", filesn)
-
-	log.Printf("saving catalogue...")
-	checkErr(saveCatalogue(ctx, contribsn, len(repos)))
-
-	log.Printf("saving licenses...")
-	checkErr(saveLicenses(ctx))
+	log.Printf("contribs: %d", contribsn)
+	log.Printf("files: %d", filesn)
 }
 
 func worker(
 	ctx context.Context,
-	wg *sync.WaitGroup,
 	repos <-chan *github.Repository,
+	wg *sync.WaitGroup,
 	contribsn,
 	filesn *int,
 ) {
+	var mu sync.Mutex
 	for repo := range repos {
 		wg.Add(1)
 
@@ -88,15 +86,13 @@ func worker(
 			log.Lmsgprefix,
 		)
 
-		logger.Printf("creating temp repo dir...")
 		repoDir, err := os.MkdirTemp("", fmt.Sprintf("%s_%s", repoOwner, repoName))
-		checkErr(err)
+		if err != nil {
+			logErr(logger, err)
+			continue
+		}
 
-		logger.Println("cleaning...")
-		checkErr(cleanRepo(ctx, repoDir, repoOwner, repoName))
-
-		logger.Printf("cloning repo %s to %s...", repo.GetCloneURL(), repoDir)
-
+		logger.Printf("cloning: %s", repo.GetCloneURL())
 		if err := exec.Command("git",
 			"clone",
 			"-q",
@@ -111,8 +107,7 @@ func worker(
 			continue
 		}
 
-		logger.Println("cleaning repo files...")
-		stripeRepo(logger, repoDir)
+		rmExtraneous(logger, repoDir)
 
 		var repofilesn int
 		go func() {
@@ -123,17 +118,20 @@ func worker(
 				repofilesn++
 				return nil
 			})
+			mu.Lock()
+			defer mu.Unlock()
 			*filesn += repofilesn
+
 			logErr(logger, err)
 		}()
 
 		var (
-			gofilesn, apisn int
+			gofilesn, locusn int
 
 			contribs = make([]any, 0)
 		)
-		logger.Println("looking for Go files...")
 		for file := range findGoFiles(repoDir) {
+			logger.Printf("file: %s", file)
 			gofilesn++
 
 			fileBytes, err := os.ReadFile(file)
@@ -141,117 +139,73 @@ func worker(
 				logErr(logger, err)
 				continue
 			}
-			apis, ok, _ := findGoAPIs(fileBytes)
+			locus, ok, err := findLocus(fileBytes)
 			if !ok {
+				logErr(logger, err)
 				continue
 			}
-			apisn += len(apis)
+			locusn += len(locus)
+			logger.Printf("locus: %d", len(locus))
 
 			pat := file[len(repoDir):]
 			code := string(fileBytes)
 			filepath := filepat.Dir(pat)
 			filename := filepat.Base(pat)
 			contribs = append(contribs, model.Contrib{
-				APIs:      apis,
+				Locus:     locus,
 				Code:      code,
 				Filepath:  filepath,
 				Filename:  filename,
 				RepoOwner: repoOwner,
 				RepoName:  repoName,
 			})
+
+			mu.Lock()
 			*contribsn += 1
+			mu.Unlock()
 		}
 
-		logger.Printf("found %d contributions (%d Go apis)", len(contribs), apisn)
-		logger.Printf("found approx. %d cloned files (%d Go files)", repofilesn, gofilesn)
-		docsn, err := saveContribs(ctx, contribs)
-		logErr(logger, err)
-		logger.Printf("%d contributions saved", docsn)
-
+		// Remove temporary repository directory
 		go logErr(logger, os.RemoveAll(repoDir))
+
+		logger.Printf("contribs: %d", len(contribs))
+		logger.Printf("locus: %d", locusn)
+		logger.Printf("files: %d", gofilesn)
+
+		if len(contribs) == 0 {
+			continue
+		}
+
+		// Delete existing contributions
+		_, err = mongoColl.DeleteMany(ctx, bson.M{
+			"repo_owner": repoOwner,
+			"repo_name":  repoName,
+		})
+		checkErr(err)
+		// Save new contributions
+		_, err = mongoColl.InsertMany(ctx, contribs)
+		checkErr(err)
 
 		wg.Done()
 	}
 }
 
-func getHandpickedRepos(ctx context.Context, ghClient *github.Client) (repos []*github.Repository, err error) {
-	for _, repo := range [][2]string{
-		{"cli", "cli"},
-		{"traefik", "traefik"},
-		{"moby", "moby"},
-		{"docker", "compose"},
-		{"containers", "podman"},
-		{"helm", "helm"},
-		{"kubernetes", "kubernetes"},
-		{"minio", "minio"},
-		{"cloudflare", "cloudflared"},
-		{"cosmos", "cosmos-sdk"},
-		{"aws", "karpenter"},
-		{"cilium", "cilium"},
-		{"containerd", "containerd"},
-		{"containers", "buildah"},
-		{"hyperledger", "fabric"},
-		{"istio", "istio"},
-		{"pingcap", "tidb"},
-		{"vitessio", "vitess"},
-		{"go-delve", "delve"},
-		{"nektos", "act"},
-		{"slackhq", "nebula"},
-		{"go-gitea", "gitea"},
-		{"vmware-tanzu", "velero"},
-		{"vmware-tanzu", "sonobuoy"},
-		{"gravitational", "teleport"},
-		{"canonical", "lxd"},
-		{"eolinker", "apinto"},
-		{"portainer", "portainer"},
-		{"hyperledger", "firefly"},
-		{"gin-gonic", "gin"},
-		{"mattermost", "mattermost"},
-		{"beego", "beego"},
-		{"securego", "gosec"},
-		{"goreleaser", "goreleaser"},
-		{"caddyserver", "caddy"},
-		{"gopherjs", "gopherjs"},
-		{"v2ray", "v2ray-core"},
-		{"ollama", "ollama"},
-		{"spf13", "cobra"},
-		{"tailscale", "tailscale"},
-		{"rancher", "rancher"},
-		{"google", "syzkaller"},
-		{"goplus", "gop"},
-		{"ignite", "cli"},
-		{"apache", "incubator-devlake"},
-		{"rclone", "rclone"},
-		{"prometheus", "prometheus"},
-		{"benthosdev", "benthos"},
-		{"temporalio", "temporal"},
-		{"thanos-io", "thanos"},
-		{"envoyproxy", "envoy"},
-		{"ebitengine", "purego"},
-		{"goplus", "igop"},
-		{"alecthomas", "kong"},
-		{"alecthomas", "participle"},
-		{"go-critic", "go-critic"},
-		{"gohugoio", "hugo"},
-		{"harness", "gitness"},
-		{"aquasecurity", "trivy"},
-		{"cilium", "ebpf"},
-		{"uber-go", "zap"},
-		{"stackrox", "stackrox"},
-		{"fatedier", "frp"},
-		{"ava-labs", "avalanchego"},
-		{"etcd-io", "etcd"},
-		{"gonum", "plot"},
-	} {
-		owner, name := repo[0], repo[1]
-		log.Printf("fetching repo %s/%s...", owner, name)
-		repo, _, err := ghClient.Repositories.Get(ctx, owner, name)
-		if err != nil {
-			return repos, err
-		}
-		repos = append(repos, repo)
+func findLocus(src []byte) ([]model.Locus, bool, error) {
+	ex := newExtractor(src)
+	if ex.Error != nil {
+		return []model.Locus{}, false, ex.Error
 	}
-	return
+
+	locus := ex.Extract()
+	if ex.Error != nil {
+		return []model.Locus{}, false, ex.Error
+	}
+
+	ret := make([]model.Locus, 0)
+	for api := range locus {
+		ret = append(ret, api)
+	}
+	return ret, len(ret) > 0, nil
 }
 
 func findGoFiles(dir string) chan string {
@@ -274,51 +228,12 @@ func findGoFiles(dir string) chan string {
 	return files
 }
 
-func findGoAPIs(src []byte) ([]model.API, bool, error) {
-	ex := NewExtractor(src)
-	if ex.Error != nil {
-		return []model.API{}, false, ex.Error
-	}
-
-	apis := ex.Extract()
-	if ex.Error != nil {
-		return []model.API{}, false, ex.Error
-	}
-
-	ret := make([]model.API, 0)
-	for api := range apis {
-		ret = append(ret, api)
-	}
-	return ret, len(ret) > 0, nil
-}
-
-func saveContribs(ctx context.Context, contribs []any) (int, error) {
-	if len(contribs) == 0 {
-		return 0, nil
-	}
-	res, err := mongoColl.InsertMany(ctx, contribs)
-	return len(res.InsertedIDs), err
-}
-
-func saveCatalogue(ctx context.Context, contribsn, reposn int) error {
-	coll := goapis.MongoClient.Database(goapis.DB_CONTRIBS).Collection("go")
-	if _, err := coll.DeleteOne(ctx, bson.M{"_id": model.CAT_ID}); err != nil {
-		return err
-	}
-	_, err := coll.InsertOne(ctx, model.Cat{
-		ID:        model.CAT_ID,
-		NContribs: contribsn,
-		NRepos:    reposn,
-	})
-	return err
-}
-
 // Removes directories like "vendor"
-func stripeRepo(logger *log.Logger, dir string) {
+func rmExtraneous(logger *log.Logger, dir string) {
 	logErr(logger, os.RemoveAll(fmt.Sprintf("%s/.git", dir)))
 
-	_ = filepat.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
+	_ = filepat.WalkDir(dir, func(path string, dirEntry fs.DirEntry, err error) error {
+		if dirEntry.IsDir() {
 			if dir := filepat.Base(path); dir == "vendor" {
 				logErr(logger, os.RemoveAll(path))
 			}
@@ -327,21 +242,15 @@ func stripeRepo(logger *log.Logger, dir string) {
 	})
 }
 
-func newGithubClient(githubAccessTok string) *github.Client {
-	tokSrc := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: githubAccessTok},
-	)
-	httpClient := oauth2.NewClient(context.TODO(), tokSrc)
-	return github.NewClient(httpClient)
-}
-
-func cleanRepo(ctx context.Context, repoDir, repoOwner, repoName string) error {
-	if err := os.RemoveAll(repoDir); err != nil {
+func saveCatalogue(ctx context.Context, contribsn, reposn int) error {
+	coll := mongo.MongoClient.Database(mongo.DB_CONTRIBS).Collection("go")
+	if _, err := coll.DeleteOne(ctx, bson.M{"_id": model.CAT_ID}); err != nil {
 		return err
 	}
-	_, err := mongoColl.DeleteMany(ctx, bson.M{
-		"repo_owner": repoOwner,
-		"repo_name":  repoName,
+	_, err := coll.InsertOne(ctx, model.Cat{
+		ID:        model.CAT_ID,
+		NContribs: contribsn,
+		NRepos:    reposn,
 	})
 	return err
 }

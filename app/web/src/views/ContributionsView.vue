@@ -1,15 +1,273 @@
-<!-- eslint-disable vue/no-v-html -->
+<script setup>
+import XCodeViewer from '../components/XCodeViewer.vue'
+import { getCatalogue, getApis, getContributions, getLicenses } from '../api.js'
+import { nextTick, onMounted, ref, watch, computed, inject, provide } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { get, find, reduce } from 'lodash'
+
+const route = useRoute()
+const router = useRouter()
+
+const setDocumentTitle = inject('setDocumentTitle')
+
+// Node.js, Go, etc.
+const technology = route.meta.technology
+
+// Set initial document title
+setDocumentTitle(technology)
+
+// Maps technology to language
+const techMapper = new Map()
+techMapper.set('go', 'go')
+techMapper.set('node', 'javascript')
+
+// Namespaces
+const namespaces = ref([])
+const namespacesHtmlElement = ref(null)
+const namespaceQuery = ref('')
+const filteredNamespaces = ref([])
+const isLoadingNamespaces = ref(false)
+const selectedNamespace = ref([])
+const toggleIsLoadingNamespaces = () => {
+  isLoadingNamespaces.value = !isLoadingNamespaces.value
+}
+
+// Apis
+const apis = ref([])
+const apisQuery = ref('')
+const apisHtmlElement = ref(null)
+const filteredApis = ref([])
+const isLoadingApis = ref(false)
+const selectedApi = ref([])
+const selectedApiDocumentation = ref(null)
+const toggleIsLoadingApis = () => {
+  isLoadingApis.value = !isLoadingApis.value
+}
+
+// Contributions
+const catalogue = ref({})
+const contributions = ref([])
+const isLoadingContributions = ref(false)
+const toggleIsLoadingContributions = () => {
+  isLoadingContributions.value = !isLoadingContributions.value
+}
+const getContributionsHandler = async () => {
+  toggleIsLoadingContributions()
+
+  const { per_page, total, contribs } = await getContributions(
+    technology,
+    selectedNamespace.value,
+    selectedApi.value,
+    pagination.value.page
+  )
+  pagination.value.perPage = per_page
+  pagination.value.total = total
+  contributions.value = contribs
+
+  toggleIsLoadingContributions()
+
+  await nextTick()
+  if (total === 0) {
+    return
+  }
+  // Scroll to contributions
+  document.getElementById('contributions').scrollIntoView()
+}
+const findLines = locus => {
+  return reduce(locus, (locus, { ident, line }) => {
+    if (ident === `${selectedNamespace.value}.${selectedApi.value.at(0)}`) {
+      locus.push(line)
+    }
+    return locus
+  }, []).sort()
+}
+
+// Pagination
+const pagination = ref({
+  page: 1,
+  perPage: 6,
+  total: 0
+})
+const resetPagination = () => {
+  pagination.value.page = 1
+  pagination.value.perPage = 6
+  pagination.value.total = 0
+}
+
+// Get and provide licenses for code viewer
+const licenses = await getLicenses(technology)
+provide('licenses', licenses)
+
+onMounted(async () => {
+  toggleIsLoadingNamespaces()
+  toggleIsLoadingApis()
+
+  // Fetch catalogue with included namespaces
+  catalogue.value = await getCatalogue(technology)
+  namespaces.value = catalogue.value.ns.sort()
+  filteredNamespaces.value = namespaces.value
+
+  // Select potential namespace
+  if (route.query.ns) {
+    // Take namespace from parameters
+    selectedNamespace.value = [decodeURIComponent(route.query.ns)]
+  } else {
+    // No namespace given, preselect first one
+    namespacesHtmlElement.value.select(namespaces.value.at(0), namespaces.value.at(0))
+    router.replace({
+      query: {
+        ...route.query,
+        ns: encodeURIComponent(namespaces.value.at(0))
+      }
+    })
+
+    setDocumentTitle(`${technology}/${namespaces.value.at(0)}`)
+  }
+
+  // Resolving namespaces done
+  toggleIsLoadingNamespaces()
+
+  // Fetch Apis based on namespace
+  apis.value = await getApis(technology, selectedNamespace.value)
+  filteredApis.value = apis.value
+
+  // Start namespace search watcher
+  watch(selectedNamespace, async () => {
+    toggleIsLoadingApis()
+
+    selectedApi.value = []
+    contributions.value = []
+    if (selectedNamespace.value.length === 0) {
+      // Cancel
+      toggleIsLoadingApis()
+      return
+    }
+
+    // Namespace selected, reset api and page
+    router.replace({
+      query: {
+        ...route.query,
+        api: undefined,
+        page: undefined,
+        ns: encodeURIComponent(selectedNamespace.value)
+      }
+    })
+    resetPagination()
+    setDocumentTitle(`${technology}/${selectedNamespace.value}`)
+
+    // Fetch Apis with given namespace
+    apis.value = await getApis(technology, selectedNamespace.value)
+    filteredApis.value = apis.value
+    if (apis.value.length === 0) {
+      throw new Error('can\'t find apis')
+    }
+
+    // Resolving Apis done
+    toggleIsLoadingApis()
+
+    document.getElementById('apis').scrollIntoView()
+  }, { deep: true })
+
+  // Load contributions based on pagination
+  watch(computed(() => pagination.value.page), async () => {
+    contributions.value = []
+
+    router.replace({
+      query: {
+        ...route.query,
+        page: pagination.value.page
+      }
+    })
+
+    await getContributionsHandler()
+    setDocumentTitle(`${technology}/${selectedNamespace.value}/${selectedApi.value} #${pagination.value.page}`)
+  })
+
+  // Select potential api
+  if (route.query.api) {
+    // Take namespace from Url parameters
+    const api = route.query.api
+    selectedApi.value = [decodeURIComponent(api)]
+    selectedApiDocumentation.value = get(find(apis.value, ['name', api]), 'doc')
+
+    // Jump to potential page
+    if (route.query.page) {
+      pagination.value.page = Number(route.query.page)
+      await nextTick()
+    }
+
+    await getContributionsHandler()
+
+    router.replace({
+      query: {
+        ...route.query,
+        api: selectedApi.value
+      }
+    })
+    setDocumentTitle(`${technology}/${selectedNamespace.value}/${selectedApi.value}`)
+  }
+
+  // Resolving apis done
+  toggleIsLoadingApis()
+
+  // Start selected api watcher
+  watch(selectedApi, async () => {
+    contributions.value = []
+    if (selectedApi.value.length === 0) {
+      return
+    }
+
+    selectedApiDocumentation.value = get(find(apis.value, ['name', selectedApi.value.at(0)]), 'doc')
+
+    resetPagination()
+    await getContributionsHandler()
+
+    router.replace({
+      query: {
+        ...route.query,
+        api: selectedApi.value.at(0),
+        page: undefined
+      }
+    })
+    setDocumentTitle(`${technology}/${selectedNamespace.value}/${selectedApi.value}`)
+  }, { deep: true })
+
+  // Query for namespace
+  watch(namespaceQuery, () => {
+    if (namespaceQuery.value === '') {
+      filteredNamespaces.value = namespaces.value
+      return
+    }
+
+    filteredNamespaces.value = namespaces.value.filter(namespace => {
+      return namespace.startsWith(namespaceQuery.value) || namespace === selectedNamespace.value.at(0)
+    })
+  })
+  // Query for api
+  watch(apisQuery, () => {
+    if (apisQuery.value === '') {
+      filteredApis.value = apis.value
+      return
+    }
+
+    filteredApis.value = apis.value.filter(api => {
+      return api.name.startsWith(apisQuery.value) || api.name === selectedApi.value.at(0)
+    })
+  })
+})
+</script>
+
 <template>
   <v-main>
     <v-container>
       <v-row>
         <v-col
           cols="12"
-          xs="12"
-          sm="12"
-          md="4"
           lg="2"
-          xl="2">
+          md="4"
+          sm="12"
+          xl="2"
+          xs="12">
           <!-- Technology -->
           <v-card
             flat>
@@ -17,14 +275,14 @@
               <template #prepend>
                 <v-icon
                   v-if="technology === 'go'"
-                  size="x-large"
+                  color="dark"
                   icon="mdi-language-go"
-                  color="dark" />
+                  size="x-large" />
                 <v-icon
                   v-if="technology === 'node'"
-                  size="x-large"
+                  color="dark"
                   icon="mdi-nodejs"
-                  color="dark" />
+                  size="x-large" />
               </template>
               <v-card-title v-if="technology === 'go'">
                 Go ({{ catalogue.version }})
@@ -53,28 +311,28 @@
 
           <!-- Namespaces -->
           <v-card
+            class="mt-4"
             flat
-            :loading="isLoadingNamespaces"
-            class="mt-4">
+            :loading="isLoadingNamespaces">
             <v-card-title class="text-caption">
               Namespaces ({{ filteredNamespaces.length }})
             </v-card-title>
             <v-card-text>
               <v-text-field
                 v-model="namespaceQuery"
-                prepend-inner-icon="mdi-magnify"
-                density="compact"
                 bg-color="transparent"
-                variant="plain"
-                label="Search namespaces" />
+                density="compact"
+                label="Search namespaces"
+                prepend-inner-icon="mdi-magnify"
+                variant="plain" />
               <v-list
                 ref="namespacesHtmlElement"
                 v-model:selected="selectedNamespace"
-                :disabled="isLoadingApis || isLoadingNamespaces || isLoadingContributions"
                 density="compact"
-                return-object
+                :disabled="isLoadingApis || isLoadingNamespaces || isLoadingContributions"
+                max-height="300"
                 nav
-                max-height="300">
+                return-object>
                 <v-list-item
                   v-for="namespace in filteredNamespaces"
                   :key="namespace"
@@ -89,28 +347,28 @@
           <!-- APIs -->
           <v-card
             id="apis"
+            class="mt-4"
             flat
-            :loading="isLoadingApis"
-            class="mt-4">
+            :loading="isLoadingApis">
             <v-card-title class="text-caption">
               APIs ({{ filteredApis.length }})
             </v-card-title>
             <v-card-text>
               <v-text-field
                 v-model="apisQuery"
-                prepend-inner-icon="mdi-magnify"
                 density="compact"
                 label="Search APIs"
+                prepend-inner-icon="mdi-magnify"
                 variant="plain" />
               <v-list
                 ref="apisHtmlElement"
                 v-model:selected="selectedApi"
-                :disabled="isLoadingApis || isLoadingNamespaces || isLoadingContributions"
                 bg-color="transparent"
                 density="compact"
-                return-object
+                :disabled="isLoadingApis || isLoadingNamespaces || isLoadingContributions"
+                max-height="300"
                 nav
-                max-height="300">
+                return-object>
                 <v-list-item
                   v-for="api in filteredApis"
                   :key="api._id"
@@ -128,26 +386,25 @@
         </v-col>
 
         <!-- Contributions -->
-
         <v-col
           id="contributions"
-          xs="12"
-          sm="12"
-          md="8"
           lg="6"
-          xl="6">
-          <!-- Results information -->
+          md="8"
+          sm="12"
+          xl="6"
+          xs="12">
+          <!-- Video -->
           <v-card
             v-if="selectedNamespace.length > 0 && catalogue.vids[selectedNamespace.at(0)] != undefined"
             flat>
             <v-card-text>
               <iframe
-                width="100%"
+                allow="autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+                frameborder="0"
                 height="400"
                 :src="`https://www.youtube.com/embed/${catalogue.vids[selectedNamespace.at(0)]}?amp;controls=0`"
-                frameborder="0"
-                allow="autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowfullscreen />
+                width="100%" />
             </v-card-text>
           </v-card>
 
@@ -161,21 +418,21 @@
             <v-card-subtitle
               v-show="technology === 'go'">
               <v-icon
-                size="x-small"
-                icon="mdi-api" /> <a
+                icon="mdi-api"
+                size="x-small" /> <a
                   class="text-medium-emphasis"
-                  target="_blank"
-                  :href="`https://pkg.go.dev//${selectedNamespace.at(0)}#${selectedApi.at(0)}`">
+                  :href="`https://pkg.go.dev//${selectedNamespace.at(0)}#${selectedApi.at(0)}`"
+                  target="_blank">
                   Go doc</a>
             </v-card-subtitle>
             <v-card-subtitle
               v-show="technology === 'node' && technology !== 'node'">
               <v-icon
-                size="x-small"
-                icon="mdi-api" /> <a
+                icon="mdi-api"
+                size="x-small" /> <a
                   class="text-medium-emphasis"
-                  target="_blank"
-                  :href="`https://nodejs.org/api/${selectedNamespace.at(0).replace('node:', '')}.html`">
+                  :href="`https://nodejs.org/api/${selectedNamespace.at(0).replace('node:', '')}.html`"
+                  target="_blank">
                   Node.js documentation</a>
             </v-card-subtitle>
             <v-card-text
@@ -190,17 +447,17 @@
             class="mt-4"
             type="paragraph" />
 
-          <!-- Results -->
+          <!-- Contributions code -->
           <div
-            v-for="(contribution, index) in contributions"
-            :key="contribution._id">
+            v-for="(contrib, index) in contributions"
+            :key="contrib._id">
             <div class="text-right text-caption mb-2 mt-4">
               #{{ (index+1)+pagination.perPage*(pagination.page-1) }}
             </div>
             <XCodeViewer
-              :lines="findLines(contribution.apis)"
-              :language="technologyToLanguageMapper.get(technology)"
-              :contribution="contribution" />
+              :contribution="contrib"
+              :language="techMapper.get(technology)"
+              :lines="findLines(contrib.locus)" />
           </div>
 
           <v-pagination
@@ -208,249 +465,13 @@
             v-model="pagination.page"
             class="mt-4"
             density="comfortable"
-            size="small"
-            rounded="circle"
             :disabled="isLoadingContributions || isLoadingApis || isLoadingNamespaces"
-            :total-visible="3"
-            :length="Math.ceil(pagination.total / pagination.perPage) < 0 ? 1 : Math.ceil(pagination.total / pagination.perPage)" />
+            :length="Math.ceil(pagination.total / pagination.perPage) < 0 ? 1 : Math.ceil(pagination.total / pagination.perPage)"
+            rounded="circle"
+            size="small"
+            :total-visible="3" />
         </v-col>
       </v-row>
     </v-container>
   </v-main>
 </template>
-
-<script setup>
-import XCodeViewer from '../components/XCodeViewer.vue'
-import { getCatalogue, getApis, getContributions, getLicenses } from '../api.js'
-import { nextTick, onMounted, ref, watch, computed, onBeforeMount, inject, provide } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { get, find, reduce } from 'lodash'
-
-const route = useRoute()
-const router = useRouter()
-
-const technology = route.meta.technology
-
-const technologyToLanguageMapper = new Map()
-technologyToLanguageMapper.set('go', 'go')
-technologyToLanguageMapper.set('node', 'javascript')
-
-const apis = ref([])
-const apisQuery = ref('')
-const apisHtmlElement = ref(null)
-const catalogue = ref({})
-const contributions = ref([])
-const filteredApis = ref([])
-const filteredNamespaces = ref([])
-const isLoadingContributions = ref(false)
-const isLoadingApis = ref(false)
-const isLoadingNamespaces = ref(false)
-const namespaces = ref([])
-const namespacesHtmlElement = ref(null)
-const namespaceQuery = ref('')
-const pagination = ref({
-  page: 1,
-  perPage: 6,
-  total: 0
-})
-const selectedApi = ref([])
-const selectedApiDocumentation = ref(null)
-const selectedNamespace = ref([])
-
-const getContributionsHandler = async () => {
-  toggleIsLoadingContributions()
-
-  const { per_page, total, contribs } = await getContributions(
-    technology,
-    selectedNamespace.value,
-    selectedApi.value,
-    pagination.value.page
-  )
-  pagination.value.perPage = per_page
-  pagination.value.total = total
-  contributions.value = contribs
-
-  toggleIsLoadingContributions()
-
-  await nextTick()
-  if (total === 0) {
-    return
-  }
-  // Scroll to contributions
-  document.getElementById('contributions').scrollIntoView()
-}
-const findLines = apis => {
-  return reduce(apis, (apis, api) => {
-    if (api.ident === `${selectedNamespace.value}.${selectedApi.value.at(0)}`) {
-      apis.push(api.line)
-    }
-    return apis
-  }, []).sort()
-}
-const resetPagination = () => {
-  pagination.value.page = 1
-  pagination.value.perPage = 6
-  pagination.value.total = 0
-}
-const toggleIsLoadingApis = () => {
-  isLoadingApis.value = !isLoadingApis.value
-}
-const toggleIsLoadingContributions = () => {
-  isLoadingContributions.value = !isLoadingContributions.value
-}
-const toggleIsLoadingNamespaces = () => {
-  isLoadingNamespaces.value = !isLoadingNamespaces.value
-}
-
-const setDocumentTitle = inject('setDocumentTitle')
-
-const licenses = await getLicenses(technology)
-provide('licenses', licenses)
-
-onMounted(async () => {
-  toggleIsLoadingNamespaces()
-  toggleIsLoadingApis()
-
-  catalogue.value = await getCatalogue(technology)
-  namespaces.value = catalogue.value.ns.sort()
-  filteredNamespaces.value = namespaces.value
-
-  // Resolve existing namespace query request
-  if (route.query.ns) {
-    // Take namespace from parameters
-    selectedNamespace.value = [decodeURIComponent(route.query.ns)]
-  } else {
-    // Preselect first namespace
-    namespacesHtmlElement.value.select(namespaces.value.at(0), namespaces.value.at(0))
-    router.replace({
-      query: {
-        ...route.query,
-        ns: encodeURIComponent(namespaces.value.at(0))
-      }
-    })
-    setDocumentTitle(`${technology}/${namespaces.value.at(0)}`)
-  }
-
-  toggleIsLoadingNamespaces()
-
-  // Apis
-  apis.value = await getApis(technology, selectedNamespace.value)
-  filteredApis.value = apis.value
-
-  watch(selectedNamespace, async () => {
-    toggleIsLoadingApis()
-
-    selectedApi.value = []
-    contributions.value = []
-    if (selectedNamespace.value.length === 0) {
-      toggleIsLoadingApis()
-      return
-    }
-
-    router.replace({
-      query: {
-        ...route.query,
-        api: undefined,
-        page: undefined,
-        ns: encodeURIComponent(selectedNamespace.value)
-      }
-    })
-    setDocumentTitle(`${technology}/${selectedNamespace.value}`)
-
-    resetPagination()
-    apis.value = await getApis(technology, selectedNamespace.value)
-    filteredApis.value = apis.value
-    if (apis.value.length === 0) {
-      throw new Error('can\'t find apis')
-    }
-
-    toggleIsLoadingApis()
-
-    document.getElementById('apis').scrollIntoView()
-  }, { deep: true })
-
-  watch(computed(() => pagination.value.page), async () => {
-    contributions.value = []
-
-    router.replace({
-      query: {
-        ...route.query,
-        page: pagination.value.page
-      }
-    })
-
-    setDocumentTitle(`${technology}/${selectedNamespace.value}/${selectedApi.value} #${pagination.value.page}`)
-
-    await getContributionsHandler()
-  })
-
-  // Resolve existing query request
-  if (route.query.api) {
-    // Take namespace from Url parameters
-    const api = route.query.api
-    selectedApi.value = [decodeURIComponent(api)]
-    selectedApiDocumentation.value = get(find(apis.value, ['name', api]), 'doc')
-
-    if (route.query.page) {
-      pagination.value.page = Number(route.query.page)
-      await nextTick()
-    }
-
-    await getContributionsHandler()
-
-    router.replace({
-      query: {
-        ...route.query,
-        api: selectedApi.value
-      }
-    })
-    setDocumentTitle(`${technology}/${selectedNamespace.value}/${selectedApi.value}`)
-  }
-
-  toggleIsLoadingApis()
-
-  watch(selectedApi, async () => {
-    contributions.value = []
-    if (selectedApi.value.length === 0) {
-      return
-    }
-
-    selectedApiDocumentation.value = get(find(apis.value, ['name', selectedApi.value.at(0)]), 'doc')
-
-    resetPagination()
-    await getContributionsHandler()
-
-    router.replace({
-      query: {
-        ...route.query,
-        api: selectedApi.value.at(0),
-        page: undefined
-      }
-    })
-    setDocumentTitle(`${technology}/${selectedNamespace.value}/${selectedApi.value}`)
-  }, { deep: true })
-
-  watch(namespaceQuery, () => {
-    if (namespaceQuery.value === '') {
-      filteredNamespaces.value = namespaces.value
-      return
-    }
-
-    filteredNamespaces.value = namespaces.value.filter(namespace => {
-      return namespace.startsWith(namespaceQuery.value) || namespace === selectedNamespace.value.at(0)
-    })
-  })
-  watch(apisQuery, () => {
-    if (apisQuery.value === '') {
-      filteredApis.value = apis.value
-      return
-    }
-
-    filteredApis.value = apis.value.filter(api => {
-      return api.name.startsWith(apisQuery.value) || api.name === selectedApi.value.at(0)
-    })
-  })
-})
-
-setDocumentTitle(technology)
-</script>

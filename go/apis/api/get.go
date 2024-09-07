@@ -24,11 +24,8 @@ func (api API) ID() string {
 }
 
 func Get() []API {
-	log.Println("getting all pkgs...")
 	pkgs := getAllPkgs()
-	log.Println("filtering pkgs...")
-	filterPkgs(pkgs)
-	log.Println("getting apis from pkgs...")
+	stripePkgs(pkgs)
 	return getAPIs(pkgs)
 }
 
@@ -44,10 +41,6 @@ func getAPIs(pkgs map[string][]types.Object) []API {
 			api := API{
 				Name: obj.Name(),
 				Ns:   pkg,
-			}
-
-			if doc := getGoDoc(api.ID()); doc != "" {
-				api.Doc = doc
 			}
 
 			switch o := obj.(type) {
@@ -93,7 +86,29 @@ func getAPIs(pkgs map[string][]types.Object) []API {
 
 				switch typ := o.Type().Underlying().(type) {
 				case *types.Basic:
-					api.Type = typ.Name()
+
+					switch typ.Kind() {
+					case types.UntypedBool:
+						api.Type = types.Typ[types.Bool].String()
+
+					case types.UntypedInt:
+						api.Type = types.Typ[types.Int].String()
+
+					case types.UntypedFloat:
+						api.Type = types.Typ[types.Float64].String()
+
+					case types.UntypedString:
+						api.Type = types.Typ[types.String].String()
+
+					case types.UntypedRune:
+						api.Type = types.Typ[types.Rune].String()
+
+					case types.UntypedNil:
+						api.Type = types.Typ[types.UntypedNil].String()
+
+					default:
+						api.Type = typ.Name()
+					}
 
 				default:
 					api.Type = o.Type().String()
@@ -136,6 +151,10 @@ func getAPIs(pkgs map[string][]types.Object) []API {
 				continue
 			}
 
+			log.Printf("namespace: %s", api.Ns)
+			log.Printf("name: %s", api.Name)
+			log.Printf("type: %s", api.Type)
+
 			apis = append(apis, api)
 		}
 	}
@@ -151,14 +170,16 @@ func getAllPkgs() map[string][]types.Object {
 	}
 	pkgs := make(map[string][]types.Object)
 	for _, pkg := range stdPackages() {
+		log.Printf("pkg: %s", pkg.ID)
 		for _, name := range pkg.Types.Scope().Names() {
+			log.Printf("name: %s", name)
 			pkgs[pkg.ID] = append(pkgs[pkg.ID], pkg.Types.Scope().Lookup(name))
 		}
 	}
 	return pkgs
 }
 
-func filterPkgs(pkgs map[string][]types.Object) {
+func stripePkgs(pkgs map[string][]types.Object) {
 	regexp := regexp.MustCompile("(^vendor|/internal|internal/|/internal/)")
 	for pkg, objs := range pkgs {
 		if regexp.MatchString(pkg) {

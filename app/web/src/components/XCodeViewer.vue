@@ -147,11 +147,11 @@ onMounted(async () => {
     </v-card-title>
     <v-card-subtitle>
       <v-icon
-        size="x-small"
-        icon="mdi-web" /> <a
+        icon="mdi-web"
+        size="x-small" /> <a
           class="text-medium-emphasis"
-          target="_blank"
-          :href="`https://www.github.com/${contribution.repo_owner}/${contribution.repo_name}`">
+          :href="`https://www.github.com/${contribution.repo_owner}/${contribution.repo_name}`"
+          target="_blank">
           {{ contribution.repo_owner }}/{{ contribution.repo_name }}</a>
     </v-card-subtitle>
     <v-card-text>
@@ -165,16 +165,16 @@ onMounted(async () => {
 
     <v-card-actions v-if="!props.noNavigation">
       <v-btn
+        class="flex-grow-1"
         color="dark"
         :disabled="cursor === 0"
         icon="mdi-chevron-left"
-        class="flex-grow-1"
         @click="previous()" />
       <v-btn
+        class="flex-grow-1"
         color="dark"
         :disabled="cursor === lines.length-1"
         icon="mdi-chevron-right"
-        class="flex-grow-1"
         @click="next()" />
     </v-card-actions>
   </v-card>

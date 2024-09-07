@@ -5,41 +5,32 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Server",
+            "name": "Web: Server",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/app/server.go",
+            "program": "${workspaceFolder}/app",
             "args": [
                 "--no-client"
             ],
         },
         {
-            "name": "Client",
+            "name": "Web: Client",
             "command": "npm run dev",
             "type": "node-terminal",
             "request": "launch",
             "cwd": "${workspaceRoot}/app/web",
         },
         {
-            "name": "APIs Go",
+            "name": "Go: API",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/go/apis/main.go",
+            "program": "${workspaceFolder}/go/apis",
             "args": []
         },
         {
-            "name": "APIs Node.js",
-            "type": "node",
-            "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}/node/apis/index.mjs"
-        },
-        {
-            "name": "Contributions Go",
+            "name": "Go: Contributions",
             "type": "go",
             "request": "launch",
             "mode": "auto",
@@ -50,22 +41,37 @@
             }
         },
         {
-            "name": "Contributions Node.js",
+            "name": "Node.js: API",
             "type": "node",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": [],
+            "program": "${workspaceFolder}/node/apis/index.mjs"
+        },
+        {
+            "name": "Node.js: Contributions",
+            "type": "node",
+            "request": "launch",
+            "skipFiles": [],
             "program": "${workspaceFolder}/node/contribs/index.mjs",
             "env": {
                 "GITHUB_ACCESS_TOKEN_CONTRIBS": "${input:github_access_token}"
             }
+        },
+        {
+            "name": "Node.js: Contributions test",
+            "type": "node",
+            "request": "launch",
+            "args": [
+                "--test"
+            ],
+            "skipFiles": [],
+            "program": "${workspaceFolder}/node/contribs/extract.test.mjs"
         }
     ],
     "inputs": [
         {
             "id": "github_access_token",
-            "description": "Github access token",
+            "description": "GitHub access token",
             "type": "promptString"
         }
     ]

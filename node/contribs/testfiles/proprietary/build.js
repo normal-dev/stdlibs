@@ -46,7 +46,7 @@ const sizeDir = path.resolve('temp/size')
 
 run()
 
-async function run() {
+async function run () {
   if (writeSize) await fs.mkdir(sizeDir, { recursive: true })
   const removeCache = scanEnums()
   try {
@@ -75,11 +75,11 @@ async function run() {
   }
 }
 
-async function buildAll(targets) {
+async function buildAll (targets) {
   await runParallel(cpus().length, targets, build)
 }
 
-async function runParallel(maxConcurrency, source, iteratorFn) {
+async function runParallel (maxConcurrency, source, iteratorFn) {
   const ret = []
   const executing = []
   for (const item of source) {
@@ -97,7 +97,7 @@ async function runParallel(maxConcurrency, source, iteratorFn) {
   return Promise.all(ret)
 }
 
-async function build(target) {
+async function build (target) {
   const pkgDir = path.resolve(`packages/${target}`)
   const pkg = require(`${pkgDir}/package.json`)
 
@@ -123,9 +123,9 @@ async function build(target) {
         `COMMIT:${commit}`,
         `NODE_ENV:${env}`,
         `TARGET:${target}`,
-        formats ? `FORMATS:${formats}` : ``,
-        prodOnly ? `PROD_ONLY:true` : ``,
-        sourceMap ? `SOURCE_MAP:true` : ``
+        formats ? `FORMATS:${formats}` : '',
+        prodOnly ? 'PROD_ONLY:true' : '',
+        sourceMap ? 'SOURCE_MAP:true' : ''
       ]
         .filter(Boolean)
         .join(',')
@@ -134,7 +134,7 @@ async function build(target) {
   )
 }
 
-async function checkAllSizes(targets) {
+async function checkAllSizes (targets) {
   if (devOnly || (formats && !formats.includes('global'))) {
     return
   }
@@ -145,7 +145,7 @@ async function checkAllSizes(targets) {
   console.log()
 }
 
-async function checkSize(target) {
+async function checkSize (target) {
   const pkgDir = path.resolve(`packages/${target}`)
   await checkFileSize(`${pkgDir}/dist/${target}.global.prod.js`)
   if (!formats || formats.includes('global-runtime')) {
@@ -153,7 +153,7 @@ async function checkSize(target) {
   }
 }
 
-async function checkFileSize(filePath) {
+async function checkFileSize (filePath) {
   if (!existsSync(filePath)) {
     return
   }
@@ -171,7 +171,7 @@ async function checkFileSize(filePath) {
     )}`
   )
 
-  if (writeSize)
+  if (writeSize) {
     await fs.writeFile(
       path.resolve(sizeDir, `${fileName}.json`),
       JSON.stringify({
@@ -182,4 +182,5 @@ async function checkFileSize(filePath) {
       }),
       'utf-8'
     )
+  }
 }

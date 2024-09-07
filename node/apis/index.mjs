@@ -1,116 +1,62 @@
 import { builtinModules as builtin } from 'node:module'
 import { version } from 'node:process'
 import mongoClient from './db.mjs'
+import apis from './apis.mjs'
 
 // MongoDB Id
 const CAT_ID = '_cat'
 
-const mongoCollection = mongoClient.db('apis').collection('node')
-const publicBuiltinModules = builtin
+const mongoColl = mongoClient.db('apis').collection('node')
+
+console.debug('version: %s', version)
+
+await mongoColl.deleteMany({})
+
+const defaults = new Set()
+let apisn = 0
+for (const [api, type] of apis) {
+  console.debug('api: %s', api)
+
+  const module = api.split('.')[0]
+  const ident = api.split('.')[1]
+  console.debug('namespace: %s', module)
+  console.debug('name: %s', ident)
+  console.debug('type: %s', type)
+
+  if (!defaults.has(module)) {
+    await mongoColl.insertOne({
+      _id: `${module}.default`,
+      doc: '',
+      name: 'default',
+      ns: module,
+      type: 'module'
+    })
+
+    defaults.add(module)
+  }
+
+  await mongoColl.insertOne({
+    _id: `${module}.${ident}`,
+    doc: '',
+    name: ident,
+    ns: module,
+    type
+  })
+
+  apisn++
+}
+
+const stdlib = builtin
   .filter(module => !module.startsWith('_'))
   .map(module => `node:${module}`)
 
-const nodeJsApiDocumentationCurry = async () => {
-  console.debug('caching Node.js Apis documentation...')
+await mongoColl.insertOne({
+  _id: CAT_ID,
+  n_apis: apisn,
+  n_ns: stdlib.length,
+  ns: stdlib,
+  version: version.substring(1),
+  vids: { }
+})
 
-  const response = await fetch('https://nodejs.org/docs/latest-v20.x/api/all.json')
-  const { modules } = await response.json()
-
-  return api => {
-    for (const module of modules) {
-      if (!publicBuiltinModules.includes(`node:${module.name}`)) {
-        continue
-      }
-
-      // Default imports
-      if (api === `node:${module.name}`) {
-        return module.desc
-      }
-      // Classes
-      for (const { name, desc } of module.classes ?? []) {
-        if (`node:${name}` === api) {
-          return desc
-        }
-      }
-      // Methods
-      for (const { name, desc } of module.methods ?? []) {
-        if (`node:${module.name}.${name}` === api) {
-          return desc
-        }
-      }
-    }
-
-    return null
-  }
-}
-
-const isTypeOfClass = value => {
-  return typeof value === 'function' && /^\s*class\s+/.test(value.toString())
-}
-
-try {
-  console.debug('using Node.js version %s', version)
-
-  console.debug('cleaning...')
-  await mongoCollection.deleteMany({})
-
-  const getApiDocumentation = await nodeJsApiDocumentationCurry()
-
-  let amountApis = 0
-  for (const module of publicBuiltinModules) {
-    console.debug('processing module %s...', module)
-
-    // Default imports: "import fs from 'node:fs'"
-    const documentation = getApiDocumentation(module)
-    await mongoCollection.insertOne({
-      _id: `${module}.default`,
-      doc: documentation,
-      name: 'default',
-      ns: module,
-      type: 'module',
-    })
-
-    for (const [name, value] of Object.entries(await import(module))) {
-      if (!name) {
-        continue
-      }
-      // Ignore private and default modules
-      if (name.startsWith('_') || name === 'default') {
-        continue
-      }
-
-      const apiDocumentation = getApiDocumentation(`${module}.${name}`)
-      // Normal imports: import { readFileSync } from 'fs'
-      await mongoCollection.insertOne({
-        _id: `${module}.${name}`,
-        doc: apiDocumentation,
-        name,
-        ns: module,
-        type: isTypeOfClass(value) ? 'class' : typeof value,
-      })
-
-      // TODO: Include nested modules
-
-      amountApis++
-    }
-  }
-
-  console.debug('saving catalogue...')
-  await mongoCollection.insertOne({
-    _id: CAT_ID,
-    n_apis: amountApis,
-    n_ns: publicBuiltinModules.length,
-    ns: publicBuiltinModules,
-    version: version.substring(1),
-    vids: {
-      'node:assert': '-dp25Kt7LoA',
-      'node:buffer': 's15mAxFCiso',
-      'node:http': 'JtYp2TemXc4'
-    }
-  })
-
-  process.exit(0)
-} catch (error) {
-  console.error(error)
-  process.exit(1)
-}
+process.exit(0)

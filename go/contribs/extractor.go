@@ -22,7 +22,7 @@ type extractor struct {
 	info *types.Info
 }
 
-func NewExtractor(src []byte) *extractor {
+func newExtractor(src []byte) *extractor {
 	ex := &extractor{}
 
 	srcFile, fset, err := parse(src)
@@ -33,11 +33,6 @@ func NewExtractor(src []byte) *extractor {
 
 	ex.fset = fset
 	ex.nodes = srcFile
-
-	conf := types.Config{Importer: importer.ForCompiler(fset, "source", nil)}
-	info := &types.Info{
-		Types: make(map[ast.Expr]types.TypeAndValue),
-	}
 	defer func() {
 		if r := recover(); r != nil {
 			switch typ := r.(type) {
@@ -49,6 +44,12 @@ func NewExtractor(src []byte) *extractor {
 			}
 		}
 	}()
+
+	conf := types.Config{Importer: importer.ForCompiler(fset, "source", nil)}
+	conf.DisableUnusedImportCheck = true
+	info := &types.Info{
+		Types: make(map[ast.Expr]types.TypeAndValue),
+	}
 	_, err = conf.Check("main", fset, []*ast.File{srcFile}, info)
 	if err != nil {
 		ex.Error = err
@@ -59,18 +60,18 @@ func NewExtractor(src []byte) *extractor {
 	return ex
 }
 
-func (ex *extractor) Extract() map[model.API]struct{} {
-	apis := make(map[model.API]struct{})
+func (ex *extractor) Extract() map[model.Locus]struct{} {
+	locus := make(map[model.Locus]struct{})
 
 	if ex.Error != nil || ex.info == nil {
-		return apis
+		return locus
 	}
 
 	var (
-		newAPI = func(pos token.Pos, imporSpec *ast.ImportSpec, idents ...string) model.API {
+		newAPI = func(pos token.Pos, imporSpec *ast.ImportSpec, idents ...string) model.Locus {
 			tokPos := ex.fset.Position(pos)
 			pkg := strings.Trim(imporSpec.Path.Value, "\"")
-			return model.API{
+			return model.Locus{
 				Ident: fmt.Sprintf("%s.%s", pkg, strings.Join(idents, ".")),
 				Line:  tokPos.Line,
 			}
@@ -109,13 +110,13 @@ func (ex *extractor) Extract() map[model.API]struct{} {
 					continue
 				}
 
-				api := newAPI(sel.Pos(), imporSpec, sel.Name)
-				apis[api] = struct{}{}
+				l := newAPI(sel.Pos(), imporSpec, sel.Name)
+				locus[l] = struct{}{}
 			}
 		}
 	}
 
-	return apis
+	return locus
 }
 
 func (ex *extractor) findImport(x *ast.Ident) *ast.ImportSpec {

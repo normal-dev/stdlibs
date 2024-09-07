@@ -2,14 +2,20 @@
   "name": "apis-node",
   "version": "0.0.0",
   "engines": {
-    "node": "20.12.2"
+    "node": "22.5.1"
   },
   "scripts": {
+    "lint": "eslint --ext .js .",
+    "lint:fix": "eslint --ext .js . --fix",
     "start": "node index.mjs"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mongodb": "^6.5.0"
+    "mongodb": "^6.8.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0"
   }
 }

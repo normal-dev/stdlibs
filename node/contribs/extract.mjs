@@ -1,17 +1,28 @@
-import babelParser from '@babel/parser'
-import _babelTraverse from '@babel/traverse'
-// TODO: Import "@babel/types" for "ImportDefaultSpecifier"
+import { parse } from '@babel/parser'
+// eslint-disable-next-line no-unused-vars
+import { NodePath } from '@babel/traverse'
+import babelTypes from '@babel/types'
+import { createRequire } from 'module'
 import { builtinModules as builtin } from 'node:module'
 
-const babelTraverse = _babelTraverse.default
+// eslint-disable-next-line no-unused-vars
+const { Node, Identifier } = babelTypes
 
-export const publicBuiltinModules = builtin
+const require = createRequire(import.meta.url)
+const traverse = require('@babel/traverse').default
+
+export const stdlib = builtin
   .filter(module => !module.startsWith('_'))
   .map(module => `node:${module}`)
 
+const newLocus = (module, ident, line, _) => ({
+  ident: `${module}.${ident}`,
+  line
+})
+
 const extract = src => {
   try {
-    const ast = babelParser.parse(src, {
+    const ast = parse(src, {
       allowAwaitOutsideFunction: true,
       allowImportExportEverywhere: true,
       allowNewTargetOutsideFunction: true,
@@ -24,61 +35,186 @@ const extract = src => {
       plugins: ['typescript']
     })
 
-    const apis = []
-    babelTraverse(ast, {
-      // import fs from 'node:fs'
-      ImportDeclaration: path => {
-        const node = path.node
-        const module = node.source.value
-        if (!publicBuiltinModules.includes(module)) {
+    const locus = []
+    traverse(ast, {
+      ImportDeclaration (path) {
+        const { node: { source: { value: module } } } = path
+        if (!stdlib.includes(module)) {
           return
         }
 
-        for (const specifier of node.specifiers) {
-          switch (specifier.type) {
-            // TODO: import { strict as assert } from 'node:assert'
-            // TODO: Merge "import * as path from 'node:path'"
-
-            // import { readFile } from 'node:fs'
-            case 'ImportSpecifier':
-              switch (specifier.imported.type) {
-                case 'Identifier':
-                  apis.push({
-                    ident: `${module}.${specifier.imported.name}`,
-                    line: node.loc.start.line,
-                  })
-
-                  break
-              }
-
-              break
-
-            // import fs from 'node:fs'
-            case 'ImportDefaultSpecifier':
-              apis.push({
-                ident: `${module}.default`,
-                line: node.loc.start.line,
-              })
-
-              break
-
-            // import * as path from 'node:fs'
-            case 'ImportNamespaceSpecifier':
-              apis.push({
-                ident: module,
-                line: node.loc.start.line,
-              })
-
-              break
-          }
-        }
+        resolveModule(ast, module, locus)
       }
     })
 
-    return apis
+    return locus
   } catch (error) {
-    // This can fail
+    console.warn(error)
     return []
+  }
+}
+
+/**
+ * @param {NodePath} path
+ * @param {string} module
+ * @returns {boolean}
+ */
+const isModuleImport = (path, module) => {
+  const { scope, node: { name } } = path
+  const binding = scope.getBinding(name)
+  if ((!binding || binding.kind !== 'module')) {
+    return false
+  }
+  if (binding.path.parent.source.value !== module) {
+    return false
+  }
+
+  return true
+}
+
+/**
+ * @param {NodePath} path
+ * @returns {boolean}
+ */
+const isImported = path => {
+  switch (path.parent.type) {
+    case 'ImportDeclaration':
+    case 'ImportDefaultSpecifier':
+    case 'ImportNamespaceSpecifier':
+    case 'ImportSpecifier':
+      return true
+
+    default:
+      return false
+  }
+}
+
+/**
+ * @param {NodePath} path
+ * @returns {boolean}
+ */
+const hasLocation = path => {
+  return !!path.node.loc
+}
+
+const isResolveable = (path, module) => {
+  if (isImported(path)) {
+    return false
+  }
+  if (!isModuleImport(path, module)) {
+    return false
+  }
+  if (!hasLocation(path)) {
+    return false
+  }
+  return true
+}
+
+/**
+ * @param {NodePath} path
+ * @returns {string}
+ */
+const resolveCanonicalName = path => {
+  const { node: { name }, scope } = path
+  const binding = scope.getBinding(name)
+  switch (binding.path.node.type) {
+    case 'ImportNamespaceSpecifier':
+    case 'ImportDefaultSpecifier':
+      return 'default'
+
+    case 'ImportSpecifier':
+      break
+  }
+
+  return binding.path.node.imported.name
+}
+
+/**
+ * @param {Node} ast
+ * @param {string} module
+ * @param {Array<object>} locus
+ */
+const resolveModule = (ast, module, locus) => {
+  try {
+    traverse(ast, {
+      Identifier (path) {
+        if (!isResolveable(path, module)) {
+          return
+        }
+
+        const { node, container } = path
+        const { loc: { start: { column, line } } } = node
+
+        if (Array.isArray(container)) {
+          const canonical = resolveCanonicalName(path)
+          locus.push(newLocus(module, canonical, line, column))
+
+          return
+        }
+
+        const { type, value } = container
+        switch (type) {
+          case 'CallExpression':
+          case 'ConditionalExpression':
+            break
+
+          case 'MemberExpression': {
+            const { property: { type } } = container
+            const { node: { name }, scope } = path
+            const binding = scope.getBinding(name)
+
+            switch (binding.path.type) {
+              case 'ImportSpecifier':
+                locus.push(
+                  newLocus(module, name, line, column)
+                )
+
+                return
+            }
+
+            switch (type) {
+              case 'Identifier':
+              case 'MemberExpression': {
+                const { property: { name } } = container
+                locus.push(
+                  newLocus(module, name, line, column)
+                )
+
+                return
+              }
+
+              case 'StringLiteral': {
+                const { property: { value } } = container
+                locus.push(
+                  newLocus(module, value, line, column)
+                )
+
+                return
+              }
+            }
+
+            break
+          }
+
+          case 'ObjectProperty': {
+            switch (path.key) {
+              case 'key':
+                return
+            }
+
+            switch (value.type) {
+              case 'Identifier':
+                break
+            }
+          }
+        }
+
+        const canonical = resolveCanonicalName(path)
+        locus.push(newLocus(module, canonical, line, column))
+      }
+    })
+  } catch (error) {
+    console.warn(error)
   }
 }
 

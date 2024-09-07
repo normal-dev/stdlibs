@@ -1,32 +1,41 @@
 <script setup>
-import { useTheme } from 'vuetify/lib/framework.mjs'
-import { getCatalogue, getLicenses, getRandomContributions } from '../api'
-import { defineAsyncComponent, provide, computed, ref, onMounted } from 'vue'
-import { isArray, mergeWith, reduce, sortBy } from 'lodash'
-
-document.title = 'stdlibs.com'
+import {
+  useTheme
+} from 'vuetify/lib/framework.mjs'
+import {
+  getCatalogue,
+  getLicenses,
+  getRandomContributions
+} from '../api'
+import {
+  defineAsyncComponent,
+  provide,
+  computed,
+  ref,
+  onMounted
+} from 'vue'
+import {
+  isArray,
+  mergeWith,
+  reduce,
+  sortBy,
+  nth
+} from 'lodash'
 
 const theme = useTheme()
 
-const contributions = await getRandomContributions()
-const contribution = contributions.at(0)
+document.title = 'stdlibs.com'
+
+// Contributions
+const XCodeViewer = defineAsyncComponent(() => import('../components/XCodeViewer.vue'))
+const contribs = await getRandomContributions()
+const contrib = nth(contribs, 0)
+const contribLocus = computed(() => {
+  return sortBy(contrib.locus, 'line')
+})
 const cursor = ref(0)
-
-const goLicenses = await getLicenses('go')
-const nodeLicenses = await getLicenses('node')
-provide('licenses', mergeWith(goLicenses, nodeLicenses, (source, target) => {
-  if (isArray(source)) {
-    return source.concat(target)
-  }
-
-  return source
-}))
-
-const goCatalogue = ref({})
-const nodeCatalogue = ref({})
-
 const codeViewerlanguage = computed(() => {
-  const fileExtension = contribution.filename.split('.').pop()
+  const fileExtension = contrib.filename.split('.').pop()
   switch (fileExtension) {
     case 'mjs':
     case 'cjs':
@@ -42,18 +51,28 @@ const codeViewerlanguage = computed(() => {
 
   return ''
 })
-const contributionApis = computed(() => {
-  return sortBy(contribution.apis, 'line')
-})
 const codeViewerLines = computed(() => {
-  return reduce(sortBy(contribution.apis, 'line'), (apis, api) => {
-    apis.push(api.line)
-    return apis
+  return reduce(sortBy(contrib.locus, 'line'), (locus, { line }) => {
+    locus.push(line)
+    return locus
   }, [])
 })
 
-const XCodeViewer = defineAsyncComponent(() => import('../components/XCodeViewer.vue'))
+// Licenses
+const goLicenses = await getLicenses('go')
+const nodeLicenses = await getLicenses('node')
+// Merge and pass licenses to child components
+provide('licenses', mergeWith(goLicenses, nodeLicenses, (source, target) => {
+  if (isArray(source)) {
+    return source.concat(target)
+  }
 
+  return source
+}))
+
+// Catalogue
+const goCatalogue = ref({})
+const nodeCatalogue = ref({})
 onMounted(async () => {
   goCatalogue.value = await getCatalogue('go')
   nodeCatalogue.value = await getCatalogue('node')
@@ -89,9 +108,9 @@ onMounted(async () => {
             <v-card-item>
               <template #prepend>
                 <v-icon
-                  size="x-large"
+                  color="dark"
                   icon="mdi-language-go"
-                  color="dark" />
+                  size="x-large" />
               </template>
               <v-card-title>
                 Go
@@ -108,34 +127,34 @@ onMounted(async () => {
 
               <br>
               <v-chip
-                variant="text"
+                class="mt-2 mr-2"
                 label
                 size="small"
-                class="mt-2 mr-2">
+                variant="text">
                 <v-icon
+                  icon="mdi-package-variant-closed"
                   size="small"
-                  start
-                  icon="mdi-package-variant-closed" />{{ goCatalogue.n_ns }} packages
+                  start />{{ goCatalogue.n_ns }} packages
               </v-chip>
               <v-chip
-                variant="text"
+                class="mt-2 mr-2"
                 label
                 size="small"
-                class="mt-2 mr-2">
+                variant="text">
                 <v-icon
+                  icon="mdi-code-braces"
                   size="small"
-                  start
-                  icon="mdi-code-braces" />{{ goCatalogue.n_apis }} APIs
+                  start />{{ goCatalogue.n_apis }} APIs
               </v-chip>
               <v-chip
-                variant="text"
+                class="mt-2"
                 label
                 size="small"
-                class="mt-2">
+                variant="text">
                 <v-icon
+                  icon="mdi-source-fork"
                   size="small"
-                  start
-                  icon="mdi-source-fork" />{{ goCatalogue.n_repos }} repositories
+                  start />{{ goCatalogue.n_repos }} repositories
               </v-chip>
             </v-card-text>
           </v-card>
@@ -151,9 +170,9 @@ onMounted(async () => {
             <v-card-item>
               <template #prepend>
                 <v-icon
-                  size="x-large"
+                  color="dark"
                   icon="mdi-nodejs"
-                  color="dark" />
+                  size="x-large" />
               </template>
               <v-card-title>
                 Node.js
@@ -169,34 +188,34 @@ onMounted(async () => {
 
               <br>
               <v-chip
-                variant="text"
+                class="mt-2 mr-2"
                 label
                 size="small"
-                class="mt-2 mr-2">
+                variant="text">
                 <v-icon
+                  icon="mdi-package-variant-closed"
                   size="small"
-                  start
-                  icon="mdi-package-variant-closed" />{{ nodeCatalogue.n_ns }} modules
+                  start />{{ nodeCatalogue.n_ns }} modules
               </v-chip>
               <v-chip
-                variant="text"
+                class="mt-2 mr-2"
                 label
                 size="small"
-                class="mt-2 mr-2">
+                variant="text">
                 <v-icon
+                  icon="mdi-code-braces"
                   size="small"
-                  start
-                  icon="mdi-code-braces" />{{ nodeCatalogue.n_apis }} APIs
+                  start />{{ nodeCatalogue.n_apis }} APIs
               </v-chip>
               <v-chip
-                variant="text"
+                class="mt-2"
                 label
                 size="small"
-                class="mt-2">
+                variant="text">
                 <v-icon
+                  icon="mdi-source-fork"
                   size="small"
-                  start
-                  icon="mdi-source-fork" />{{ nodeCatalogue.n_repos }} repositories
+                  start />{{ nodeCatalogue.n_repos }} repositories
               </v-chip>
             </v-card-text>
           </v-card>
@@ -212,9 +231,9 @@ onMounted(async () => {
             <v-card-item>
               <template #prepend>
                 <v-icon
-                  size="x-large"
+                  color="dark"
                   icon="mdi-language-python"
-                  color="dark" />
+                  size="x-large" />
               </template>
               <v-card-title>
                 Python <v-chip size="x-small">
@@ -233,34 +252,34 @@ onMounted(async () => {
 
               <br>
               <v-chip
-                variant="text"
+                class="mt-2 mr-2"
                 label
                 size="small"
-                class="mt-2 mr-2">
+                variant="text">
                 <v-icon
+                  icon="mdi-package-variant-closed"
                   size="small"
-                  start
-                  icon="mdi-package-variant-closed" />0 modules
+                  start />0 modules
               </v-chip>
               <v-chip
-                variant="text"
+                class="mt-2 mr-2"
                 label
                 size="small"
-                class="mt-2 mr-2">
+                variant="text">
                 <v-icon
+                  icon="mdi-code-braces"
                   size="small"
-                  start
-                  icon="mdi-code-braces" />0 APIs
+                  start />0 APIs
               </v-chip>
               <v-chip
-                variant="text"
+                class="mt-2"
                 label
                 size="small"
-                class="mt-2">
+                variant="text">
                 <v-icon
+                  icon="mdi-source-fork"
                   size="small"
-                  start
-                  icon="mdi-source-fork" />0 repositories
+                  start />0 repositories
               </v-chip>
             </v-card-text>
           </v-card>
@@ -269,7 +288,6 @@ onMounted(async () => {
 
       <!-- Contributions -->
       <v-lazy
-
         :min-height="200"
         :options="{ threshold: 0.25}"
         transition="fade-transition">
@@ -280,23 +298,23 @@ onMounted(async () => {
               lines="two">
               <v-list-subheader>APIs</v-list-subheader>
               <v-list-item
-                v-for="(api, index) in contributionApis"
+                v-for="(api, index) in contribLocus"
                 :key="index"
-                rounded
                 :active="index === cursor"
-                :title="api.ident"
-                :subtitle="api.line" />
+                rounded
+                :subtitle="api.line"
+                :title="api.ident" />
             </v-list>
           </v-col>
           <v-col class="d-flex justify-center align-center">
             <XCodeViewer
-              width="800px"
+              :contribution="contrib"
+              :language="codeViewerlanguage"
+              :lines="codeViewerLines"
               no-navigation
               slideshow
               variant="text"
-              :language="codeViewerlanguage"
-              :lines="codeViewerLines"
-              :contribution="contribution"
+              width="800px"
               @next-slide="$event => cursor = $event" />
           </v-col>
         </v-row>

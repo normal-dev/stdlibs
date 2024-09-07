@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -27,35 +26,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const (
-	db_apis     = "apis"
-	db_contribs = "contribs"
-)
-
-var mongoClient *mongo.Client
-
-func init() {
-	log.Println("connecting to MongoDB...")
-
-	uri := os.Getenv("MONGO_DB_URI")
-	if uri == "" {
-		log.Printf("can't find MongoDB URI, falling back to %s", "mongodb://localhost:27017")
-		uri = "mongodb://localhost:27017"
-	}
-
-	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
-	client, err := mongo.Connect(context.Background(), opts)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	mongoClient = client
-}
-
 func init() {
 	log.SetFlags(0)
-	log.Default().SetOutput(os.Stderr)
 }
 
 const (
@@ -96,7 +68,6 @@ func main() {
 
 	// Website/client
 	if wantsClient := !fromPtr(noClient); wantsClient {
-		log.Print("loading client assets...")
 		router.Static("/assets", "./website/assets")
 		router.LoadHTMLGlob("website/index.html")
 		router.GET("/", func(c *gin.Context) {
@@ -135,9 +106,10 @@ func main() {
 				return
 			}
 
-			err = mongoColl.FindOne(context.TODO(), bson.D{{Key: "_id", Value: model.CAT_ID}}).Decode(&c)
+			err = mongoColl.FindOne(ctx, bson.D{
+				{Key: "_id", Value: model.CAT_ID},
+			}).Decode(&c)
 			if err != nil {
-				// TODO: Check for not found error
 				log.Println(err.Error())
 				ctx.Status(http.StatusInternalServerError)
 				return
@@ -155,9 +127,10 @@ func main() {
 				return
 			}
 
-			err = mongoColl.FindOne(context.TODO(), bson.D{{Key: "_id", Value: model.CAT_ID}}).Decode(&c)
+			err = mongoColl.FindOne(ctx, bson.D{
+				{Key: "_id", Value: model.CAT_ID},
+			}).Decode(&c)
 			if err != nil {
-				// TODO: Check for not found error
 				log.Println(err.Error())
 				ctx.Status(http.StatusInternalServerError)
 				return
@@ -174,22 +147,20 @@ func main() {
 		// Go
 		{
 			mongoColl := mongoClient.Database(db_contribs).Collection("go")
+
 			size := rand.Intn(6-3) + 3 // 3-6
-			filter := bson.D{
-				{Key: "apis", Value: bson.D{
-					{Key: "$size", Value: size},
-				}},
-			}
-			ncontribs, err := mongoColl.CountDocuments(context.TODO(), filter)
+			filter := bson.M{"locus": bson.M{"$size": size}}
+			ncontribs, err := mongoColl.CountDocuments(ctx, filter)
 			if err != nil {
 				log.Println(err.Error())
 				ctx.Status(http.StatusInternalServerError)
 				return
 			}
+
 			skip := rand.Int63n(ncontribs)
-			cur, err := mongoColl.Find(context.TODO(), filter, &options.FindOptions{
+			cur, err := mongoColl.Find(ctx, filter, &options.FindOptions{
 				Limit: toPtr[int64](maxcontribs),
-				Skip:  toPtr[int64](skip),
+				Skip:  toPtr(skip),
 			})
 			if err != nil {
 				log.Println(err.Error())
@@ -210,19 +181,18 @@ func main() {
 		// Node.js
 		{
 			mongoColl := mongoClient.Database(db_contribs).Collection("node")
-			filter := bson.D{
-				{Key: "apis", Value: bson.D{
-					{Key: "$size", Value: 5},
-				}},
-			}
-			ncontribs, err := mongoColl.CountDocuments(context.TODO(), filter)
+
+			size := rand.Intn(6-3) + 3 // 3-6
+			filter := bson.M{"locus": bson.M{"$size": size}}
+			ncontribs, err := mongoColl.CountDocuments(ctx, filter)
 			if err != nil {
 				log.Println(err.Error())
 				ctx.Status(http.StatusInternalServerError)
 				return
 			}
+
 			skip := rand.Int63n(ncontribs)
-			cur, err := mongoColl.Find(context.TODO(), filter, &options.FindOptions{
+			cur, err := mongoColl.Find(ctx, filter, &options.FindOptions{
 				Limit: toPtr[int64](maxcontribs),
 				Skip:  toPtr[int64](skip),
 			})
@@ -231,7 +201,7 @@ func main() {
 				ctx.Status(http.StatusInternalServerError)
 				return
 			}
-			for cur.Next(context.TODO()) {
+			for cur.Next(ctx) {
 				var contrib primitive.M
 				if err := cur.Decode(&contrib); err != nil {
 					log.Println(err.Error())
@@ -264,7 +234,9 @@ func main() {
 		}
 
 		var licenses model.Licenses
-		err = mongoColl.FindOne(context.TODO(), bson.D{{Key: "_id", Value: model.LICENSES_ID}}).Decode(&licenses)
+		err = mongoColl.FindOne(context.TODO(), bson.D{
+			{Key: "_id", Value: model.LICENSES_ID},
+		}).Decode(&licenses)
 		if err != nil {
 			log.Println(err.Error())
 			ctx.Status(http.StatusInternalServerError)
@@ -297,14 +269,14 @@ func main() {
 			{Key: "ns", Value: ns},
 			{Key: "_id", Value: bson.D{primitive.E{Key: "$ne", Value: model.CAT_ID}}},
 		}
-		cur, err := mongoColl.Find(context.TODO(), filter)
+		cur, err := mongoColl.Find(ctx, filter)
 		if err != nil {
 			log.Println(err.Error())
 			ctx.Status(http.StatusInternalServerError)
 			return
 		}
 		apis := make([]bson.M, 0)
-		if err := cur.All(context.TODO(), &apis); err != nil {
+		if err := cur.All(ctx, &apis); err != nil {
 			log.Println(err.Error())
 			ctx.Status(http.StatusInternalServerError)
 			return
@@ -339,33 +311,32 @@ func main() {
 			return
 		}
 
-		filter := bson.M{"apis.ident": fmt.Sprintf("%s.%s", ns, api)}
-		var perPage int64 = 6
+		filter := bson.M{"locus.ident": fmt.Sprintf("%s.%s", ns, api)}
 		page, err := strconv.ParseInt(ctx.Query("page"), 10, 64)
 		if err != nil {
 			log.Println(err.Error())
 			ctx.Status(http.StatusBadRequest)
 			return
 		}
-		skip := page*perPage - perPage
+		var perPage int64 = 6
 		opts := &options.FindOptions{
-			Limit: &perPage,
-			Skip:  &skip,
+			Limit: toPtr(perPage),
+			Skip:  toPtr(page*perPage - perPage),
 		}
-		cur, err := mongoColl.Find(context.TODO(), filter, opts)
+		cur, err := mongoColl.Find(ctx, filter, opts)
 		if err != nil {
 			log.Println(err.Error())
 			ctx.Status(http.StatusInternalServerError)
 			return
 		}
 		contribs := make([]bson.M, 0)
-		if err := cur.All(context.TODO(), &contribs); err != nil {
+		if err := cur.All(ctx, &contribs); err != nil {
 			log.Println(err.Error())
 			ctx.Status(http.StatusInternalServerError)
 			return
 		}
 
-		contribsn, err := mongoColl.CountDocuments(context.TODO(), filter)
+		contribsn, err := mongoColl.CountDocuments(ctx, filter)
 		if err != nil {
 			log.Println(err.Error())
 			ctx.Status(http.StatusInternalServerError)
@@ -408,22 +379,7 @@ func main() {
 }
 
 func mongoCollFromCtx(ctx *gin.Context, db string) (*mongo.Collection, error) {
-	var mongoColl *mongo.Collection
-	switch ctx.Param("tech") {
-	case tech_go:
-		mongoColl = mongoClient.Database(db).Collection("go")
-
-	case tech_node:
-		mongoColl = mongoClient.Database(db).Collection("node")
-
-	case tech_python:
-		return nil, errors.New("not implemented")
-
-	default:
-		return nil, errors.New("can't find tech")
-	}
-
-	return mongoColl, nil
+	return mongoCollFromTech(ctx.Param("tech"), db)
 }
 
 func fromPtr[T any](v *T) T { return *v }
