@@ -66,7 +66,14 @@
             ],
             "skipFiles": [],
             "program": "${workspaceFolder}/node/contribs/extract.test.mjs"
-        }
+        },
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/python/apis/__main__.py",
+            "console": "integratedTerminal"
+        },
     ],
     "inputs": [
         {
