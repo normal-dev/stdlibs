@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	"contribs-go/model"
 	"flag"
 	"fmt"
 	"log"
@@ -12,8 +12,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/normal-dev/stdlibs/model"
 
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
@@ -38,7 +36,7 @@ const (
 
 func main() {
 	// Flags
-	noClient := flag.Bool("no-client", false, "")
+	noClient := *flag.Bool("no-client", false, "")
 	flag.Parse()
 
 	router := gin.Default()
@@ -67,7 +65,7 @@ func main() {
 	router.UnescapePathValues = false
 
 	// Website/client
-	if wantsClient := !fromPtr(noClient); wantsClient {
+	if wantsClient := noClient; wantsClient {
 		router.Static("/assets", "./website/assets")
 		router.LoadHTMLGlob("website/index.html")
 		router.GET("/", func(c *gin.Context) {
@@ -78,68 +76,7 @@ func main() {
 	// Cache pages
 	store := persistence.NewInMemoryStore(time.Hour * 6)
 
-	// Routes
-	// /node
-	router.GET("/api/:tech", cache.CachePage(store, time.Hour*12, func(ctx *gin.Context) {
-		// Union type of API and contributions catalogue
-		type cat struct {
-			NAPIs     int               `json:"n_apis" bson:"n_apis"`
-			NContribs int               `json:"n_contribs" bson:"n_contribs"`
-			NNs       int               `json:"n_ns" bson:"n_ns"`
-			NRepos    int               `json:"n_repos" bson:"n_repos"`
-			Ns        []string          `json:"ns" bson:"ns"`
-			Version   string            `json:"version" bson:"version"`
-			Vids      map[string]string `json:"vids" bson:"vids"`
-		}
-
-		var c cat
-
-		{
-			var (
-				err       error
-				mongoColl *mongo.Collection
-			)
-			mongoColl, err = mongoCollFromCtx(ctx, db_apis)
-			if err != nil {
-				log.Println(err.Error())
-				ctx.Status(http.StatusBadRequest)
-				return
-			}
-
-			err = mongoColl.FindOne(ctx, bson.D{
-				{Key: "_id", Value: model.CAT_ID},
-			}).Decode(&c)
-			if err != nil {
-				log.Println(err.Error())
-				ctx.Status(http.StatusInternalServerError)
-				return
-			}
-		}
-		{
-			var (
-				err       error
-				mongoColl *mongo.Collection
-			)
-			mongoColl, err = mongoCollFromCtx(ctx, db_contribs)
-			if err != nil {
-				log.Println(err.Error())
-				ctx.Status(http.StatusBadRequest)
-				return
-			}
-
-			err = mongoColl.FindOne(ctx, bson.D{
-				{Key: "_id", Value: model.CAT_ID},
-			}).Decode(&c)
-			if err != nil {
-				log.Println(err.Error())
-				ctx.Status(http.StatusInternalServerError)
-				return
-			}
-		}
-
-		ctx.JSON(http.StatusOK, c)
-	}))
-	// /go/gen
+	// Generator, e. g. "/go/gen"
 	router.GET("/api/gen", cache.CachePage(store, time.Hour*6, func(ctx *gin.Context) {
 		const maxcontribs = 1
 
@@ -167,7 +104,7 @@ func main() {
 				ctx.Status(http.StatusInternalServerError)
 				return
 			}
-			for cur.Next(context.TODO()) {
+			for cur.Next(ctx) {
 				var contrib primitive.M
 				if err := cur.Decode(&contrib); err != nil {
 					log.Println(err.Error())
@@ -220,7 +157,7 @@ func main() {
 
 		ctx.JSON(http.StatusOK, contribs)
 	}))
-	// /node/licenses
+	// Licenses, e. g. "/node/licenses"
 	router.GET("/api/:tech/licenses", func(ctx *gin.Context) {
 		var (
 			err       error
@@ -233,8 +170,8 @@ func main() {
 			return
 		}
 
-		var licenses model.Licenses
-		err = mongoColl.FindOne(context.TODO(), bson.D{
+		var licenses []bson.D
+		err = mongoColl.FindOne(ctx, bson.D{
 			{Key: "_id", Value: model.LICENSES_ID},
 		}).Decode(&licenses)
 		if err != nil {
@@ -242,9 +179,70 @@ func main() {
 			ctx.Status(http.StatusInternalServerError)
 			return
 		}
+
 		ctx.JSON(http.StatusOK, licenses)
 	})
-	// /go/context
+	// Catalogue/namespaces, e. g. "/node"
+	router.GET("/api/:tech", cache.CachePage(store, time.Hour*12, func(ctx *gin.Context) {
+		// Union type of API and contributions catalogue
+		type cat struct {
+			NAPIs     int               `json:"n_apis" bson:"n_apis"`
+			NContribs int               `json:"n_contribs" bson:"n_contribs"`
+			NNs       int               `json:"n_ns" bson:"n_ns"`
+			NRepos    int               `json:"n_repos" bson:"n_repos"`
+			Ns        []string          `json:"ns" bson:"ns"`
+			Version   string            `json:"version" bson:"version"`
+			Vids      map[string]string `json:"vids" bson:"vids"`
+		}
+
+		var c cat
+
+		{
+			var (
+				err       error
+				mongoColl *mongo.Collection
+			)
+			mongoColl, err = mongoCollFromCtx(ctx, db_apis)
+			if err != nil {
+				log.Println(err.Error())
+				ctx.Status(http.StatusBadRequest)
+				return
+			}
+
+			err = mongoColl.FindOne(ctx, bson.D{
+				{Key: "_id", Value: catalogue_id},
+			}).Decode(&c)
+			if err != nil {
+				log.Println(err.Error())
+				ctx.Status(http.StatusInternalServerError)
+				return
+			}
+		}
+		{
+			var (
+				err       error
+				mongoColl *mongo.Collection
+			)
+			mongoColl, err = mongoCollFromCtx(ctx, db_contribs)
+			if err != nil {
+				log.Println(err.Error())
+				ctx.Status(http.StatusBadRequest)
+				return
+			}
+
+			err = mongoColl.FindOne(ctx, bson.D{
+				{Key: "_id", Value: model.CAT_ID},
+			}).Decode(&c)
+			if err != nil {
+				log.Println(err.Error())
+				ctx.Status(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		ctx.JSON(http.StatusOK, c)
+	}))
+	// APIs, e. g. "/go/context"
 	router.GET("/api/:tech/:ns", cache.CachePage(store, time.Hour*12, func(ctx *gin.Context) {
 		var (
 			err       error
@@ -283,7 +281,7 @@ func main() {
 		}
 		ctx.JSON(http.StatusOK, apis)
 	}))
-	// /node/crypto/verify
+	// Contributions, e. g. "/node/crypto/verify"
 	router.GET("/api/:tech/:ns/:api", func(ctx *gin.Context) {
 		var (
 			err       error
@@ -381,7 +379,5 @@ func main() {
 func mongoCollFromCtx(ctx *gin.Context, db string) (*mongo.Collection, error) {
 	return mongoCollFromTech(ctx.Param("tech"), db)
 }
-
-func fromPtr[T any](v *T) T { return *v }
 
 func toPtr[T any](v T) *T { return &v }

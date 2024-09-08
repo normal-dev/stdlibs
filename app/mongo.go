@@ -12,6 +12,9 @@ import (
 const (
 	db_apis     = "apis"
 	db_contribs = "contribs"
+
+	catalogue_id = "_cat"
+	licenses_id  = "_licenses"
 )
 
 var mongoClient *mongo.Client
