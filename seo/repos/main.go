@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -42,13 +43,17 @@ type (
 	}
 )
 
+func init() {
+	log.SetFlags(0)
+}
+
 func (c repository) EqRepo(repoOwner, repoName string) bool {
 	return c.RepoOwner == repoOwner && c.RepoName == repoName
 }
 
 func main() {
 	ctx := context.Background()
-	coll := mongoClient.Database("app").Collection("repos")
+	coll := mongoClient.Database("seo").Collection("repos")
 
 	cur, err := coll.Find(ctx, bson.D{})
 	if err != nil {
@@ -72,8 +77,11 @@ OuterLoop:
 			repoName  = contrib.Repo.RepoName
 		)
 
+		log.Printf("repo: %s/%s", repoOwner, repoName)
+
 		// Update
 		for _, repo := range repos {
+
 			if !repo.EqRepo(repoOwner, repoName) {
 				continue
 			}
