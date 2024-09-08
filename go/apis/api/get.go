@@ -10,13 +10,17 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+func init() {
+	log.SetFlags(0)
+}
+
 type API struct {
 	Doc   string  `json:"doc" bson:"doc"`                         // ToUpper returns s with all Unicode letters mapped to their upper case.
 	Name  string  `json:"name" bson:"name"`                       // Reader, Writer, Buffer
 	Ns    string  `json:"ns" bson:"ns"`                           // compress/lzw, net, bytes
 	Type  string  `json:"type" bson:"type"`                       // struct, error, int, map, func
 	Value *string `json:"value,omitempty" bson:"value,omitempty"` // NewFlagSet(os.Args[0], ExitOnError), 512, errors.New("bytes.Buffer: too large")
-	Video *string `json:"video,omitempty" bson:"video,omitempty"` //
+	Video *string `json:"video,omitempty" bson:"video,omitempty"`
 }
 
 func (api API) ID() string {
