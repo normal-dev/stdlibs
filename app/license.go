@@ -1,6 +1,6 @@
-package model
+package main
 
-type License struct {
+type license struct {
 	ID    any `json:"_id" bson:"_id"`
 	Repos []struct {
 		Author string    `json:"author" bson:"author"`

@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/normal-dev/stdlibs/model"
-
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
 	"github.com/gin-contrib/cors"
@@ -191,17 +189,17 @@ func main() {
 			return
 		}
 
-		var licenses model.License
+		var lic license
 		err = mongoColl.FindOne(ctx, bson.D{
 			{Key: "_id", Value: licenses_id},
-		}).Decode(&licenses)
+		}).Decode(&lic)
 		if err != nil {
 			log.Println(err.Error())
 			ctx.Status(http.StatusInternalServerError)
 			return
 		}
 
-		ctx.JSON(http.StatusOK, licenses)
+		ctx.JSON(http.StatusOK, lic)
 	})
 	// Catalogue/namespaces, e. g. "/node"
 	router.GET("/api/:tech", cache.CachePage(store, time.Hour*12, func(ctx *gin.Context) {
