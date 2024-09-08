@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	mgo "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -13,7 +13,7 @@ const (
 	DB_CONTRIBS = "contribs"
 )
 
-var MongoClient *mgo.Client
+var MongoClient *mongo.Client
 
 func init() {
 	uri := os.Getenv("MONGO_DB_URI")
@@ -23,7 +23,7 @@ func init() {
 
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
-	client, err := mgo.Connect(context.Background(), opts)
+	client, err := mongo.Connect(context.Background(), opts)
 	if err != nil {
 		panic(err.Error())
 	}

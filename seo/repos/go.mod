@@ -1,4 +1,4 @@
-module repos-app
+module repos-seo
 
 go 1.22.0
 

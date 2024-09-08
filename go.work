@@ -2,6 +2,7 @@ go 1.22.0
 
 use (
 	./app
+	./seo/repos
 	./go/apis
 	./go/mongo
 	./go/contribs

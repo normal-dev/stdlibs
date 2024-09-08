@@ -193,7 +193,7 @@ func main() {
 
 		var licenses model.License
 		err = mongoColl.FindOne(ctx, bson.D{
-			{Key: "_id", Value: model.LICENSES_ID},
+			{Key: "_id", Value: licenses_id},
 		}).Decode(&licenses)
 		if err != nil {
 			log.Println(err.Error())
@@ -252,7 +252,7 @@ func main() {
 			}
 
 			err = mongoColl.FindOne(ctx, bson.D{
-				{Key: "_id", Value: model.CAT_ID},
+				{Key: "_id", Value: catalogue_id},
 			}).Decode(&c)
 			if err != nil {
 				log.Println(err.Error())
@@ -286,7 +286,11 @@ func main() {
 
 		filter := bson.D{
 			{Key: "ns", Value: ns},
-			{Key: "_id", Value: bson.D{primitive.E{Key: "$ne", Value: model.CAT_ID}}},
+			{
+				Key: "_id", Value: bson.D{
+					primitive.E{Key: "$ne", Value: catalogue_id},
+				},
+			},
 		}
 		cur, err := mongoColl.Find(ctx, filter)
 		if err != nil {
