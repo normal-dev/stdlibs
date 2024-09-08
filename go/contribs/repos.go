@@ -6,8 +6,6 @@ import (
 	"log"
 	"slices"
 
-	"contribs-go/model"
-
 	"github.com/google/go-github/github"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -450,14 +448,14 @@ func getRepos(ctx context.Context, ghClient *github.Client) (r []*github.Reposit
 
 func saveLicenses(ctx context.Context) error {
 	_, err := mongoColl.DeleteOne(ctx, bson.M{
-		"_id": model.LICENSES_ID,
+		"_id": licenses_id,
 	})
 	if err != nil {
 		return err
 	}
 
 	doc := bson.D{
-		bson.E{Key: "_id", Value: model.LICENSES_ID},
+		bson.E{Key: "_id", Value: licenses_id},
 		bson.E{Key: "repos", Value: licenses},
 	}
 	_, err = mongoColl.InsertOne(ctx, doc)
