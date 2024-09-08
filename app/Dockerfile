@@ -17,7 +17,6 @@ RUN npm ci
 RUN npm run build
 
 WORKDIR /
-COPY model /model
 COPY go.mod go.sum /
 RUN go mod download
 COPY *.go /
