@@ -35,7 +35,7 @@ const (
 
 func main() {
 	// Flags
-	noClient := *flag.Bool("no-client", false, "")
+	noClient := flag.Bool("no-client", false, "")
 	flag.Parse()
 
 	router := gin.Default()
@@ -64,9 +64,9 @@ func main() {
 	router.UnescapePathValues = false
 
 	// Website/client
-	if wantsClient := noClient; wantsClient {
+	if ok := fromPtr(noClient); !ok {
 		router.Static("/assets", "./website/assets")
-		router.LoadHTMLGlob("website/index.html")
+		router.LoadHTMLGlob("./website/index.html")
 		router.GET("/", func(c *gin.Context) {
 			c.HTML(http.StatusOK, "index.html", nil)
 		})
@@ -402,5 +402,7 @@ func main() {
 func mongoCollFromCtx(ctx *gin.Context, db string) (*mongo.Collection, error) {
 	return mongoCollFromTech(ctx.Param("tech"), db)
 }
+
+func fromPtr[T any](v *T) T { return *v }
 
 func toPtr[T any](v T) *T { return &v }
