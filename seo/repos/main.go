@@ -65,7 +65,7 @@ func main() {
 		panic(err)
 	}
 
-	contribs, err := fetchContribs(ctx)
+	contribs, err := findContribs(ctx)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -119,7 +119,7 @@ OuterLoop:
 	}
 }
 
-func fetchContribs(ctx context.Context) ([]contribution, error) {
+func findContribs(ctx context.Context) ([]contribution, error) {
 	var contribs []contribution
 
 	f := func(ctx context.Context, tech string) {

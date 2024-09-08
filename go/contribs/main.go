@@ -98,7 +98,7 @@ func worker(
 			"-q",
 			"--depth", "1",
 			"--no-tags",
-			"--filter=blob:limit=50k",
+			"--filter=blob:limit=75k",
 			*repo.CloneURL,
 			repoDir,
 		).Run(); err != nil {
@@ -119,8 +119,8 @@ func worker(
 				return nil
 			})
 			mu.Lock()
-			defer mu.Unlock()
 			*filesn += repofilesn
+			mu.Unlock()
 
 			logErr(logger, err)
 		}()
