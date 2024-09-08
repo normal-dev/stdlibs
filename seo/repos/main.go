@@ -77,14 +77,13 @@ OuterLoop:
 			repoName  = contrib.Repo.RepoName
 		)
 
-		log.Printf("repo: %s/%s", repoOwner, repoName)
-
 		// Update
 		for _, repo := range repos {
-
 			if !repo.EqRepo(repoOwner, repoName) {
 				continue
 			}
+
+			log.Printf("repo: %s/%s", repoOwner, repoName)
 
 			if repo.Locusn != contrib.Locusn {
 				repo.Locusn = contrib.Locusn
