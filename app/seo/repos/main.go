@@ -24,7 +24,7 @@ var (
 )
 
 type (
-	Repo struct {
+	repository struct {
 		Tech      string    `json:"tech" bson:"tech"`
 		RepoName  string    `json:"repo_name" bson:"repo_name"`
 		RepoOwner string    `json:"repo_owner" bson:"repo_owner"`
@@ -32,7 +32,7 @@ type (
 		Updated   time.Time `json:"updated" bson:"updated"`
 	}
 
-	Contrib struct {
+	contribution struct {
 		Tech string `json:"tech" bson:"tech"`
 		Repo struct {
 			RepoOwner string `json:"repo_owner" bson:"repo_owner"`
@@ -42,7 +42,7 @@ type (
 	}
 )
 
-func (c Repo) EqRepo(repoOwner, repoName string) bool {
+func (c repository) EqRepo(repoOwner, repoName string) bool {
 	return c.RepoOwner == repoOwner && c.RepoName == repoName
 }
 
@@ -55,12 +55,12 @@ func main() {
 		panic(err.Error())
 	}
 	defer cur.Close(ctx)
-	var repos []Repo
+	var repos []repository
 	if err := cur.All(ctx, &repos); err != nil {
 		panic(err)
 	}
 
-	contribs, err := getContribs(ctx)
+	contribs, err := fetchContribs(ctx)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -80,7 +80,7 @@ OuterLoop:
 
 			if repo.Locusn != contrib.Locusn {
 				repo.Locusn = contrib.Locusn
-				repo.Updated = time.Now().UTC()
+				repo.Updated = today.UTC()
 			}
 			_, err := coll.UpdateOne(ctx,
 				bson.D{
@@ -99,12 +99,12 @@ OuterLoop:
 		}
 
 		// Insert
-		_, err := coll.InsertOne(ctx, Repo{
+		_, err := coll.InsertOne(ctx, repository{
 			RepoName:  repoName,
 			RepoOwner: repoOwner,
 			Locusn:    contrib.Locusn,
 			Tech:      contrib.Tech,
-			Updated:   time.Now().UTC(),
+			Updated:   today.UTC(),
 		})
 		if err != nil {
 			panic(err.Error())
@@ -112,8 +112,8 @@ OuterLoop:
 	}
 }
 
-func getContribs(ctx context.Context) ([]Contrib, error) {
-	var contribs []Contrib
+func fetchContribs(ctx context.Context) ([]contribution, error) {
+	var contribs []contribution
 
 	f := func(ctx context.Context, tech string) {
 		mongoColl := mongoClient.Database("contribs").Collection(tech)
@@ -179,7 +179,7 @@ func getContribs(ctx context.Context) ([]Contrib, error) {
 		}
 		defer cur.Close(ctx)
 
-		var cs []Contrib
+		var cs []contribution
 		if err := cur.All(ctx, &cs); err != nil {
 			panic(err.Error())
 		}

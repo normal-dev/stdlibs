@@ -76,6 +76,26 @@ func main() {
 	// Cache pages
 	store := persistence.NewInMemoryStore(time.Hour * 6)
 
+	// SEO repositories
+	router.GET("/api/seo/repositories", cache.CachePage(store, time.Hour*24, func(ctx *gin.Context) {
+		mongoColl := mongoClient.Database("app").Collection("repos")
+
+		var repos []bson.M
+		cur, err := mongoColl.Find(ctx, bson.D{})
+		if err != nil {
+			log.Println(err.Error())
+			ctx.Status(http.StatusInternalServerError)
+			return
+		}
+
+		if err := cur.All(ctx, &repos); err != nil {
+			log.Println(err.Error())
+			ctx.Status(http.StatusInternalServerError)
+			return
+		}
+
+		ctx.JSON(http.StatusOK, repos)
+	}))
 	// Generator, e. g. "/go/gen"
 	router.GET("/api/gen", cache.CachePage(store, time.Hour*6, func(ctx *gin.Context) {
 		const maxcontribs = 1
@@ -170,7 +190,15 @@ func main() {
 			return
 		}
 
-		var licenses []bson.D
+		type l struct {
+			ID    any `json:"_id" bson:"_id"`
+			Repos []struct {
+				Author string    `json:"author" bson:"author"`
+				Repo   [2]string `json:"repo" bson:"repo"`
+				Type   string    `json:"type" bson:"type"`
+			} `json:"repos" bson:"repos"`
+		}
+		var licenses l
 		err = mongoColl.FindOne(ctx, bson.D{
 			{Key: "_id", Value: model.LICENSES_ID},
 		}).Decode(&licenses)

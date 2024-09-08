@@ -43,9 +43,9 @@ watch(() => theme.global.current.value.dark, dark => {
           to="/"
           variant="plain" />
         <v-btn
-          icon="mdi-newspaper-variant-outline"
+          icon="mdi-source-fork"
           size="small"
-          to="/news"
+          to="/repositories"
           variant="plain" />
 
         <v-spacer />

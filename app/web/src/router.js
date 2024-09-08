@@ -6,8 +6,8 @@ const routes = [
     component: () => import('./views/HomeView.vue')
   },
   {
-    path: '/news',
-    component: () => import('./views/NewsView.vue')
+    path: '/repositories',
+    component: () => import('./views/RepositoriesView.vue')
   },
   {
     path: '/go',
