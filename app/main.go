@@ -1,7 +1,6 @@
 package main
 
 import (
-	"contribs-go/model"
 	"flag"
 	"fmt"
 	"log"
@@ -12,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/normal-dev/stdlibs/model"
 
 	"github.com/gin-contrib/cache"
 	"github.com/gin-contrib/cache/persistence"
@@ -190,15 +191,7 @@ func main() {
 			return
 		}
 
-		type l struct {
-			ID    any `json:"_id" bson:"_id"`
-			Repos []struct {
-				Author string    `json:"author" bson:"author"`
-				Repo   [2]string `json:"repo" bson:"repo"`
-				Type   string    `json:"type" bson:"type"`
-			} `json:"repos" bson:"repos"`
-		}
-		var licenses l
+		var licenses model.License
 		err = mongoColl.FindOne(ctx, bson.D{
 			{Key: "_id", Value: model.LICENSES_ID},
 		}).Decode(&licenses)
