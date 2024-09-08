@@ -15,6 +15,14 @@
             ],
         },
         {
+            "name": "Web: SEO: Repositories",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/app/seo/repos",
+            "args": [],
+        },
+        {
             "name": "Web: Client",
             "command": "npm run dev",
             "type": "node-terminal",

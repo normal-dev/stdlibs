@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-	"log"
 	"os"
 
 	mgo "go.mongodb.org/mongo-driver/mongo"
@@ -15,11 +14,6 @@ const (
 )
 
 var MongoClient *mgo.Client
-
-func init() {
-	log.SetFlags(0)
-	log.Default().SetOutput(os.Stderr)
-}
 
 func init() {
 	uri := os.Getenv("MONGO_DB_URI")
