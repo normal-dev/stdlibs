@@ -1,9 +1,5 @@
 package model
 
-const (
-	CAT_ID = "_cat"
-)
-
 // Catalogue with contributions
 type Cat struct {
 	ID        any `json:"_id" bson:"_id"`
