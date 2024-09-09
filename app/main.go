@@ -77,7 +77,7 @@ func main() {
 
 	// SEO repositories
 	router.GET("/api/seo/repositories", cache.CachePage(store, time.Hour*24, func(ctx *gin.Context) {
-		mongoColl := mongoClient.Database("app").Collection("repos")
+		mongoColl := mongoClient.Database("seo").Collection("repos")
 
 		var repos []bson.M
 		cur, err := mongoColl.Find(ctx, bson.D{})
