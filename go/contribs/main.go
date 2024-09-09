@@ -32,7 +32,7 @@ const workersn = 3
 func main() {
 	ctx := context.Background()
 
-	repos, err := getRepos(ctx, ghclient)
+	repos, err := findRepos(ctx, ghclient)
 	checkErr(err)
 	reposn := len(repos)
 	log.Printf("repos: %d", reposn)
@@ -45,7 +45,7 @@ func main() {
 	)
 	defer func() {
 		checkErr(saveCatalogue(ctx, contribsn, reposn))
-		checkErr(saveLicenses(ctx))
+		checkErr(insertLicenses(ctx))
 	}()
 	for range workersn {
 		go worker(

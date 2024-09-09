@@ -36,7 +36,7 @@ func init() {
 }
 
 func init() {
-	// TODO: Create indices for "contribs.locus" and "apis.ns/apis._id"
+	// TODO: Create indices for "go.contribs.locus" and "go.apis.ns/apis._id"
 }
 
 func mongoCollFromTech(tech, db string) (*mongo.Collection, error) {

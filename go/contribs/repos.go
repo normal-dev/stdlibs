@@ -433,7 +433,7 @@ func init() {
 	}
 }
 
-func getRepos(ctx context.Context, ghClient *github.Client) (r []*github.Repository, err error) {
+func findRepos(ctx context.Context, ghClient *github.Client) (r []*github.Repository, err error) {
 	for _, repo := range repos {
 		owner, name := repo[0], repo[1]
 		log.Printf("repo: %s/%s...", owner, name)
@@ -446,7 +446,7 @@ func getRepos(ctx context.Context, ghClient *github.Client) (r []*github.Reposit
 	return
 }
 
-func saveLicenses(ctx context.Context) error {
+func insertLicenses(ctx context.Context) error {
 	_, err := mongoColl.DeleteOne(ctx, bson.M{
 		"_id": licenses_id,
 	})
