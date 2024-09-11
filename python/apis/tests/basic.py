@@ -1,3 +1,0 @@
-import stdio
-
-stdio.writeln()

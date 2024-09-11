@@ -68,7 +68,7 @@
             "program": "${workspaceFolder}/node/contribs/extract.test.mjs"
         },
         {
-            "name": "Python Debugger: Current File",
+            "name": "Python: APIs",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/python/apis/__main__.py",
