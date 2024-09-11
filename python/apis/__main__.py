@@ -12,30 +12,42 @@ mongo_client = get_client()
 mongo_db = mongo_client["apis"]
 mongo_coll = mongo_db["python"]
 
+def is_capsule(o):
+    t = type(o)
+    return t.__module__ == 'builtins' and t.__name__ == 'PyCapsule'
+
 def get_type(value):
   try:
-    return type(value).__name__
+    return typ(value).__name__
   except:
-    if inspect.isbuiltin(value) or inspect.ismethod(value) or isinstance(value, types.FunctionType):
+    if isinstance(value, types.FunctionType):
       return "function"
-    elif inspect.isclass(value):
+    elif inspect.isclass(type(value)):
       return "class"
-    elif inspect.ismodule(value):
-      return "module"
+    elif isinstance(value, tuple):
+      return "tuple"
+    elif isinstance(value, list):
+      return "list"
+    elif isinstance(value, dict):
+      return "dict"
+    elif isinstance(value, set):
+      return "set"
+    elif isinstance(value, enumerate):
+      return "enumarate"
     elif isinstance(value, str):
       return "string"
     elif isinstance(value, int):
       return "int"
     elif isinstance(value, float):
       return "float"
-    elif isinstance(value, list):
-      return "list"
-    elif isinstance(value, dict):
-      return "dict"
+    elif isinstance(value, complex):
+      return "complex"
+    elif isinstance(value, bytes):
+      return "bytes"
     elif value is None:
       return "none"
     else:
-        print(type(value))
+        raise Exception("can't find type")
 
 mongo_coll.delete_many({})
 
@@ -52,12 +64,12 @@ for module_name in sys.stdlib_module_names:
       continue
 
     symbol = getattr(module, name)
-    type = get_type(symbol)
+    typ = get_type(symbol)
     mongo_coll.insert_one({
       "_id" : module_name + "." + name,
       "doc" : "",
       "name" : name,
       "ns" : module_name,
-      "type" : type
+      "type" : typ
     })
 
