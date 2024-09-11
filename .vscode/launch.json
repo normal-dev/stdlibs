@@ -72,7 +72,8 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/python/apis/__main__.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/python/apis"
         },
     ],
     "inputs": [

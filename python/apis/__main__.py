@@ -1,70 +1,50 @@
-import pkgutil
 import importlib
-import inspect
 import sys
+import inspect
+import os
 
-def get_symbols(module):
-    symbols = []
-    for name in dir(module):
-        try:
-            # TODO: Get symbol type
-            symbol = getattr(module, name)
-            if callable(symbol) or inspect.ismodule(symbol):
-                symbols.append(name)
-        except AttributeError:
-            pass  # Some members might raise AttributeError on access
+sys.path.append(os.path.abspath(".."))
 
-    return symbols
+from mongo.client import get_client
 
-def get_stdlib():
-    stdlib = {}
-    for module_name in sys.stdlib_module_names:
-        if module_name.startswith('_'):
-          continue
-        if module_name == 'antigravity':
-          continue
+mongo_client = get_client()
+mongo_db = mongo_client["apis"]
+mongo_coll = mongo_db["python"]
 
-        # TEST
-        if module_name != 'math':
-          continue
-        # TEST
+def get_type(value):
+  try:
+    return type(value).__name__
+  except:
+    if inspect.isbuiltin(value) or inspect.ismethod(value):
+      return "function"
+    elif inspect.isclass(value):
+      return "class"
+    elif inspect.ismodule(value):
+      return "module"
+    else:
+      return type(value)
 
-        module = importlib.import_module(module_name)
-        for name in dir(module):
-          if name.startswith('_'):
-            continue
+mongo_coll.delete_many({})
 
-          symbol = getattr(module, name)
-          print(name, type(symbol).__name__)
+for module_name in sys.stdlib_module_names:
+  if module_name.startswith("_") or module_name == "antigravity":
+    continue
 
-    # mods = pkgutil.iter_modules()
-    # for finder, module_name, ispkg in mods:
-    #     # TEST
-    #     if module_name != 'math':
-    #       continue
-    #     # TEST
+  if module_name != "math":
+    continue
 
-    #     if module_name.startswith('_'):
-    #       continue
+  module = importlib.import_module(module_name)
+  for name in dir(module):
+    if name.startswith("_"):
+      continue
 
-    #     if module_name == 'antigravity':
-    #       continue
+    symbol = getattr(module, name)
+    type = get_type(symbol)
+    mongo_coll.insert_one({
+      "_id" : module_name + "." + name,
+      "doc" : "",
+      "name" : name,
+      "ns" : module_name,
+      "type" : type
+    })
 
-    #     # TODO: Skip antrigravity
-    #     try:
-    #         module_name = importlib.import_module(module_name)
-    #         if hasattr(module_name, '__file__') and 'site-packages' not in module_name.__file__:
-    #             symbols = get_symbols(module_name)
-
-    #             if symbols:
-    #                 stdlib[module_name] = symbols
-    #     except (ImportError, AttributeError):
-    #         pass  # Handle modules that can't be imported or inspected
-
-    return stdlib
-
-if __name__ == "__main__":
-    stdlib = get_stdlib()
-    for module, symbols in stdlib.items():
-        print(f"Module: {module}")
-        print(f"Members: {symbols}\n")
