@@ -12,10 +12,6 @@ mongo_client = get_client()
 mongo_db = mongo_client["apis"]
 mongo_coll = mongo_db["python"]
 
-def is_capsule(o):
-    t = type(o)
-    return t.__module__ == 'builtins' and t.__name__ == 'PyCapsule'
-
 def get_type(value):
   try:
     return typ(value).__name__
@@ -49,19 +45,28 @@ def get_type(value):
     else:
         raise Exception("can't find type")
 
-mongo_coll.delete_many({})
-
+ns = []
+nsn = 0
+apisn = 0
 for module_name in sys.stdlib_module_names:
   if module_name.startswith("_") or module_name is "antigravity":
     continue
-
   if importlib.find_loader(module_name) is None:
     continue
+
+  mongo_coll.delete_many({
+    "ns" : module_name
+  })
+
+  ns.append(module_name)
+  nsn += 1
 
   module = importlib.import_module(module_name)
   for name in dir(module):
     if name.startswith("_"):
       continue
+
+    apisn += 1
 
     symbol = getattr(module, name)
     typ = get_type(symbol)
@@ -73,3 +78,9 @@ for module_name in sys.stdlib_module_names:
       "type" : typ
     })
 
+mongo_coll.insert_one({
+  "_id" : "_cat",
+  "n_apis" : apisn,
+  "n_ns" : nsn,
+  "ns" : ns
+})
