@@ -1,10 +1,10 @@
-import mongoDB from 'mongodb'
+import mongoDb from 'mongodb'
 
 let mongoDbUri = process.env.MONGO_DB_URI
 if (!mongoDbUri) {
   mongoDbUri = 'mongodb://localhost:27017'
 }
-const mongoClient = await mongoDB.MongoClient
+const mongoClient = await mongoDb.MongoClient
   .connect(mongoDbUri, {})
   .catch(error => {
     console.error(error)

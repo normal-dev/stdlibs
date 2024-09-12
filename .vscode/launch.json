@@ -81,7 +81,6 @@
             "request": "launch",
             "program": "${workspaceFolder}/python/contribs/__main__.py",
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/python/contribs",
             "env": {
                 "GITHUB_ACCESS_TOKEN_CONTRIBS": "${input:github_access_token}"
             }
@@ -91,8 +90,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/python/contribs/test_extractor.py",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/python/contribs",
+            "console": "integratedTerminal"
         },
     ],
     "inputs": [

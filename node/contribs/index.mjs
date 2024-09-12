@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process'
 import { readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { Octokit } from 'octokit'
-import mongoClient from './db.mjs'
+import mongoClient from '../mongo/client.mjs'
 import extract from './extract.mjs'
 
 // MongoDB Ids

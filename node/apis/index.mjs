@@ -1,6 +1,6 @@
 import { builtinModules as builtin } from 'node:module'
 import { version } from 'node:process'
-import mongoClient from './db.mjs'
+import mongoClient from '../mongo/client.mjs'
 import apis from './apis.mjs'
 
 // MongoDB Id

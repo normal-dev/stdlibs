@@ -1,0 +1,13 @@
+FROM node:22.5.1
+
+WORKDIR /
+COPY apis /apis
+COPY mongo /mongo
+
+WORKDIR /apis
+COPY package*.json /
+COPY *.mjs /
+
+RUN npm ci
+
+CMD ["node", "index.mjs"]
