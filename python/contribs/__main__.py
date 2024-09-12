@@ -18,9 +18,6 @@ mongo_client = get_client()
 mongo_db = mongo_client["contribs"]
 mongo_coll = mongo_db["python"]
 
-auth = Auth.Token(GITHUB_ACCESS_TOKEN_CONTRIBS)
-
-gh_client = Github(auth=auth)
 
 def get_repos(client):
   repos = []
@@ -33,7 +30,13 @@ def get_repos(client):
     repository = gh_client.get_repo(repo_owner + "/" + repo_name)
     repos.append(repository.raw_data)
 
+auth = Auth.Token(GITHUB_ACCESS_TOKEN_CONTRIBS)
+gh_client = Github(auth=auth)
+
 repos = get_repos(gh_client)
+
+def find_py_files(dir):
+
 
 for repo in repos:
   print(repo)
