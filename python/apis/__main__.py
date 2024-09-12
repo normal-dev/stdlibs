@@ -49,7 +49,7 @@ ns = []
 nsn = 0
 apisn = 0
 for module_name in sys.stdlib_module_names:
-  if module_name.startswith("_") or module_name is "antigravity":
+  if module_name.startswith("_") or module_name == "antigravity":
     continue
   if importlib.find_loader(module_name) is None:
     continue

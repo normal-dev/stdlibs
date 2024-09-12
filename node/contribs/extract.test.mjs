@@ -8,7 +8,7 @@ import extract from './extract.mjs'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const openTest = name => {
-  const file = readFileSync(`${__dirname}/testfiles/${name}`, 'utf-8')
+  const file = readFileSync(`${__dirname}/tests/${name}`, 'utf-8')
   return file.toString()
 }
 

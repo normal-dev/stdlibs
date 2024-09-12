@@ -383,10 +383,12 @@ const getRepos = async client => {
     ['salesforce', 'lwc'],
     ['botpress', 'botpress']
   ]) {
-    console.debug('repo: %s/%s...', repo.at(0), repo.at(1))
+    const repoOwner = repo.at(0)
+    const repoName = repo.at(1)
+    console.debug('repo: %s/%s', repoOwner, repoName)
     const repository = await client.rest.repos.get({
-      owner: repo.at(0),
-      repo: repo.at(1)
+      owner: repoOwner,
+      repo: repoName
     })
     repos.push(repository.data)
   }
@@ -396,7 +398,7 @@ const getRepos = async client => {
 
 const accessTok = process.env.GITHUB_ACCESS_TOKEN_CONTRIBS
 if (!accessTok) {
-  throw new Error('missing Github access token')
+  throw new Error('missing GitHub access token')
 }
 const ghClient = new Octokit({ auth: accessTok })
 
