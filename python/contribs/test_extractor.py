@@ -12,9 +12,9 @@ def open_test(test):
 class Default(unittest.TestCase):
     def test_global(self):
         f = open_test("default/global/?.py")
-        ast = extractor.extract(f)
+        locus = extractor.extract(f)
 
-        print(ast)
+        print(locus)
 
 if __name__ == '__main__':
     unittest.main()

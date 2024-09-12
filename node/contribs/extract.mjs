@@ -43,7 +43,7 @@ const extract = src => {
           return
         }
 
-        resolveModule(ast, module, locus)
+        findLocus(ast, module, locus)
       }
     })
 
@@ -59,7 +59,7 @@ const extract = src => {
  * @param {string} module
  * @returns {boolean}
  */
-const isModuleImport = (path, module) => {
+const isModuleIdent = (path, module) => {
   const { scope, node: { name } } = path
   const binding = scope.getBinding(name)
   if ((!binding || binding.kind !== 'module')) {
@@ -76,7 +76,7 @@ const isModuleImport = (path, module) => {
  * @param {NodePath} path
  * @returns {boolean}
  */
-const isImported = path => {
+const isImportNode = path => {
   switch (path.parent.type) {
     case 'ImportDeclaration':
     case 'ImportDefaultSpecifier':
@@ -97,16 +97,22 @@ const hasLocation = path => {
   return !!path.node.loc
 }
 
+/**
+ * @param {NodePath} path
+ * @param {string} module
+ * @returns {boolean}
+ */
 const isResolveable = (path, module) => {
-  if (isImported(path)) {
+  if (isImportNode(path)) {
     return false
   }
-  if (!isModuleImport(path, module)) {
+  if (!isModuleIdent(path, module)) {
     return false
   }
   if (!hasLocation(path)) {
     return false
   }
+
   return true
 }
 
@@ -114,7 +120,7 @@ const isResolveable = (path, module) => {
  * @param {NodePath} path
  * @returns {string}
  */
-const resolveCanonicalName = path => {
+const findCanonical = path => {
   const { node: { name }, scope } = path
   const binding = scope.getBinding(name)
   switch (binding.path.node.type) {
@@ -134,7 +140,7 @@ const resolveCanonicalName = path => {
  * @param {string} module
  * @param {Array<object>} locus
  */
-const resolveModule = (ast, module, locus) => {
+const findLocus = (ast, module, locus) => {
   try {
     traverse(ast, {
       Identifier (path) {
@@ -146,7 +152,7 @@ const resolveModule = (ast, module, locus) => {
         const { loc: { start: { column, line } } } = node
 
         if (Array.isArray(container)) {
-          const canonical = resolveCanonicalName(path)
+          const canonical = findCanonical(path)
           locus.push(newLocus(module, canonical, line, column))
 
           return
@@ -209,7 +215,7 @@ const resolveModule = (ast, module, locus) => {
           }
         }
 
-        const canonical = resolveCanonicalName(path)
+        const canonical = findCanonical(path)
         locus.push(newLocus(module, canonical, line, column))
       }
     })
