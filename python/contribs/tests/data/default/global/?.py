@@ -1,3 +1,9 @@
-import typing
+import types as t, sys
 
-print(typing.Any)
+t.CodeType
+
+def f():
+    t.CodeType
+    t.CellType
+    sys.api_version
+

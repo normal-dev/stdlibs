@@ -98,7 +98,8 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/python/contribs/test_extractor.py",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/python/contribs"
         },
     ],
     "inputs": [
