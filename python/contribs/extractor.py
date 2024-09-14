@@ -34,20 +34,23 @@ class ImportVisitor():
             name = n[0]
             alias = n[1]
             module_ident = name
-            if alias is not "":
+            if alias != None:
                 module_ident = alias
 
-            find_locus(module_ident=module_ident, module=self.tree)
+            find_locus(import_node=node, tree=self.tree)
 
-def find_locus(module_ident: str, module: nodes.Module):
-    node: nodes.Name
-    for node in module.nodes_of_class(nodes.Name):
-        frame = node.frame()
-        inf = node.inferred()
-        context = frame.lookup(node.name)
-        for n in context[1]:
-            if isinstance(n, nodes.Import):
-                print(node.lineno)
+def find_locus(import_node: nodes.Import, tree: nodes.Module):
+    name_node: nodes.Name
+    for name_node in tree.nodes_of_class(nodes.Name):
+        frame = name_node.frame()
+        scope = frame.lookup(name_node.name)
+        for node in scope[1]:
+                if node != import_node:
+                    continue
+
+                print(import_node)
+                print(name_node)
+                print(name_node.lineno)
 
 def extract(code):
     locus = []
