@@ -17,7 +17,7 @@ for module_name in sys.stdlib_module_names:
     stdlib.add(module_name)
 
 class ImportVisitor():
-    def __init__(self, tree: nodes.Module, locus: list[disc]):
+    def __init__(self, tree: nodes.Module, locus: list[dict]):
         self.tree = tree
         self.locus = locus
 
@@ -55,7 +55,7 @@ def find_locus(import_node: nodes.Import, tree: nodes.Module, locus: list[dict])
             })
 
 def extract(code):
-    locus = []
+    locus = list[dict]
     tree = parse(code)
 
-    ImportVisitor(tree).visit(tree)
+    ImportVisitor(tree, locus).visit(tree)

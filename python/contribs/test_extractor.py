@@ -14,6 +14,7 @@ class Default(unittest.TestCase):
         f = open_test("global/?.py")
         locus = extractor.extract(f)
 
+
         print(locus)
 
 if __name__ == '__main__':
