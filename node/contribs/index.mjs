@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, rmSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { Octokit } from 'octokit'
 import mongoClient from '../mongo/client.mjs'
-import extract from './extract.mjs'
+import extractor from './extractor.mjs'
 
 // MongoDB Ids
 const CAT_ID = '_cat'
@@ -430,7 +430,7 @@ for (const repo of repos) {
 
     const buffer = readFileSync(file)
     const code = buffer.toString()
-    const locus = extract(code)
+    const locus = extractor(code)
 
     if (locus.length === 0) {
       continue

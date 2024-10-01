@@ -17,8 +17,9 @@ for module_name in sys.stdlib_module_names:
     stdlib.add(module_name)
 
 class ImportVisitor():
-    def __init__(self, tree: nodes.Module):
+    def __init__(self, tree: nodes.Module, locus: list[disc]):
         self.tree = tree
+        self.locus = locus
 
     def visit(self, node: astroid.node_classes.NodeNG):
         func_name = "visit_" + node.__class__.__name__
@@ -37,20 +38,21 @@ class ImportVisitor():
             if alias != None:
                 module_ident = alias
 
-            find_locus(import_node=node, tree=self.tree)
+            find_locus(import_node=node, tree=self.tree, locus=self.locus)
 
-def find_locus(import_node: nodes.Import, tree: nodes.Module):
+def find_locus(import_node: nodes.Import, tree: nodes.Module, locus: list[dict]):
     name_node: nodes.Name
     for name_node in tree.nodes_of_class(nodes.Name):
         frame = name_node.frame()
         scope = frame.lookup(name_node.name)
         for node in scope[1]:
-                if node != import_node:
-                    continue
+            if node != import_node:
+                continue
 
-                print(import_node)
-                print(name_node)
-                print(name_node.lineno)
+            locus.append({
+                "ident": import_node + "." + name_node,
+                "line": name_node.lineno
+            })
 
 def extract(code):
     locus = []

@@ -11,7 +11,7 @@ def open_test(test):
 
 class Default(unittest.TestCase):
     def test_global(self):
-        f = open_test("default/global/?.py")
+        f = open_test("global/?.py")
         locus = extractor.extract(f)
 
         print(locus)
