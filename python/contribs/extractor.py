@@ -5,7 +5,6 @@ from astroid import parse
 from astroid import nodes
 from astroid import helpers
 from astroid import util
-from astroid import Attribute
 import astroid
 
 stdlib = set()
@@ -34,8 +33,22 @@ class ImportVisitor():
     def visit_Import(self, import_node: nodes.Import):
         find_locus(import_node=import_node, tree=self.tree, locus=self.locus)
 
+    def visit_ImportFrom(self, import_node: nodes.Import):
+        find_locus(import_node=import_node, tree=self.tree, locus=self.locus)
+
 def resolve_attr(node: nodes.Attribute):
     return node.attrname
+
+def resolve_import_from(import_node: nodes.ImportFrom, modname: str):
+    root = import_node.root()
+    if isinstance(root, nodes.Module):
+        try:
+            return root.relative_to_absolute_name(
+                modname, level=import_node.level
+            )
+        except TooManyLevelsError:
+            return modname
+    return modname
 
 def find_locus(import_node: nodes.Import, tree: nodes.Module, locus: []):
     name_node: nodes.Name
@@ -46,18 +59,24 @@ def find_locus(import_node: nodes.Import, tree: nodes.Module, locus: []):
             if node != import_node:
                 continue
 
-            ident: str
+            # timedelta()
+            if isinstance(import_node, nodes.ImportFrom):
+                mod = resolve_import_from(import_node, import_node.modname)
+                locus.append({
+                    "ident": mod + "." + import_node.modname,
+                    "line": name_node.lineno
+                })
+            # types.CodeType
             if isinstance(name_node.parent, nodes.Attribute):
                 ident = resolve_attr(name_node.parent)
-
-            locus.append({
-                "ident": import_node.real_name(name_node.name) + "." + ident,
-                "line": name_node.lineno
-            })
+                locus.append({
+                    "ident": import_node.real_name(name_node.name) + "." + ident,
+                    "line": name_node.lineno
+                })
 
 def extract(src):
     locus = []
     tree = parse(src)
-
     ImportVisitor(tree, locus).visit(tree)
+
     return locus
