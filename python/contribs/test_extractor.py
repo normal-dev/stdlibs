@@ -4,18 +4,29 @@ import os
 import extractor
 
 def open_test(test):
-    f = open("./tests/data/" + test)
+    f = open("./tests/" + test)
     s = f.read()
     f.close()
     return s
 
-class Default(unittest.TestCase):
+class TestExtractor(unittest.TestCase):
     def test_global(self):
-        f = open_test("global/?.py")
-        locus = extractor.extract(f)
+        tests = [
+            {
+                "file": "global/CodeType.py",
+                "expected": [{
+                    "ident": "types.CodeType",
+                    "line": 3
+                }]
+            }
+        ]
 
+        for test in tests:
+            src = open_test(test["file"])
+            actual = extractor.extract(src)
+            expected = test["expected"]
 
-        print(locus)
+            self.assertListEqual(actual, expected)
 
 if __name__ == '__main__':
     unittest.main()

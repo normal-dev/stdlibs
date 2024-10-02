@@ -5,6 +5,7 @@ from astroid import parse
 from astroid import nodes
 from astroid import helpers
 from astroid import util
+from astroid import Attribute
 import astroid
 
 stdlib = set()
@@ -17,7 +18,7 @@ for module_name in sys.stdlib_module_names:
     stdlib.add(module_name)
 
 class ImportVisitor():
-    def __init__(self, tree: nodes.Module, locus: list[dict]):
+    def __init__(self, tree: nodes.Module, locus: []):
         self.tree = tree
         self.locus = locus
 
@@ -30,17 +31,13 @@ class ImportVisitor():
         for child in node.get_children():
             self.visit(child)
 
-    def visit_Import(self, node: nodes.Import):
-        for n in node.names:
-            name = n[0]
-            alias = n[1]
-            module_ident = name
-            if alias != None:
-                module_ident = alias
+    def visit_Import(self, import_node: nodes.Import):
+        find_locus(import_node=import_node, tree=self.tree, locus=self.locus)
 
-            find_locus(import_node=node, tree=self.tree, locus=self.locus)
+def resolve_attr(node: nodes.Attribute):
+    return node.attrname
 
-def find_locus(import_node: nodes.Import, tree: nodes.Module, locus: list[dict]):
+def find_locus(import_node: nodes.Import, tree: nodes.Module, locus: []):
     name_node: nodes.Name
     for name_node in tree.nodes_of_class(nodes.Name):
         frame = name_node.frame()
@@ -49,13 +46,18 @@ def find_locus(import_node: nodes.Import, tree: nodes.Module, locus: list[dict])
             if node != import_node:
                 continue
 
+            ident: str
+            if isinstance(name_node.parent, nodes.Attribute):
+                ident = resolve_attr(name_node.parent)
+
             locus.append({
-                "ident": import_node + "." + name_node,
+                "ident": import_node.real_name(name_node.name) + "." + ident,
                 "line": name_node.lineno
             })
 
-def extract(code):
-    locus = list[dict]
-    tree = parse(code)
+def extract(src):
+    locus = []
+    tree = parse(src)
 
     ImportVisitor(tree, locus).visit(tree)
+    return locus
