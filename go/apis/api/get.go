@@ -90,7 +90,6 @@ func getAPIs(pkgs map[string][]types.Object) []API {
 
 				switch typ := o.Type().Underlying().(type) {
 				case *types.Basic:
-
 					switch typ.Kind() {
 					case types.UntypedBool:
 						api.Type = types.Typ[types.Bool].String()

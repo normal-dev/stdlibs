@@ -13,7 +13,7 @@ class TestExtractor(unittest.TestCase):
     def test_global(self):
         tests = [
             # {
-            #     "file": "global/CodeType.py",
+            #     "file": "global/Expr.py",
             #     "expected": [{
             #         "ident": "types.CodeType",
             #         "line": 3
@@ -38,7 +38,7 @@ class TestExtractor(unittest.TestCase):
     # def test_def(self):
     #     tests = [
     #         {
-    #             "file": "def/CodeType.py",
+    #             "file": "def/Expr.py",
     #             "expected": [{
     #                 "ident": "sys.api_version",
     #                 "line": 4

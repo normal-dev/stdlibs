@@ -42,15 +42,13 @@ def resolve_attr(node: nodes.Attribute):
 def resolve_import_from(import_node: nodes.ImportFrom, modname: str):
     root = import_node.root()
     if isinstance(root, nodes.Module):
-        try:
-            return root.relative_to_absolute_name(
-                modname, level=import_node.level
-            )
-        except TooManyLevelsError:
-            return modname
-    return modname
+        return root.relative_to_absolute_name(
+            modname, level=import_node.level
+        )
 
-def find_locus(import_node: nodes.Import, tree: nodes.Module, locus: []):
+    return None
+
+def find_locus(import_node: nodes.NodeNG, tree: nodes.Module, locus: []):
     name_node: nodes.Name
     for name_node in tree.nodes_of_class(nodes.Name):
         frame = name_node.frame()
@@ -67,7 +65,7 @@ def find_locus(import_node: nodes.Import, tree: nodes.Module, locus: []):
                     "line": name_node.lineno
                 })
             # types.CodeType
-            if isinstance(name_node.parent, nodes.Attribute):
+            if isinstance(name_node.parent, nodes.Attribute) and isinstance(import_node, nodes.Import):
                 ident = resolve_attr(name_node.parent)
                 locus.append({
                     "ident": import_node.real_name(name_node.name) + "." + ident,
