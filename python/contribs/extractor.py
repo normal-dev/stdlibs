@@ -61,9 +61,10 @@ def find_locus(import_node: nodes.NodeNG, tree: nodes.Module, locus: []):
             if isinstance(import_node, nodes.ImportFrom):
                 mod = resolve_import_from(import_node, import_node.modname)
                 locus.append({
-                    "ident": mod + "." + import_node.modname,
+                    "ident": mod + "." + name_node.name,
                     "line": name_node.lineno
                 })
+
             # types.CodeType
             if isinstance(name_node.parent, nodes.Attribute) and isinstance(import_node, nodes.Import):
                 ident = resolve_attr(name_node.parent)

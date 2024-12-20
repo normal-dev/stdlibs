@@ -12,18 +12,26 @@ def open_test(test):
 class TestExtractor(unittest.TestCase):
     def test_global(self):
         tests = [
-            # {
-            #     "file": "global/Expr.py",
-            #     "expected": [{
-            #         "ident": "types.CodeType",
-            #         "line": 3
-            #     }]
-            # },
             {
-                "file": "global/?.py",
+                "file": "global/Expr.py",
                 "expected": [{
+                    "ident": "types.CodeType",
+                    "line": 3
+                }]
+            },
+            {
+                "file": "global/Call.py",
+                "expected":
+                    [{
                     "ident": "datetime.timedelta",
                     "line": 3
+                }]
+            },
+            {
+                "file": "def/Expr.py",
+                "expected": [{
+                    "ident": "sys.api_version",
+                    "line": 4
                 }]
             }
         ]
@@ -34,24 +42,6 @@ class TestExtractor(unittest.TestCase):
             expected = test["expected"]
 
             self.assertListEqual(actual, expected)
-
-    # def test_def(self):
-    #     tests = [
-    #         {
-    #             "file": "def/Expr.py",
-    #             "expected": [{
-    #                 "ident": "sys.api_version",
-    #                 "line": 4
-    #             }]
-    #         }
-    #     ]
-
-    #     for test in tests:
-    #         src = open_test(test["file"])
-    #         actual = extractor.extract(src)
-    #         expected = test["expected"]
-
-    #         self.assertListEqual(actual, expected)
 
 if __name__ == '__main__':
     unittest.main()
