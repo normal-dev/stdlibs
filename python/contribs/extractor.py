@@ -33,7 +33,9 @@ class ImportVisitor():
     def visit_Import(self, import_node: nodes.Import):
         find_locus(import_node=import_node, tree=self.tree, locus=self.locus)
 
-    def visit_ImportFrom(self, import_node: nodes.Import):
+    def visit_ImportFrom(self, import_node: nodes.ImportFrom):
+        r = import_node.root()
+        n = r.relative_to_absolute_name(import_node, level=import_node.level)
         find_locus(import_node=import_node, tree=self.tree, locus=self.locus)
 
 def resolve_attr(node: nodes.Attribute):

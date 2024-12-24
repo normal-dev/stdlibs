@@ -53,6 +53,15 @@ for repo in repos:
 
         f = file_content.decoded_content.decode("utf-8")
         locus = extractor.extract(f)
-        print(locus)
+
+        doc = {
+          "locus": locus,
+          "code": f,
+          "filepath": file_content.path,
+          "filename": file_content.name,
+          "repo_name": repo.name,
+          "repo_owner": repo.owner.login
+        }
+        mongo_coll.insert_one(doc)
 
 gh_client.close()

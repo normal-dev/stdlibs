@@ -13,26 +13,39 @@ class TestExtractor(unittest.TestCase):
     def test_global(self):
         tests = [
             {
-                "file": "global/Expr.py",
-                "expected": [{
-                    "ident": "types.CodeType",
-                    "line": 3
-                }]
+                "file": "Assign.py",
+                "expected": [
+                    {
+                        "ident": "sys.abiflags",
+                        "line": 3
+                    },
+                    {
+                        "ident": "sys.base_prefix",
+                        "line": 5
+                    }
+                ]
             },
             {
-                "file": "global/Call.py",
-                "expected":
-                    [{
-                    "ident": "datetime.timedelta",
-                    "line": 3
-                }]
+                "file": "Attribute.py",
+                "expected": [
+                    {
+                        "ident": "types.CodeType",
+                        "line": 7
+                    },
+                    {
+                        "ident": "sys.api_version",
+                        "line": 5
+                    },
+                ]
             },
             {
-                "file": "def/Expr.py",
-                "expected": [{
-                    "ident": "sys.api_version",
-                    "line": 4
-                }]
+                "file": "Call.py",
+                "expected": [
+                    {
+                        "ident": "datetime.timedelta",
+                        "line": 3
+                    }
+                ]
             }
         ]
 
