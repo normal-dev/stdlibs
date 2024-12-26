@@ -34,6 +34,18 @@ def get_repos(client):
 
   return repos
 
+def save_licenses():
+  mongo_coll.insert_one({
+    "_id": "_licenses",
+    "repos": [
+      {
+        "author": "Vincent Jacques",
+        "repo": ["PyGithub", "PyGithub"],
+        "type": "GNU General Public License v3.0"
+      }
+    ]
+  })
+
 auth = Auth.Token(GITHUB_ACCESS_TOKEN_CONTRIBS)
 gh_client = Github(auth=auth)
 
@@ -41,6 +53,11 @@ repos = get_repos(gh_client)
 
 repo: Repository.Repository
 for repo in repos:
+  mongo_coll.delete_many({
+    "repo_name": repo.name,
+    "repo_owner": repo.owner.login
+  })
+
   contents = repo.get_contents("")
   while contents:
       file_content = contents.pop(0)
@@ -54,14 +71,16 @@ for repo in repos:
         f = file_content.decoded_content.decode("utf-8")
         locus = extractor.extract(f)
 
-        doc = {
+        mongo_coll.insert_one({
           "locus": locus,
           "code": f,
           "filepath": file_content.path,
           "filename": file_content.name,
           "repo_name": repo.name,
           "repo_owner": repo.owner.login
-        }
-        mongo_coll.insert_one(doc)
+        })
 
+save_licenses()
+
+mongo_client.close()
 gh_client.close()
