@@ -45,41 +45,41 @@ class ImportVisitor():
 
         find_locus(import_node=import_node, tree=self.tree, locus=self.locus)
 
-def resolve_qual_import(mod_name: str, name_node: nodes.Name):
-    if "." in mod_name:
-        spl = mod_name.split(".", 1)
+# Returns the first level import with the name nodes name
+def resolve_qual_import(import_name: str, name_node: nodes.Name):
+    if import_name is name_node.name:
+        return import_name
+
+    if "." in import_name:
+        spl = import_name.split(".", 1)
         return spl[0] + "." + spl[1]
 
-    return mod_name + "." + name_node.name
+    return import_name + "." + name_node.name
 
+# "import sys.stdlib_module_names as mod_names, ast.parse, datetime as d"
 def resolve_import(import_node: nodes.Import, name_node: nodes.Name):
     if isinstance(name_node.parent, nodes.Attribute):
-        return import_node.real_name(name_node.name)
+        mod_name = import_node.real_name(name_node.name)
+        return mod_name + "." + name_node.parent.attrname
 
+    "(sys.stdlib_module_namen, mod_names), (ast.parse, None)"
     for names in import_node.names:
         match names:
-            case (x, None):
-                mod_name = names[0](".")[0]
+            # "(sys, None) | (sys, s)"
+            case (x, None) | (x, name_node.name):
+                mod_name = names[0].split(".")[0]
                 if mod_name not in stdlib:
                     continue
 
                 return resolve_qual_import(names[0], name_node)
-            # Alias
-            case (x, name_node.name):
-                mod_name = names[0](".")[0]
-                if mod_name not in stdlib:
-                    continue
-
-                return resolve_qual_import(names[0], name_node)
-            case _:
-                raise Exception()
 
     return None
 
+# "from typing import Any, ClassVar, Union"
 def resolve_import_from(import_node: nodes.ImportFrom, name_node: nodes.Name):
-    # foo.bar
     return resolve_qual_import(import_node.modname, name_node)
 
+# Search for import and name node match
 def find_locus(import_node: nodes.NodeNG, tree: nodes.Module, locus: []):
     name_node: nodes.Name
     # For every "ast.Name"
@@ -107,8 +107,6 @@ def find_locus(import_node: nodes.NodeNG, tree: nodes.Module, locus: []):
                     "ident": ident,
                     "line": name_node.lineno
                 })
-
-
 
 def extract(src):
     locus = []
