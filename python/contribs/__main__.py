@@ -24,11 +24,18 @@ mongo_coll = mongo_db["python"]
 def get_repos(client):
   repos = []
   for repo in [
-    ["PyGithub", "PyGithub"]
+    ["PyGithub", "PyGithub"],
+    ["pylint-dev", "astroid"],
+    ["pylint-dev", "pylint"],
+    ["fastapi", "fastapi"],
+    ["tensorflow", "models"],
+    ["openai", "whisper"],
+    ["ansible", "ansible"]
   ]:
     repo_name = repo[0]
     repo_owner = repo[1]
 
+    print("repo: {}/{}".format(repo_name, repo_owner))
     repository = gh_client.get_repo(repo_owner + "/" + repo_name)
     repos.append(repository)
 
@@ -42,6 +49,36 @@ def save_licenses():
         "author": "Vincent Jacques",
         "repo": ["PyGithub", "PyGithub"],
         "type": "GNU General Public License v3.0"
+      },
+      {
+        "author": "Logilab, and astroid contributors",
+        "repo": ["pylint-dev", "astroid"],
+        "type": "LGPL-2.1 license"
+      },
+      {
+        "author": "Logilab and Pylint contributors",
+        "repo": ["pylint-dev", "astroid"],
+        "type": "GPL-2.0 license"
+      },
+      {
+        "author": "Sebastián Ramírez",
+        "repo": ["fastapi", "fastapi"],
+        "type": "MIT license"
+      },
+      {
+        "author": "Google LLC.",
+        "repo": ["tensorflow", "models"],
+        "type": "Apache License Version 2.0"
+      },
+      {
+        "author": "OpenAI",
+        "repo": ["openai", "whisper"],
+        "type": "MIT license"
+      },
+      {
+        "author": "Red Hat, Inc.",
+        "repo": ["ansible", "ansible"],
+        "type": "GPL-3.0 license"
       }
     ]
   })
@@ -53,6 +90,7 @@ repos = get_repos(gh_client)
 
 repo: Repository.Repository
 for repo in repos:
+
   mongo_coll.delete_many({
     "repo_name": repo.name,
     "repo_owner": repo.owner.login
@@ -69,7 +107,16 @@ for repo in repos:
           continue
 
         f = file_content.decoded_content.decode("utf-8")
-        locus = extractor.extract(f)
+        print("file: {}".format(filepath))
+        try:
+          locus = extractor.extract(f)
+          print("locus:", len(locus))
+        except Exception as error:
+          print("error:", error)
+          continue
+
+        if len(locus) is 0:
+          continue
 
         mongo_coll.insert_one({
           "locus": locus,
