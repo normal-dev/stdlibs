@@ -287,7 +287,7 @@ onMounted(async () => {
                 <v-icon
                   v-if="technology === 'python'"
                   color="dark"
-                  icon="mdi-nodejs"
+                  icon="mdi-language-python"
                   size="x-large" />
               </template>
               <v-card-title v-if="technology === 'go'">

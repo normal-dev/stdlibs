@@ -200,6 +200,7 @@ func findContribs(ctx context.Context) ([]contribution, error) {
 
 	f(ctx, "go")
 	f(ctx, "node")
+	f(ctx, "python")
 
 	return contribs, nil
 }
