@@ -84,3 +84,5 @@ mongo_coll.insert_one({
   "n_ns" : nsn,
   "ns" : ns
 })
+
+mongo_client.close()

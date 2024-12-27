@@ -46,10 +46,8 @@ class ImportVisitor():
         find_locus(import_node=import_node, tree=self.tree, locus=self.locus)
 
 # Returns the first level import with the name nodes name
-def resolve_qual_import(import_name: str, name_node: nodes.Name):
-    if import_name is name_node.name:
-        return import_name
-
+def resolve_qual_import(import_name: str, name_node: nodes.Name, from_import=False):
+    # "datetime.time()"
     if "." in import_name:
         spl = import_name.split(".", 1)
         return spl[0] + "." + spl[1]

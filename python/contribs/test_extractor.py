@@ -69,19 +69,23 @@ class TestExtractor(unittest.TestCase):
                  "expected": [
                     {
                         "ident": "collections.abc",
-                        "line": 5
-                    },
-                    {
-                        "ident": "collections.abc",
                         "line": 6
                     },
                     {
-                        "ident": "typing.Any",
+                        "ident": "collections.abc",
                         "line": 7
                     },
                     {
-                        "ident": "ast.parse",
+                        "ident": "typing.Any",
                         "line": 8
+                    },
+                    {
+                        "ident": "ast.parse",
+                        "line": 9
+                    },
+                    {
+                        "ident": "datetime.datetime",
+                        "line": 10
                     }
                 ]
             }
