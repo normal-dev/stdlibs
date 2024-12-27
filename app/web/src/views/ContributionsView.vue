@@ -20,6 +20,7 @@ setDocumentTitle(technology)
 const techMapper = new Map()
 techMapper.set('go', 'go')
 techMapper.set('node', 'javascript')
+techMapper.set('python', 'python')
 
 // Namespaces
 const namespaces = ref([])
@@ -283,6 +284,11 @@ onMounted(async () => {
                   color="dark"
                   icon="mdi-nodejs"
                   size="x-large" />
+                <v-icon
+                  v-if="technology === 'python'"
+                  color="dark"
+                  icon="mdi-nodejs"
+                  size="x-large" />
               </template>
               <v-card-title v-if="technology === 'go'">
                 Go ({{ catalogue.version }})
@@ -290,11 +296,17 @@ onMounted(async () => {
               <v-card-title v-if="technology === 'node'">
                 Node.js ({{ catalogue.version }})
               </v-card-title>
+              <v-card-title v-if="technology === 'python'">
+                Python ({{ catalogue.version }})
+              </v-card-title>
               <v-card-subtitle v-if="technology === 'go'">
                 by The Go Authors
               </v-card-subtitle>
               <v-card-subtitle v-if="technology === 'node'">
                 by OpenJS Foundation
+              </v-card-subtitle>
+              <v-card-subtitle v-if="technology === 'python'">
+                by Python Software Foundation
               </v-card-subtitle>
             </v-card-item>
 
@@ -306,6 +318,10 @@ onMounted(async () => {
             <v-card-text v-if="technology === 'node'">
               Node.js is a cross-platform, open-source JavaScript runtime
               environment that can run on Windows, Linux, Unix, macOS, and more.
+            </v-card-text>
+            <v-card-text v-if="technology === 'python'">
+              Python is a programming language that lets you work more quickly
+              and integrate your systems more effectively.
             </v-card-text>
           </v-card>
 
@@ -436,7 +452,7 @@ onMounted(async () => {
                   Node.js documentation</a>
             </v-card-subtitle>
             <v-card-text
-              v-if="technology !== 'go' && technology !== 'node'">
+              v-if="technology !== 'go' && technology !== 'node' && technology !== 'python'">
               <p v-html="selectedApiDocumentation" />
             </v-card-text>
             <br>

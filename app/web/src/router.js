@@ -20,6 +20,11 @@ const routes = [
     component: () => import('./views/ContributionsView.vue')
   },
   {
+    path: '/python',
+    meta: { technology: 'python' },
+    component: () => import('./views/ContributionsView.vue')
+  },
+  {
     path: '/impressum',
     component: () => import('./views/ImpressumView.vue')
   },

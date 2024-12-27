@@ -28,6 +28,7 @@ document.title = 'stdlibs.com'
 
 // Contributions
 const XCodeViewer = defineAsyncComponent(() => import('../components/XCodeViewer.vue'))
+
 const contribs = await getRandomContributions()
 const contrib = nth(contribs, 0)
 const contribLocus = computed(() => {
@@ -41,12 +42,12 @@ const codeViewerlanguage = computed(() => {
     case 'cjs':
     case 'js':
       return 'javascript'
-
     case 'ts':
       return 'typescript'
-
     case 'go':
       return 'go'
+    case 'py':
+      return 'python'
   }
 
   return ''
@@ -61,21 +62,34 @@ const codeViewerLines = computed(() => {
 // Licenses
 const goLicenses = await getLicenses('go')
 const nodeLicenses = await getLicenses('node')
+const pythonLicenses = await getLicenses('python')
 // Merge and pass licenses to child components
-provide('licenses', mergeWith(goLicenses, nodeLicenses, (source, target) => {
-  if (isArray(source)) {
-    return source.concat(target)
-  }
+provide('licenses', mergeWith(
+  goLicenses,
+  nodeLicenses,
+  pythonLicenses,
+  (source, target) => {
+    if (isArray(source)) {
+      return source.concat(target)
+    }
 
-  return source
-}))
+    return source
+  }))
 
 // Catalogue
 const goCatalogue = ref({})
 const nodeCatalogue = ref({})
+const pythonCatalogue = ref({})
 onMounted(async () => {
-  goCatalogue.value = await getCatalogue('go')
-  nodeCatalogue.value = await getCatalogue('node')
+  Promise.all([
+    getCatalogue('go'),
+    getCatalogue('node'),
+    getCatalogue('python')
+  ]).then(([go, node, python]) => {
+    goCatalogue.value = go
+    nodeCatalogue.value = node
+    pythonCatalogue.value = python
+  })
 })
 </script>
 
@@ -226,7 +240,7 @@ onMounted(async () => {
           cols="12"
           lg="4">
           <v-card
-            disabled
+            to="/python"
             variant="text">
             <v-card-item>
               <template #prepend>
@@ -236,9 +250,7 @@ onMounted(async () => {
                   size="x-large" />
               </template>
               <v-card-title>
-                Python <v-chip size="x-small">
-                  Coming soon
-                </v-chip>
+                Python
               </v-card-title>
               <v-card-subtitle>
                 by Python Software Foundation
@@ -259,7 +271,7 @@ onMounted(async () => {
                 <v-icon
                   icon="mdi-package-variant-closed"
                   size="small"
-                  start />0 modules
+                  start />{{ pythonCatalogue.n_ns }} modules
               </v-chip>
               <v-chip
                 class="mt-2 mr-2"
@@ -269,7 +281,7 @@ onMounted(async () => {
                 <v-icon
                   icon="mdi-code-braces"
                   size="small"
-                  start />0 APIs
+                  start />{{ pythonCatalogue.n_apis }} APIs
               </v-chip>
               <v-chip
                 class="mt-2"
@@ -279,7 +291,7 @@ onMounted(async () => {
                 <v-icon
                   icon="mdi-source-fork"
                   size="small"
-                  start />0 repositories
+                  start />{{ pythonCatalogue.n_repos }} repositories
               </v-chip>
             </v-card-text>
           </v-card>

@@ -49,7 +49,7 @@ func mongoCollFromTech(tech, db string) (*mongo.Collection, error) {
 		mongoColl = mongoClient.Database(db).Collection("node")
 
 	case tech_python:
-		return nil, errors.New("not implemented")
+		mongoColl = mongoClient.Database(db).Collection("python")
 
 	default:
 		return nil, errors.New("can't find tech")

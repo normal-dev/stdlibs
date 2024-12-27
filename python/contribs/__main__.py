@@ -1,9 +1,12 @@
 import importlib
 import sys
 import inspect
-import os
+import os, glob
 import types
 import pathlib
+import subprocess
+import tempfile
+import shutil
 from github import Github
 from github import Auth
 from github import Repository
@@ -36,12 +39,13 @@ def get_repos(client):
     repo_owner = repo[1]
 
     print("repo: {}/{}".format(repo_name, repo_owner))
-    repository = gh_client.get_repo(repo_owner + "/" + repo_name)
+    repository = gh_client.get_repo(repo_name + "/" + repo_owner)
     repos.append(repository)
 
   return repos
 
 def save_licenses():
+  mongo_coll.delete_one({ "_id": "_licenses"})
   mongo_coll.insert_one({
     "_id": "_licenses",
     "repos": [
@@ -57,7 +61,7 @@ def save_licenses():
       },
       {
         "author": "Logilab and Pylint contributors",
-        "repo": ["pylint-dev", "astroid"],
+        "repo": ["pylint-dev", "pylint"],
         "type": "GPL-2.0 license"
       },
       {
@@ -83,51 +87,86 @@ def save_licenses():
     ]
   })
 
-auth = Auth.Token(GITHUB_ACCESS_TOKEN_CONTRIBS)
-gh_client = Github(auth=auth)
-
-repos = get_repos(gh_client)
-
-repo: Repository.Repository
-for repo in repos:
-
-  mongo_coll.delete_many({
-    "repo_name": repo.name,
-    "repo_owner": repo.owner.login
+def save_cat(contribsn, reposn):
+  mongo_coll.delete_one({ "_id": "_cat" })
+  mongo_coll.insert_one({
+    "_id": "_cat",
+    "n_contribs": contribsn,
+    "n_repos": reposn,
+    "vids": {}
   })
 
-  contents = repo.get_contents("")
-  while contents:
-      file_content = contents.pop(0)
-      if file_content.type == "dir":
-          contents.extend(repo.get_contents(file_content.path))
-      else:
-        filepath = pathlib.Path(file_content.name)
-        if filepath.suffix != ".py":
-          continue
+auth = Auth.Token(GITHUB_ACCESS_TOKEN_CONTRIBS)
+gh_client = Github(auth=auth)
+# Disable retrier
+gh_client.default_retry = 1
 
-        f = file_content.decoded_content.decode("utf-8")
-        print("file: {}".format(filepath))
-        try:
-          locus = extractor.extract(f)
-          print("locus:", len(locus))
-        except Exception as error:
-          print("error:", error)
-          continue
+repos = get_repos(gh_client)
+contribsn = 0
+repo: Repository.Repository
+for repo in repos:
+  with tempfile.TemporaryDirectory() as tmpdir:
+    repo_owner = repo.owner.login
+    repo_name = repo.name
 
-        if len(locus) is 0:
-          continue
+    tmpdir = tmpdir + "/" + repo_owner + "_" + repo_name
 
-        mongo_coll.insert_one({
-          "locus": locus,
-          "code": f,
-          "filepath": file_content.path,
-          "filename": file_content.name,
-          "repo_name": repo.name,
-          "repo_owner": repo.owner.login
-        })
+    # Delete existing contributions
+    mongo_coll.delete_many({
+      "repo_name": repo_name,
+      "repo_owner": repo_owner
+    })
+
+    subprocess.run([
+      "git",
+      "clone",
+      "-q",
+      "--depth=1",
+      "--no-tags",
+      "--filter=blob:limit=100k",
+      repo.clone_url,
+      tmpdir
+    ])
+    # Remove extraneous
+    shutil.rmtree(tmpdir + "/.git")
+
+    contribs = []
+    for root, _, filepaths in os.walk(tmpdir):
+      for file_path in filepaths:
+          if not file_path.endswith(".py"):
+            continue
+
+          file_name = os.path.basename(file_path)
+          try:
+            file_content = pathlib.Path(root + "/" + file_path).read_text()
+          except:
+            continue
+          print("repo: {}/{}: file: {}".format(repo_owner, repo_name, file_path))
+
+          try:
+            locus = extractor.extract(file_content)
+            print("repo: {}/{}: locus: {}".format(repo_owner, repo_name, len(locus)))
+          except Exception as error:
+            print("repo: {}/{}: error: {}".format(repo_owner, repo_name, error))
+            continue
+
+          if len(locus) == 0:
+            continue
+
+          contribs.append({
+            "locus": locus,
+            "code": file_content,
+            "filepath": file_path,
+            "filename": file_name,
+            "repo_name": repo_name,
+            "repo_owner": repo_owner
+          })
+          contribsn += 1
+
+    mongo_coll.insert_many(contribs)
 
 save_licenses()
+save_cat(contribsn=contribsn, reposn=len(repos))
 
 mongo_client.close()
 gh_client.close()

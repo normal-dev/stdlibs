@@ -386,8 +386,6 @@ func main() {
 	router.StaticFile("/favicon.png", "./website/favicon.png")
 	// Sitemap
 	router.StaticFile("/sitemap.xml", "./website/sitemap.xml")
-	// Ads
-	router.StaticFile("/e4ed80318d98f275b8df.txt", "./website/e4ed80318d98f275b8df.txt")
 
 	// Address
 	port := os.Getenv("PORT")

@@ -82,7 +82,8 @@ mongo_coll.insert_one({
   "_id" : "_cat",
   "n_apis" : apisn,
   "n_ns" : nsn,
-  "ns" : ns
+  "ns" : ns,
+  "version": sys.version.split()[0]
 })
 
 mongo_client.close()

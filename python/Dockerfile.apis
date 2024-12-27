@@ -1,0 +1,14 @@
+FROM python:3.9-slim
+
+RUN pip install pipreqs
+
+WORKDIR /
+COPY apis /apis
+COPY mongo /mongo
+
+WORKDIR /apis
+COPY *.py /
+RUN pipreqs .
+RUN pip install -r requirements.txt
+
+CMD ["python", "__main__.py"]
