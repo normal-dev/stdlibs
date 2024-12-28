@@ -6,6 +6,10 @@ WORKDIR /
 COPY contribs /contribs
 COPY mongo /mongo
 
+WORKDIR /mongo
+RUN pipreqs .
+RUN pip install -r requirements.txt
+
 WORKDIR /contribs
 COPY *.py /
 RUN pipreqs .

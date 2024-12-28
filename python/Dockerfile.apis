@@ -6,6 +6,10 @@ WORKDIR /
 COPY apis /apis
 COPY mongo /mongo
 
+WORKDIR /mongo
+RUN pipreqs .
+RUN pip install -r requirements.txt
+
 WORKDIR /apis
 COPY *.py /
 RUN pipreqs .

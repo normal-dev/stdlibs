@@ -45,39 +45,41 @@ def get_type(value):
     else:
         raise Exception("can't find type")
 
+apis = []
 ns = []
 nsn = 0
 apisn = 0
-for module_name in sys.stdlib_module_names:
-  if module_name.startswith("_") or module_name == "antigravity":
+for mod_name in sys.stdlib_module_names:
+  if mod_name.startswith("_") or mod_name == "antigravity":
     continue
-  if importlib.find_loader(module_name) is None:
+  if importlib.find_loader(mod_name) is None:
     continue
 
   mongo_coll.delete_many({
-    "ns" : module_name
+    "ns" : mod_name
   })
 
-  ns.append(module_name)
+  ns.append(mod_name)
   nsn += 1
 
-  module = importlib.import_module(module_name)
-  for name in dir(module):
-    if name.startswith("_"):
+  module = importlib.import_module(mod_name)
+  for ident in dir(module):
+    if ident.startswith("_"):
       continue
 
     apisn += 1
 
-    symbol = getattr(module, name)
+    symbol = getattr(module, ident)
     typ = get_type(symbol)
-    mongo_coll.insert_one({
-      "_id" : module_name + "." + name,
+    apis.append({
+      "_id" : mod_name + "." + ident,
       "doc" : "",
-      "name" : name,
-      "ns" : module_name,
+      "name" : ident,
+      "ns" : mod_name,
       "type" : typ
     })
 
+mongo_coll.insert_many(apis)
 mongo_coll.insert_one({
   "_id" : "_cat",
   "n_apis" : apisn,
