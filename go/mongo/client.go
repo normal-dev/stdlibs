@@ -13,7 +13,7 @@ const (
 	DB_CONTRIBS = "contribs"
 )
 
-var MongoClient *mongo.Client
+var Client *mongo.Client
 
 func init() {
 	uri := os.Getenv("MONGO_DB_URI")
@@ -28,5 +28,5 @@ func init() {
 		panic(err.Error())
 	}
 
-	MongoClient = client
+	Client = client
 }

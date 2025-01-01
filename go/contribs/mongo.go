@@ -7,4 +7,4 @@ const (
 	licenses_id  = "_licenses"
 )
 
-var mongoColl = mongo.MongoClient.Database("contribs").Collection("go")
+var mongoColl = mongo.Client.Database("contribs").Collection("go")

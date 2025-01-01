@@ -243,7 +243,7 @@ func rmExtraneous(logger *log.Logger, dir string) {
 }
 
 func saveCatalogue(ctx context.Context, contribsn, reposn int) error {
-	coll := mongo.MongoClient.Database(mongo.DB_CONTRIBS).Collection("go")
+	coll := mongo.Client.Database(mongo.DB_CONTRIBS).Collection("go")
 	if _, err := coll.DeleteOne(ctx, bson.M{"_id": catalogue_id}); err != nil {
 		return err
 	}

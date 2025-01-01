@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-var mongoColl = mongo.MongoClient.Database("apis").Collection("go")
+var mongoColl = mongo.Client.Database("apis").Collection("go")
 
 func newDoc(api goapis.API) bson.D {
 	doc := bson.D{
