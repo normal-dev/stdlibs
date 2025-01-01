@@ -45,7 +45,7 @@ go run . --no-client
 ```
 
 You should now be able open the browser and see some interface at
-`http://localhost:5173`. **Attention**: It's expected to receive the following
+`http://localhost:5173`. Note: It's expected to receive the following
 error:
 
 > invalid argument to Int63n
