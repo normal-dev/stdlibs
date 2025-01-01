@@ -17,6 +17,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
+	"github.com/normal-dev/stdlibs/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -35,12 +36,13 @@ const (
 
 func main() {
 	// Flags
+	// Don't build client. This should be used during development
 	noClient := flag.Bool("no-client", false, "")
 	flag.Parse()
 
 	router := gin.Default()
 
-	// Compression
+	// HTTP compression
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	// Trust all proxies
@@ -59,11 +61,11 @@ func main() {
 		MaxAge:           24 * time.Hour,
 	}))
 
-	// Resolve UTF-8 characters
+	// Router path defaults
 	router.UseRawPath = true
 	router.UnescapePathValues = false
 
-	// Website/client
+	// Eventually serve client
 	if ok := fromPtr(noClient); !ok {
 		router.Static("/assets", "./website/assets")
 		router.LoadHTMLGlob("./website/index.html")
@@ -95,7 +97,8 @@ func main() {
 
 		ctx.JSON(http.StatusOK, repos)
 	}))
-	// Generator, e. g. "/go/gen"
+
+	// Generator returns random contributions, e. g. "/go/gen"
 	router.GET("/api/gen", cache.CachePage(store, time.Hour*6, func(ctx *gin.Context) {
 		const maxcontribs = 1
 
@@ -168,6 +171,8 @@ func main() {
 			}
 		}
 
+		// TODO: Add Python
+
 		// Shuffle contributions
 		for i := range contribs {
 			j := rand.Intn(i + 1)
@@ -176,6 +181,7 @@ func main() {
 
 		ctx.JSON(http.StatusOK, contribs)
 	}))
+
 	// Licenses, e. g. "/node/licenses"
 	router.GET("/api/:tech/licenses", cache.CachePage(store, time.Hour*3, func(ctx *gin.Context) {
 		var (
@@ -189,7 +195,7 @@ func main() {
 			return
 		}
 
-		var lic license
+		var lic model.License
 		err = mongoColl.FindOne(ctx, bson.D{
 			{Key: "_id", Value: licenses_id},
 		}).Decode(&lic)
@@ -201,6 +207,7 @@ func main() {
 
 		ctx.JSON(http.StatusOK, lic)
 	}))
+
 	// Catalogue/namespaces, e. g. "/node"
 	router.GET("/api/:tech", cache.CachePage(store, time.Hour*12, func(ctx *gin.Context) {
 		// Union type of API and contributions catalogue
@@ -261,6 +268,7 @@ func main() {
 
 		ctx.JSON(http.StatusOK, c)
 	}))
+
 	// APIs, e. g. "/go/context"
 	router.GET("/api/:tech/:ns", cache.CachePage(store, time.Hour*12, func(ctx *gin.Context) {
 		var (
@@ -304,6 +312,7 @@ func main() {
 		}
 		ctx.JSON(http.StatusOK, apis)
 	}))
+
 	// Contributions, e. g. "/node/crypto/verify"
 	router.GET("/api/:tech/:ns/:api", func(ctx *gin.Context) {
 		var (
@@ -387,7 +396,7 @@ func main() {
 	// Sitemap
 	router.StaticFile("/sitemap.xml", "./website/sitemap.xml")
 
-	// Address
+	// Address and port
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
