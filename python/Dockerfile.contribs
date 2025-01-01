@@ -1,0 +1,10 @@
+FROM python:3.12
+
+WORKDIR /
+COPY contribs /contribs
+COPY mongo /mongo
+
+WORKDIR /contribs
+RUN pip install -r requirements.txt
+
+CMD ["python", "__main__.py"]

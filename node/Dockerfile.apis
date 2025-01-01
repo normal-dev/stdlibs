@@ -1,0 +1,13 @@
+FROM node:23.4.0
+
+WORKDIR /
+COPY apis /apis
+COPY mongo /mongo
+
+WORKDIR /mongo
+RUN npm ci
+
+WORKDIR /apis
+RUN npm ci
+
+CMD ["node", "index.mjs"]
