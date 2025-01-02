@@ -20,16 +20,18 @@ Depending on what you would like to work on, these dependencies are optional:
 - Python (and pip)
 
 If you would like to work on any contribution, a GitHub personal access token is
-required, which needs to passed as `GITHUB_ACCESS_TOKEN_CONTRIBS` flag.
+required, which needs to passed as `GITHUB_ACCESS_TOKEN_CONTRIBS` flag. This is 
+necessary to clone repositories.
 
-The easiest way to get started is to use the launch configurations for Visual
+The easiest way to get started is to use the debugging configurations for Visual
 Studio Code, which can be found inside `.vscode/launch.json`. If you don't use
 Visual Studio Code, consult the following sections.
 
 ### Web
 
 Web contains the frontend (or client) and the API server. Make sure the MongoDB
-deamon is running and serve the client first with:
+deamon is running at `mongodb://localhost:27017` (or provide an URI with the
+`MONGO_DB_URI` flag) and serve the client first with:
 
 ```shell
 cd app/web
@@ -44,21 +46,24 @@ cd app
 go run . --no-client
 ```
 
-You should now be able open the browser and see some interface at
+You should now be able open the browser and see some user interface at
 `http://localhost:5173`. Note: It's expected to receive the following
-error:
+error at this point:
 
 > invalid argument to Int63n
 
 That's because they are no contributions in your database. To add them, follow
-the "contributions" section.
+the next section.
 
 ### Contributions
 
 Every technology (Go, Node.js, etc.) has a Dockerfile named
 `Dockerfile.contribs`. These are used to build production container. While it's
 possible to use them for development as well, the recommended way is to use
-local compiler. Each contribution is written into your MongoDB database.
+local compiler. Each contribution is written into the MongoDB database.
+
+The following sections explain how to build contributions for each
+technology.
 
 #### Go
 
@@ -87,7 +92,9 @@ GITHUB_ACCESS_TOKEN_CONTRIBS=YOUR_PERSONAL_ACCESS_TOKEN python3 __main__.py
 ### APIs
 
 Similar to contributions, each API has it's own Dockerfile named
-`Dockerfile.apis`. Every API is written into your MongoDB database.
+`Dockerfile.apis`. Every API is written into the MongoDB database.
+
+The following sections explain how to build APIs for each technology.
 
 #### Go
 
@@ -106,7 +113,8 @@ npm start
 
 #### Python
 
-You might need to install `Tkinter` first (assuming Linux):
+You might need to install `Tkinter` first (assuming you are 
+using Linux):
 
 ```shell
 sudo apt install python3-tk -y
