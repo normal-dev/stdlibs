@@ -138,7 +138,7 @@ onMounted(async () => {
 
   // Advance lines of code navigation
   next = () => {
-    if (gt(
+    if (eq(
       cursor.value,
       subtract(size(lines), 1))
     ) {
@@ -208,11 +208,12 @@ onMounted(async () => {
   // Auto-advance if slideshow is enabled
   if (slideshow) {
     setInterval(() => {
-      if (gt(
+      if (eq(
         cursor.value,
         subtract(size(lines), 1))
       ) {
-        cursor.value = 0
+        // Reset cursor
+        cursor.value = -1
       }
 
       next()
