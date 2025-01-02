@@ -17,7 +17,6 @@ import {
   every,
   find,
   gt,
-  gte,
   isUndefined,
   nth,
   size,
@@ -209,11 +208,11 @@ onMounted(async () => {
   // Auto-advance if slideshow is enabled
   if (slideshow) {
     setInterval(() => {
-      if (gte(
+      if (gt(
         cursor.value,
-        subtract(size(lines), 1)
-      )) {
-        cursor.value -= 1
+        subtract(size(lines), 1))
+      ) {
+        cursor.value = 0
       }
 
       next()

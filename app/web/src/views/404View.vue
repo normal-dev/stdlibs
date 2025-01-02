@@ -10,12 +10,16 @@ setDocumentTitle('404')
 <template>
   <v-main>
     <v-container>
-      <p class="font-weight-bold">
-        404
-      </p>
-      <p>
-        Sorry, we can't find this page.
-      </p>
+      <v-card
+        flat
+        variant="text">
+        <v-card-title>
+          404
+        </v-card-title>
+        <v-card-text>
+          Sorry, we can't find this page.
+        </v-card-text>
+      </v-card>
     </v-container>
   </v-main>
 </template>

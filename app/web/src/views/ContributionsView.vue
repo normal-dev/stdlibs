@@ -24,14 +24,14 @@ import {
   find,
   reduce,
   eq,
-  nth,
   sortBy,
   isEmpty,
   filter,
   startsWith,
   some,
   size,
-  replace
+  replace,
+  head
 } from 'lodash'
 import TechnologyCard from '../components/TechnologyCard.vue'
 
@@ -58,7 +58,7 @@ techMapper.set('python', 'python')
 const namespaces = ref([])
 const namespacesHtmlElement = ref(null)
 const namespaceQuery = ref('')
-const filteredNamespaces = ref([])
+const filteredNamespaces = ref([]) // TODO: Use "computed"
 const isLoadingNamespaces = ref(false)
 const selectedNamespace = ref([])
 const toggleIsLoadingNamespaces = () => {
@@ -118,7 +118,7 @@ const findLines = locus => {
   return sortBy(reduce(locus, (lines, { ident, line }) => {
     if (eq(
       ident,
-      `${selectedNamespace.value}.${nth(selectedApi.value, 0)}`
+      `${selectedNamespace.value}.${head(selectedApi.value)}`
     )) {
       lines.push(line)
     }
@@ -159,18 +159,18 @@ onMounted(async () => {
   } else {
     // No namespace given, preselect first one
     namespacesHtmlElement.value.select(
-      nth(namespaces.value, 0),
-      nth(namespaces.value, 0)
+      head(namespaces.value),
+      head(namespaces.value)
     )
     // Update Url
     router.replace({
       query: {
         ...route.query,
-        ns: encodeURIComponent(nth(namespaces.value, 0))
+        ns: encodeURIComponent(head(namespaces.value))
       }
     })
 
-    setDocumentTitle(`${technology}/${nth(namespaces.value, 0)}`)
+    setDocumentTitle(`${technology}/${head(namespaces.value)}`)
   }
 
   // Resolving namespaces done
@@ -262,12 +262,12 @@ onMounted(async () => {
 
   watch(selectedApi, async () => {
     contributions.value = []
-    if (selectedApi.value.length === 0) {
+    if (isEmpty(selectedApi.value)) {
       return
     }
 
     selectedApiDocumentation.value = get(
-      find(apis.value, ['name', selectedApi.value.at(0)]),
+      find(apis.value, ['name', head(selectedApi.value)]),
       'doc'
     )
 
@@ -277,7 +277,7 @@ onMounted(async () => {
     router.replace({
       query: {
         ...route.query,
-        api: nth(selectedApi.value, 0),
+        api: head(selectedApi.value),
         page: undefined
       }
     })
@@ -286,7 +286,7 @@ onMounted(async () => {
 
   // Query for namespace
   watch(namespaceQuery, () => {
-    if (isEmpty(namespaceQuery.value, '')) {
+    if (isEmpty(namespaceQuery.value)) {
       filteredNamespaces.value = namespaces.value
       return
     }
@@ -294,7 +294,7 @@ onMounted(async () => {
     filteredNamespaces.value = filter(namespaces.value, namespace => {
       return or(
         startsWith(namespace, namespaceQuery.value),
-        eq(namespace, nth(selectedNamespace.value, 0))
+        eq(namespace, head(selectedNamespace.value))
       )
     })
   })
@@ -309,7 +309,7 @@ onMounted(async () => {
     filteredApis.value = filter(apis.value, api => {
       return or(
         startsWith(api.name, apisQuery.value),
-        eq(api.name, nth(selectedApi.value, 0))
+        eq(api.name, head(selectedApi.value))
       )
     })
   })
@@ -364,7 +364,7 @@ onMounted(async () => {
                 <v-list-item
                   v-for="namespace in filteredNamespaces"
                   :key="namespace"
-                  :disabled="eq(namespace, nth(selectedNamespace))"
+                  :disabled="eq(namespace, head(selectedNamespace))"
                   :value="namespace">
                   {{ namespace }}
                 </v-list-item>
@@ -404,7 +404,7 @@ onMounted(async () => {
                 <v-list-item
                   v-for="api in filteredApis"
                   :key="api._id"
-                  :disabled="eq(api.name, nth(selectedApi))"
+                  :disabled="eq(api.name, head(selectedApi))"
                   :value="api.name">
                   {{ api.name }} <v-chip
                     class="ma-2"
@@ -430,10 +430,10 @@ onMounted(async () => {
             v-if="!isEmpty(selectedApi)"
             flat>
             <v-card-title>
-              {{ nth(selectedNamespace, 0) }}
+              {{ head(selectedNamespace) }}
             </v-card-title>
             <v-card-subtitle>
-              {{ nth(selectedApi, 0) }} ({{ pagination.total }})
+              {{ head(selectedApi) }} ({{ pagination.total }})
             </v-card-subtitle>
             <v-card-text>
               <div v-show="eq(technology, 'go')">
@@ -441,7 +441,7 @@ onMounted(async () => {
                   icon="mdi-api"
                   size="x-small" /> <a
                     class="text-medium-emphasis"
-                    :href="`https://pkg.go.dev//${nth(selectedNamespace, 0)}#${nth(selectedApi, 0)}`"
+                    :href="`https://pkg.go.dev//${head(selectedNamespace)}#${head(selectedApi)}`"
                     target="_blank">
                     Go doc</a>
               </div>
@@ -451,7 +451,7 @@ onMounted(async () => {
                   icon="mdi-api"
                   size="x-small" /> <a
                     class="text-medium-emphasis"
-                    :href="`https://nodejs.org/api/${replace(nth(selectedNamespace, 0), 'node:', '')}.html`"
+                    :href="`https://nodejs.org/api/${replace(head(selectedNamespace), 'node:', '')}.html`"
                     target="_blank">
                     Node.js documentation</a>
               </div>
@@ -461,7 +461,7 @@ onMounted(async () => {
                   icon="mdi-api"
                   size="x-small" /> <a
                     class="text-medium-emphasis"
-                    :href="`https://docs.python.org/3/library/${nth(selectedNamespace, 0)}.html`"
+                    :href="`https://docs.python.org/3/library/${head(selectedNamespace)}.html`"
                     target="_blank">
                     Python documentation</a>
               </div>
@@ -486,6 +486,7 @@ onMounted(async () => {
               :lines="findLines(contribution.locus)" />
           </div>
 
+          <!-- Pagination -->
           <v-pagination
             v-if="!isEmpty(contributions)"
             v-model="pagination.page"

@@ -74,6 +74,14 @@ provide('setDocumentTitle', title => {
         fluid>
         <v-btn
           color="dark"
+          href="https://github.com/normal-dev/stdlibs"
+          size="small"
+          target="_blank"
+          variant="plain">
+          Source code
+        </v-btn>
+        <v-btn
+          color="dark"
           size="small"
           to="/impressum"
           variant="plain">
