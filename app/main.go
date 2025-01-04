@@ -52,7 +52,6 @@ func main() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
 			"http://localhost:5173",
-			"https://stdlibs-app-m3pnp47eca-uc.a.run.app",
 			"https://www.stdlibs.com",
 			"https://stdlibs.com",
 		},
