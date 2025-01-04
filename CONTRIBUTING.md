@@ -115,7 +115,7 @@ share the same algorithm:
    repositories to the database
 4. Save license information for each repository to database
 
-### Schema
+### Schemas
 
 #### Locus
 
@@ -140,7 +140,6 @@ share the same algorithm:
 ```
 
 Example:
-
 
 ```json
 {
