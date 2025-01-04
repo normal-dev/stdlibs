@@ -20,5 +20,5 @@ code, file name, and file path.
 
 ## Locus
 
-A locus is part of [contribution](#contribution) consists of an [API](#API) and
+A locus is part of [contribution](#contribution) and consists of an [API](#API) and
 a line number of its occurrence.
