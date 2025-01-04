@@ -109,8 +109,7 @@ def save_cat(contribsn, reposn):
     mongo_coll.insert_one({
         "_id": "_cat",
         "n_contribs": contribsn,
-        "n_repos": reposn,
-        "vids": {}
+        "n_repos": reposn
     })
 
 auth = Auth.Token(GITHUB_ACCESS_TOKEN_CONTRIBS)

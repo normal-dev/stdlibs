@@ -36,7 +36,7 @@ const (
 
 func main() {
 	// Flags
-	// Don't build client. This should be used during development
+	// Don't use built client. This should be used during development
 	noClient := flag.Bool("no-client", false, "")
 	flag.Parse()
 
@@ -211,13 +211,12 @@ func main() {
 	router.GET("/api/:tech", cache.CachePage(store, time.Hour*12, func(ctx *gin.Context) {
 		// Union type of API and contributions catalogue
 		type cat struct {
-			NAPIs     int               `json:"n_apis" bson:"n_apis"`
-			NContribs int               `json:"n_contribs" bson:"n_contribs"`
-			NNs       int               `json:"n_ns" bson:"n_ns"`
-			NRepos    int               `json:"n_repos" bson:"n_repos"`
-			Ns        []string          `json:"ns" bson:"ns"`
-			Version   string            `json:"version" bson:"version"`
-			Vids      map[string]string `json:"vids" bson:"vids"`
+			NAPIs     int      `json:"n_apis" bson:"n_apis"`
+			NContribs int      `json:"n_contribs" bson:"n_contribs"`
+			NNs       int      `json:"n_ns" bson:"n_ns"`
+			NRepos    int      `json:"n_repos" bson:"n_repos"`
+			Ns        []string `json:"ns" bson:"ns"`
+			Version   string   `json:"version" bson:"version"`
 		}
 
 		var c cat

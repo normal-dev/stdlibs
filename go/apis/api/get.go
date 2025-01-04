@@ -20,7 +20,6 @@ type API struct {
 	Ns    string  `json:"ns" bson:"ns"`                           // compress/lzw, net, bytes
 	Type  string  `json:"type" bson:"type"`                       // struct, error, int, map, func
 	Value *string `json:"value,omitempty" bson:"value,omitempty"` // NewFlagSet(os.Args[0], ExitOnError), 512, errors.New("bytes.Buffer: too large")
-	Video *string `json:"video,omitempty" bson:"video,omitempty"`
 }
 
 func (api API) ID() string {
