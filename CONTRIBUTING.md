@@ -196,6 +196,7 @@ Example:
             ],
             "type": "MIT license"
         }
+    ]
 }
 ```
 
