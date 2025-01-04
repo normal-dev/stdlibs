@@ -20,7 +20,7 @@ Depending on what you would like to work on, these dependencies are optional:
 - Python (and pip)
 
 If you would like to work on any contribution, a GitHub personal access token is
-required, which needs to passed as `GITHUB_ACCESS_TOKEN_CONTRIBS` flag. This is 
+required, which needs to passed as `GITHUB_ACCESS_TOKEN_CONTRIBS` flag. This is
 necessary to clone repositories.
 
 The easiest way to get started is to use the debugging configurations for Visual
@@ -113,7 +113,7 @@ npm start
 
 #### Python
 
-You might need to install `Tkinter` first (assuming you are 
+You might need to install `Tkinter` first (assuming you are
 using Linux):
 
 ```shell
@@ -133,3 +133,7 @@ python3 __main__.py
 stdlibs.com is running on production using Google Cloud Run instances. The web
 app is a service and each contribution and API is a manually invoked job.
 `seo/repos` is build via buildpacks.
+
+## Glossary
+
+See [glossary](GLOSSARY.md).
