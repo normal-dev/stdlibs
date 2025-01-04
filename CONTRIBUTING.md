@@ -85,7 +85,7 @@ See [glossary](GLOSSARY.md#contribution) for an explanation.
 
 ### General process
 
-To clone multiple repositories, a GitHub personal access token needs to
+To clone multiple repositories, a GitHub personal access token needs to be 
 passed as `GITHUB_ACCESS_TOKEN_CONTRIBS` environmental variable.
 
 Ideally, every programming language (or technology) handler is written in its
