@@ -1,8 +1,8 @@
-FROM golang:1.23.0
+FROM golang:1.25.1
 
 # Client
 WORKDIR /
-ENV NODE_VERSION=23.4.0
+ENV NODE_VERSION=25.1.0
 RUN apt install -y curl
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 ENV NVM_DIR=/root/.nvm

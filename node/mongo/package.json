@@ -2,7 +2,7 @@
   "name": "mongo-node",
   "version": "0.0.0",
   "engines": {
-    "node": "23.4.0"
+    "node": "25.1.0"
   },
   "scripts": {},
   "author": "",
