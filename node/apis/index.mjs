@@ -1,3 +1,4 @@
+import { builtinModules as builtin } from 'node:module'
 import { version } from 'node:process'
 import mongoClient from '../mongo/client.mjs'
 import apis from './apis.mjs'
@@ -45,11 +46,26 @@ for (const [api, type] of apis) {
   apisn++
 }
 
+const stdlib = builtin
+  .filter(module => !module.startsWith('_'))
+  .map(module => `node:${module}`)
+
+// Modules, which can't be imported, are added to the Docker image
+let i = stdlib.length
+while (i--) {
+  try {
+    await import(stdlib[i])
+  } catch (error) {
+    console.warn(error)
+    stdlib.splice(i, 1)
+  }
+}
+
 await mongoColl.insertOne({
   _id: CAT_ID,
   n_apis: apisn,
-  n_ns: apis.length,
-  ns: apis,
+  n_ns: stdlib.length,
+  ns: stdlib,
   version: version.substring(1)
 })
 
