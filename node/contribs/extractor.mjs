@@ -1,15 +1,30 @@
+import { builtinModules as builtin } from 'node:module'
 import { parse } from '@babel/parser'
 // eslint-disable-next-line no-unused-vars
 import { NodePath } from '@babel/traverse'
 import babelTypes from '@babel/types'
 import { createRequire } from 'module'
-import stdlib from '../apis/apis.mjs'
 
 // eslint-disable-next-line no-unused-vars
 const { Node, Identifier } = babelTypes
 
 const require = createRequire(import.meta.url)
 const traverse = require('@babel/traverse').default
+
+const stdlib = builtin
+  .filter(module => !module.startsWith('_'))
+  .map(module => `node:${module}`)
+
+// Modules, which can't be imported, are added to the Docker image
+let i = stdlib.length
+while (i--) {
+  try {
+    await import(stdlib[i])
+  } catch (error) {
+    console.warn(error)
+    stdlib.splice(i, 1)
+  }
+}
 
 const newLocus = (module, ident, line, _) => ({
   ident: `${module}.${ident}`,
