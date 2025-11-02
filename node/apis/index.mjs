@@ -46,15 +46,11 @@ for (const [api, type] of apis) {
   apisn++
 }
 
-const stdlib = builtin
-  .filter(module => !module.startsWith('_'))
-  .map(module => `node:${module}`)
-
 await mongoColl.insertOne({
   _id: CAT_ID,
   n_apis: apisn,
-  n_ns: stdlib.length,
-  ns: stdlib,
+  n_ns: apis.length,
+  ns: apis,
   version: version.substring(1)
 })
 
