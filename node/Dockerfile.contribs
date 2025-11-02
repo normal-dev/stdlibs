@@ -1,7 +1,6 @@
 FROM node:25.1.0
 
 WORKDIR /
-COPY apis /apis
 COPY contribs /contribs
 COPY mongo /mongo
 
