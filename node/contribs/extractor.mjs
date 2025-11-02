@@ -3,17 +3,13 @@ import { parse } from '@babel/parser'
 import { NodePath } from '@babel/traverse'
 import babelTypes from '@babel/types'
 import { createRequire } from 'module'
-import { builtinModules as builtin } from 'node:module'
+import stdlib from '../apis/apis.mjs'
 
 // eslint-disable-next-line no-unused-vars
 const { Node, Identifier } = babelTypes
 
 const require = createRequire(import.meta.url)
 const traverse = require('@babel/traverse').default
-
-export const stdlib = builtin
-  .filter(module => !module.startsWith('_'))
-  .map(module => `node:${module}`)
 
 const newLocus = (module, ident, line, _) => ({
   ident: `${module}.${ident}`,
