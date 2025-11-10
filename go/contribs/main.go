@@ -19,7 +19,11 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-var gopkgs = make(map[string]struct{})
+var (
+	gopkgs = make(map[string]struct{})
+
+	mu sync.Mutex
+)
 
 func init() {
 	for _, api := range goapis.Get() {
@@ -73,9 +77,9 @@ func worker(
 	contribsn,
 	filesn *int,
 ) {
-	var mu sync.Mutex
-	for repo := range repos {
+	f := func(repo *github.Repository) {
 		wg.Add(1)
+		defer wg.Done()
 
 		repoOwner := repo.Owner.GetLogin()
 		repoName := repo.GetName()
@@ -89,7 +93,7 @@ func worker(
 		repoDir, err := os.MkdirTemp("", fmt.Sprintf("%s_%s", repoOwner, repoName))
 		if err != nil {
 			logErr(logger, err)
-			continue
+			return
 		}
 
 		logger.Printf("cloning: %s", repo.GetCloneURL())
@@ -104,7 +108,7 @@ func worker(
 		).Run(); err != nil {
 			logErr(logger, err)
 			logErr(logger, os.RemoveAll(repoDir))
-			continue
+			return
 		}
 
 		rmExtraneous(logger, repoDir)
@@ -166,14 +170,14 @@ func worker(
 		}
 
 		// Remove temporary repository directory
-		go logErr(logger, os.RemoveAll(repoDir))
+		checkErr(os.RemoveAll(repoDir))
 
 		logger.Printf("contribs: %d", len(contribs))
 		logger.Printf("locus: %d", locusn)
 		logger.Printf("files: %d", gofilesn)
 
 		if len(contribs) == 0 {
-			continue
+			return
 		}
 
 		// Delete existing contributions
@@ -185,8 +189,9 @@ func worker(
 		// Save new contributions
 		_, err = mongoColl.InsertMany(ctx, contribs)
 		checkErr(err)
-
-		wg.Done()
+	}
+	for repo := range repos {
+		f(repo)
 	}
 }
 
